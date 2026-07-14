@@ -1,0 +1,49 @@
+/* ===== Design tokens ===== */
+:root {
+  --teal: #0b5563;
+  --teal-deep: #083e48;
+  --teal-bright: #2fb7a6;
+  --ink: #0f1416;
+  --paper: #f4f1e9;
+  --paper-dim: #ded9cc;
+  --on-teal: #f4f1e9;
+  --on-ink: #f4f1e9;
+  --on-paper: #0f1416;
+
+  --font-display: "Space Grotesk", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --maxw: 1200px;
+  --pad-x: clamp(1.25rem, 5vw, 5rem);
+  --section-y: clamp(4rem, 12vh, 9rem);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--on-paper);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
