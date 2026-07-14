@@ -11,11 +11,15 @@
   --on-ink: #f4f1e9;
   --on-paper: #0f1416;
 
+  /* Toolbar / menu — logo green accent with dark ink text */
+  --nav-bg: #7ac585;
+  --nav-fg: #06322d;
+
   --font-display: "Space Grotesk", system-ui, sans-serif;
   --font-body: "Inter", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
-  --maxw: 1200px;
+  --maxw: 1600px;
   --pad-x: clamp(1.25rem, 5vw, 5rem);
   --section-y: clamp(4rem, 12vh, 9rem);
 }
@@ -30,6 +34,10 @@ html {
   scroll-behavior: smooth;
   scroll-snap-type: y proximity;
   scroll-padding-top: 68px;
+  scrollbar-width: none; /* Firefox — immersive, full-screen feel */
+}
+html::-webkit-scrollbar {
+  display: none; /* Chrome / Safari */
 }
 
 /* Lock page scroll while the full-screen menu overlay is open */
@@ -155,7 +163,7 @@ a {
   position: fixed;
   inset: 0 0 auto 0;
   z-index: 60;
-  background: color-mix(in srgb, var(--teal-deep) 82%, transparent);
+  background: color-mix(in srgb, var(--nav-bg) 90%, transparent);
   backdrop-filter: blur(10px);
   transition: background 0.3s ease;
 }
@@ -185,7 +193,7 @@ a {
   font-weight: 700;
   font-size: clamp(1rem, 3.5vw, 1.15rem);
   letter-spacing: -0.01em;
-  color: var(--on-teal-deep);
+  color: var(--nav-fg);
 }
 
 /* Menu toggle (hamburger → ✕), always visible, above the overlay */
@@ -208,7 +216,7 @@ a {
   width: 24px;
   height: 2px;
   margin-inline: auto;
-  background: var(--on-teal-deep);
+  background: var(--nav-fg);
   transition: transform 0.3s ease, opacity 0.3s ease;
 }
 .nav.is-open .nav__toggle-bar:nth-child(1) {
@@ -232,7 +240,7 @@ a {
   align-items: flex-start;
   gap: clamp(0.4rem, 2vh, 1.25rem);
   padding: 0 var(--pad-x);
-  background: var(--teal-deep);
+  background: var(--nav-bg);
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.45s ease, visibility 0.45s ease;
@@ -247,7 +255,7 @@ a {
   font-size: clamp(2.4rem, 9vw, 5rem);
   line-height: 1.05;
   letter-spacing: -0.02em;
-  color: var(--on-teal-deep);
+  color: var(--nav-fg);
   opacity: 0;
   transform: translateY(28px);
   transition: opacity 0.5s ease, transform 0.5s ease, color 0.2s ease;
@@ -270,7 +278,7 @@ a {
 }
 .nav__links a:hover,
 .nav__links a[aria-current="true"] {
-  color: var(--teal);
+  color: var(--paper);
 }
 /* CTA reads as a plain menu item inside the overlay */
 .nav__cta {
