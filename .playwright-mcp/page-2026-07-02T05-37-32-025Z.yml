@@ -1,0 +1,396 @@
+- generic [ref=e3]:
+  - heading "Kedro-Viz" [level=1] [ref=e4]
+  - generic [ref=e5]:
+    - list [ref=e6]:
+      - listitem [ref=e7]:
+        - button "Kedro Viz logo and link" [ref=e8] [cursor=pointer]:
+          - img [ref=e9]
+      - link "View your pipeline" [ref=e11] [cursor=pointer]:
+        - /url: /
+        - listitem [ref=e12]:
+          - button "View your pipeline" [ref=e13]:
+            - img [ref=e14]
+            - generic: Flowchart
+      - link "View your workflow" [ref=e16] [cursor=pointer]:
+        - /url: /workflow
+        - listitem [ref=e17]:
+          - button "View your workflow" [ref=e18]:
+            - img [ref=e19]
+            - generic: Workflow
+    - list [ref=e21]:
+      - listitem [ref=e22]:
+        - button "Change to light theme" [ref=e23] [cursor=pointer]:
+          - img [ref=e24]
+          - generic: Toggle theme
+      - listitem [ref=e26]:
+        - button "Publish and share" [ref=e27] [cursor=pointer]:
+          - img [ref=e28]
+          - generic: Publish and share
+      - listitem [ref=e31]:
+        - button "Change the settings flags" [ref=e32] [cursor=pointer]:
+          - img [ref=e33]
+          - generic: Settings
+  - generic [ref=e44]:
+    - generic [ref=e45]:
+      - generic [ref=e46]:
+        - button "__default__" [ref=e49] [cursor=pointer]:
+          - generic [ref=e50]: __default__
+          - img [ref=e52]
+        - generic [ref=e54]:
+          - search [ref=e56]:
+            - generic [ref=e57]: Search
+            - generic:
+              - img
+            - textbox "Search" [ref=e60]
+          - generic [ref=e61]:
+            - tree [ref=e66]:
+              - treeitem "assign_and_index" [ref=e67]:
+                - generic "assign_and_index" [ref=e70]:
+                  - img [ref=e71]
+                  - button "assign_and_index" [ref=e73]:
+                    - generic [ref=e74]: assign_and_index
+                  - generic [ref=e75] [cursor=pointer]:
+                    - checkbox [checked] [ref=e76]
+                    - img [ref=e77]
+              - treeitem "detect_puncta" [ref=e79]:
+                - generic "detect_puncta" [ref=e82]:
+                  - img [ref=e83]
+                  - button "detect_puncta" [ref=e85]:
+                    - generic [ref=e86]: detect_puncta
+                  - generic [ref=e87] [cursor=pointer]:
+                    - checkbox [checked] [ref=e88]
+                    - img [ref=e89]
+              - treeitem "discover_images" [ref=e91]:
+                - generic "discover_images" [ref=e94]:
+                  - img [ref=e95]
+                  - button "discover_images" [ref=e97]:
+                    - generic [ref=e98]: discover_images
+                  - generic [ref=e99] [cursor=pointer]:
+                    - checkbox [checked] [ref=e100]
+                    - img [ref=e101]
+              - treeitem "measure_puncta" [ref=e103]:
+                - generic "measure_puncta" [ref=e106]:
+                  - img [ref=e107]
+                  - button "measure_puncta" [ref=e109]:
+                    - generic [ref=e110]: measure_puncta
+                  - generic [ref=e111] [cursor=pointer]:
+                    - checkbox [checked] [ref=e112]
+                    - img [ref=e113]
+              - treeitem "segment_cells" [ref=e115]:
+                - generic "segment_cells" [ref=e118]:
+                  - img [ref=e119]
+                  - button "segment_cells" [ref=e121]:
+                    - generic [ref=e122]: segment_cells
+                  - generic [ref=e123] [cursor=pointer]:
+                    - checkbox [checked] [ref=e124]
+                    - img [ref=e125]
+              - treeitem "subtract_background" [ref=e127]:
+                - generic "subtract_background" [ref=e130]:
+                  - img [ref=e131]
+                  - button "subtract_background" [ref=e133]:
+                    - generic [ref=e134]: subtract_background
+                  - generic [ref=e135] [cursor=pointer]:
+                    - checkbox [checked] [ref=e136]
+                    - img [ref=e137]
+              - treeitem "cell_index" [ref=e139]:
+                - generic "cell_index" [ref=e142]:
+                  - img [ref=e143]
+                  - button "cell_index" [ref=e145]:
+                    - generic [ref=e146]: cell_index
+                  - generic [ref=e147] [cursor=pointer]:
+                    - checkbox [checked] [ref=e148]
+                    - img [ref=e149]
+              - treeitem "cell_masks" [ref=e151]:
+                - generic "cell_masks" [ref=e154]:
+                  - img [ref=e155]
+                  - button "cell_masks" [ref=e157]:
+                    - generic [ref=e158]: cell_masks
+                  - generic [ref=e159] [cursor=pointer]:
+                    - checkbox [checked] [ref=e160]
+                    - img [ref=e161]
+              - treeitem "dextran_bgsub" [ref=e163]:
+                - generic "dextran_bgsub" [ref=e166]:
+                  - img [ref=e167]
+                  - button "dextran_bgsub" [ref=e169]:
+                    - generic [ref=e170]: dextran_bgsub
+                  - generic [ref=e171] [cursor=pointer]:
+                    - checkbox [checked] [ref=e172]
+                    - img [ref=e173]
+              - treeitem "parameters":
+                - generic:
+                  - generic:
+                    - generic "parameters":
+                      - img
+                      - button "parameters":
+                        - generic: parameters
+                      - generic:
+                        - checkbox [checked]
+              - treeitem "params:background":
+                - generic:
+                  - generic:
+                    - generic "params:background":
+                      - img
+                      - button "params:background":
+                        - generic: params:background
+                      - generic:
+                        - checkbox [checked]
+              - treeitem "params:channels":
+                - generic:
+                  - generic:
+                    - generic "params:channels":
+                      - img
+                      - button "params:channels":
+                        - generic: params:channels
+                      - generic:
+                        - checkbox [checked]
+              - treeitem "params:detection":
+                - generic:
+                  - generic:
+                    - generic "params:detection":
+                      - img
+                      - button "params:detection":
+                        - generic: params:detection
+                      - generic:
+                        - checkbox [checked]
+              - treeitem "params:image_dir":
+                - generic:
+                  - generic:
+                    - generic "params:image_dir":
+                      - img
+                      - button "params:image_dir":
+                        - generic: params:image_dir
+                      - generic:
+                        - checkbox [checked]
+              - treeitem "params:segmentation":
+                - generic:
+                  - generic:
+                    - generic "params:segmentation":
+                      - img
+                      - button "params:segmentation":
+                        - generic: params:segmentation
+                      - generic:
+                        - checkbox [checked]
+              - treeitem "params:um_per_px":
+                - generic:
+                  - generic:
+                    - generic "params:um_per_px":
+                      - img
+                      - button "params:um_per_px":
+                        - generic: params:um_per_px
+                      - generic:
+                        - checkbox [checked]
+              - treeitem "positions" [ref=e175]:
+                - generic "positions" [ref=e178]:
+                  - img [ref=e179]
+                  - button "positions" [ref=e181]:
+                    - generic [ref=e182]: positions
+                  - generic [ref=e183] [cursor=pointer]:
+                    - checkbox [checked] [ref=e184]
+                    - img [ref=e185]
+              - treeitem "puncta" [ref=e187]:
+                - generic "puncta" [ref=e190]:
+                  - img [ref=e191]
+                  - button "puncta" [ref=e193]:
+                    - generic [ref=e194]: puncta
+                  - generic [ref=e195] [cursor=pointer]:
+                    - checkbox [checked] [ref=e196]
+                    - img [ref=e197]
+              - treeitem "puncta_measurements" [ref=e199]:
+                - generic "puncta_measurements" [ref=e202]:
+                  - img [ref=e203]
+                  - button "puncta_measurements" [ref=e205]:
+                    - generic [ref=e206]: puncta_measurements
+                  - generic [ref=e207] [cursor=pointer]:
+                    - checkbox [checked] [ref=e208]
+                    - img [ref=e209]
+              - treeitem "parameters":
+                - generic:
+                  - generic:
+                    - generic "parameters":
+                      - img
+                      - button "parameters":
+                        - generic: parameters
+                      - generic:
+                        - checkbox [checked]
+              - treeitem "params:background":
+                - generic:
+                  - generic:
+                    - generic "params:background":
+                      - img
+                      - button "params:background":
+                        - generic: params:background
+                      - generic:
+                        - checkbox [checked]
+              - treeitem "params:channels":
+                - generic:
+                  - generic:
+                    - generic "params:channels":
+                      - img
+                      - button "params:channels":
+                        - generic: params:channels
+                      - generic:
+                        - checkbox [checked]
+              - treeitem "params:detection":
+                - generic:
+                  - generic:
+                    - generic "params:detection":
+                      - img
+                      - button "params:detection":
+                        - generic: params:detection
+                      - generic:
+                        - checkbox [checked]
+              - treeitem "params:image_dir":
+                - generic:
+                  - generic:
+                    - generic "params:image_dir":
+                      - img
+                      - button "params:image_dir":
+                        - generic: params:image_dir
+                      - generic:
+                        - checkbox [checked]
+              - treeitem "params:segmentation":
+                - generic:
+                  - generic:
+                    - generic "params:segmentation":
+                      - img
+                      - button "params:segmentation":
+                        - generic: params:segmentation
+                      - generic:
+                        - checkbox [checked]
+              - treeitem "params:um_per_px":
+                - generic:
+                  - generic:
+                    - generic "params:um_per_px":
+                      - img
+                      - button "params:um_per_px":
+                        - generic: params:um_per_px
+                      - generic:
+                        - checkbox [checked]
+            - generic [ref=e211]:
+              - separator [ref=e212]
+              - generic [ref=e215]:
+                - generic [ref=e216]:
+                  - heading "Filters" [level=2] [ref=e217]
+                  - button "Reset" [disabled] [ref=e218]
+                - list [ref=e219]:
+                  - listitem [ref=e220]:
+                    - heading "Element types Hide element types" [level=3] [ref=e221]:
+                      - generic "Element types" [ref=e222]:
+                        - button "Element types" [ref=e223]:
+                          - generic [ref=e224]: Element types
+                        - generic [ref=e225] [cursor=pointer]:
+                          - checkbox [checked] [ref=e226]
+                          - img [ref=e227]
+                        - button "Hide element types" [ref=e229] [cursor=pointer]: ▾
+                    - list [ref=e230]:
+                      - listitem "Nodes" [ref=e231]:
+                        - button "Nodes" [ref=e232]:
+                          - generic [ref=e233]: Nodes
+                        - generic [ref=e234]: "6"
+                        - generic [ref=e235] [cursor=pointer]:
+                          - checkbox [checked] [ref=e236]
+                          - img [ref=e237]
+                      - listitem "Datasets" [ref=e239]:
+                        - button "Datasets" [ref=e240]:
+                          - generic [ref=e241]: Datasets
+                        - generic [ref=e242]: "6"
+                        - generic [ref=e243] [cursor=pointer]:
+                          - checkbox [checked] [ref=e244]
+                          - img [ref=e245]
+                      - listitem "Parameters" [ref=e247]:
+                        - button "Parameters" [ref=e248]:
+                          - generic [ref=e249]: Parameters
+                        - generic [ref=e250]: "7"
+                        - generic [ref=e251] [cursor=pointer]:
+                          - checkbox [ref=e252]
+                          - img [ref=e253]
+                  - listitem [ref=e255]:
+                    - heading "Tags Hide tags" [level=3] [ref=e256]:
+                      - generic "Tags" [ref=e257]:
+                        - button "Tags" [ref=e258]:
+                          - generic [ref=e259]: Tags
+                        - generic [ref=e260] [cursor=pointer]:
+                          - checkbox [ref=e261]
+                          - img [ref=e262]
+                        - button "Hide tags" [disabled] [ref=e264] [cursor=pointer]: ▾
+                    - list
+      - navigation [ref=e265]:
+        - list [ref=e266]:
+          - listitem [ref=e267]:
+            - button "Hide menu" [ref=e268] [cursor=pointer]:
+              - img [ref=e269]
+              - generic: Hide menu
+          - listitem [ref=e271]:
+            - button "Hide text labels" [ref=e272] [cursor=pointer]:
+              - img [ref=e273]
+              - generic: Hide text labels
+          - listitem [ref=e275]:
+            - button "Turn data layers on" [disabled] [ref=e276]:
+              - img [ref=e277]
+              - generic: Show layers
+          - listitem [ref=e279]:
+            - button "Change flowchart orientation" [ref=e280] [cursor=pointer]:
+              - img [ref=e281]
+              - generic: Change orientation
+          - listitem [ref=e284]:
+            - button "Expand all modular pipelines" [ref=e285] [cursor=pointer]:
+              - img [ref=e286]
+              - generic: Expand pipelines
+          - listitem [ref=e288]:
+            - button "Export graph as SVG or PNG" [ref=e289] [cursor=pointer]:
+              - img [ref=e290]
+              - generic: Export visualisation
+        - list [ref=e292]:
+          - listitem [ref=e293]:
+            - button "Turn minimap off" [ref=e294] [cursor=pointer]:
+              - img [ref=e295]
+              - generic: Hide minimap
+          - listitem [ref=e297]:
+            - button "Zoom in" [ref=e298] [cursor=pointer]:
+              - img [ref=e299]
+              - generic: Zoom in
+          - listitem [ref=e301]:
+            - button "Zoom out" [ref=e302] [cursor=pointer]:
+              - img [ref=e303]
+              - generic: Zoom out
+          - listitem [ref=e305]:
+            - button "Reset zoom" [ref=e306] [cursor=pointer]:
+              - img [ref=e307]
+              - generic: Reset zoom
+          - listitem [ref=e309]:
+            - generic "Zoom level" [ref=e310]: 68%
+      - img [ref=e313]
+    - generic [ref=e341]:
+      - heading "Code block" [level=2] [ref=e342]
+      - code [ref=e344]
+    - generic [ref=e347]:
+      - generic [ref=e348]:
+        - img [ref=e349]:
+          - generic [ref=e357]:
+            - generic [ref=e358] [cursor=pointer]:
+              - generic: discover_images
+            - generic [ref=e361] [cursor=pointer]:
+              - generic: positions
+            - generic [ref=e364] [cursor=pointer]:
+              - generic: subtract_background
+            - generic [ref=e367] [cursor=pointer]:
+              - generic: segment_cells
+            - generic [ref=e370] [cursor=pointer]:
+              - generic: cell_masks
+            - generic [ref=e373] [cursor=pointer]:
+              - generic: dextran_bgsub
+            - generic [ref=e376] [cursor=pointer]:
+              - generic: detect_puncta
+            - generic [ref=e379] [cursor=pointer]:
+              - generic: puncta
+            - generic [ref=e382] [cursor=pointer]:
+              - generic: measure_puncta
+            - generic [ref=e385] [cursor=pointer]:
+              - generic: puncta_measurements
+            - generic [ref=e388] [cursor=pointer]:
+              - generic: assign_and_index
+            - generic [ref=e391] [cursor=pointer]:
+              - generic: cell_index
+        - button "Feedback for pipeline slicing" [ref=e394] [cursor=pointer]
+      - generic:
+        - img
