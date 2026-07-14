@@ -340,6 +340,18 @@ a {
   max-width: 30ch;
 }
 
+/* ===== Pipeline focus-area groups ===== */
+.pipeline-group + .pipeline-group {
+  margin-top: clamp(2.5rem, 6vh, 4rem);
+}
+.pipeline-group__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.5rem, 3.2vw, 2.4rem);
+  letter-spacing: -0.01em;
+  margin: 0 0 0.85rem;
+}
+
 /* ===== Numbered index list (shared: Focus + Pipeline) ===== */
 .index-list {
   list-style: none;
