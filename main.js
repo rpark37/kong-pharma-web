@@ -2,6 +2,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // Core nav behavior — always runs, independent of GSAP / reduced motion.
   initNav();
 
+  // Animated expand/collapse for the program-overview <details> accordions.
+  initProgramAccordions();
+
   // Hero 3D backdrop lives in hero3d.js (ES module + Three.js).
 
   const prefersReducedMotion = window.matchMedia(
@@ -43,6 +46,57 @@ document.addEventListener("DOMContentLoaded", () => {
     );
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") setOpen(false);
+    });
+  }
+
+  function initProgramAccordions() {
+    const reduce = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+    // Reduced motion (or no Web Animations API): keep the native instant toggle.
+    if (reduce || typeof Element.prototype.animate !== "function") return;
+
+    document.querySelectorAll("details.program").forEach((d) => {
+      const summary = d.querySelector("summary");
+      const content = d.querySelector(".program__content");
+      if (!summary || !content) return;
+
+      summary.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (d.dataset.animating) return;
+        d.dataset.animating = "1";
+        content.style.overflow = "hidden";
+
+        if (!d.open) {
+          d.open = true; // reveal + expose to assistive tech, then grow in
+          const h = content.scrollHeight;
+          const anim = content.animate(
+            [
+              { height: "0px", opacity: 0 },
+              { height: h + "px", opacity: 1 },
+            ],
+            { duration: 380, easing: "cubic-bezier(0.22, 1, 0.36, 1)" }
+          );
+          anim.onfinish = anim.oncancel = () => {
+            content.style.overflow = "";
+            delete d.dataset.animating;
+          };
+        } else {
+          const h = content.scrollHeight;
+          const anim = content.animate(
+            [
+              { height: h + "px", opacity: 1 },
+              { height: "0px", opacity: 0 },
+            ],
+            { duration: 300, easing: "cubic-bezier(0.4, 0, 0.2, 1)" }
+          );
+          anim.onfinish = anim.oncancel = () => {
+            d.open = false; // collapse + hide from assistive tech
+            content.style.overflow = "";
+            delete d.dataset.animating;
+          };
+        }
+      });
     });
   }
 
@@ -91,7 +145,6 @@ document.addEventListener("DOMContentLoaded", () => {
     gsap.utils
       .toArray([
         "#mission .eyebrow",
-        "#focus .eyebrow",
         "#pipeline .eyebrow",
         "#contact .eyebrow",
         ".contact__title",
