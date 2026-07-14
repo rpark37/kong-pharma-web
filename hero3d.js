@@ -30,6 +30,8 @@ function initThree(placeholderCanvas) {
   const hero = canvas.closest(".hero");
 
   const scene = new THREE.Scene();
+  // Depth fog: distant nodes dissolve into the hero's teal for real depth.
+  scene.fog = new THREE.Fog(0x44e0cc, 6.5, 13.5);
   const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
   camera.position.set(0, 0, 9);
 
@@ -42,7 +44,7 @@ function initThree(placeholderCanvas) {
   const DEEP = 0x0c6055;
 
   // ---- Nodes (atoms / neurons / cells), a few as pills (drugs) ----
-  const COUNT = 46;
+  const COUNT = 72;
   const nodeGeo = new THREE.IcosahedronGeometry(0.11, 1);
   const pillGeo = new THREE.CapsuleGeometry(0.09, 0.26, 4, 10);
   const nodeMat = new THREE.MeshBasicMaterial({
@@ -127,6 +129,12 @@ function initThree(placeholderCanvas) {
   const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
   let raf = null;
   let t0 = 0;
+  let scrollP = 0; // 0 at top of hero → 1 when scrolled a full viewport
+
+  function onScroll() {
+    const vh = window.innerHeight || 1;
+    scrollP = Math.min(1, Math.max(0, window.scrollY / vh));
+  }
 
   function resize() {
     const rect = canvas.getBoundingClientRect();
@@ -138,7 +146,11 @@ function initThree(placeholderCanvas) {
   function tick(seconds) {
     pointer.x += (pointer.tx - pointer.x) * 0.04;
     pointer.y += (pointer.ty - pointer.y) * 0.04;
-    group.rotation.y = seconds * 0.12 + pointer.x * 0.5;
+    // Scroll-coupling: dolly the camera into the cluster and fade out as the
+    // hero leaves — the scroll-driven feel of immersive sites.
+    camera.position.z = 9 - scrollP * 3.5;
+    canvas.style.opacity = String(1 - scrollP * 0.85);
+    group.rotation.y = seconds * 0.12 + pointer.x * 0.5 + scrollP * 0.6;
     group.rotation.x = Math.sin(seconds * 0.15) * 0.1 + pointer.y * 0.3;
     group.scale.setScalar(1 + Math.sin(seconds * 1.6) * 0.02); // heartbeat
     for (const s of signals) {
@@ -169,9 +181,11 @@ function initThree(placeholderCanvas) {
   }
 
   resize();
+  onScroll();
   tick(2.5); // one composed frame (also the reduced-motion still)
   start();
 
+  window.addEventListener("scroll", onScroll, { passive: true });
   window.addEventListener("resize", () => {
     resize();
     if (reduce) tick(2.5);
