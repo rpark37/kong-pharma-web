@@ -167,8 +167,6 @@ a {
   .nav__links a:not(.nav__cta) {
     display: none;
   }
-}
-@media (max-width: 560px) {
   .nav__wordmark {
     font-size: 1rem;
   }
@@ -351,6 +349,9 @@ a {
   opacity: 0;
 }
 
+.hero__headline .split-word {
+  display: inline-block;
+}
 .hero__headline .split-char {
   display: inline-block;
   will-change: transform;

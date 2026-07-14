@@ -33,13 +33,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
 
     if (headline) {
-      const split = new SplitText(headline, { type: "chars", charsClass: "split-char" });
+      const split = new SplitText(headline, {
+        type: "words,chars",
+        charsClass: "split-char",
+        wordsClass: "split-word",
+      });
       gsap.set(headline, { autoAlpha: 1 });
       tl.from(split.chars, {
         yPercent: 120,
         opacity: 0,
         duration: 0.7,
         stagger: 0.02,
+        onComplete: () => split.revert(),
       });
     }
 
