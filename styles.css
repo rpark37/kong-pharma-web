@@ -345,3 +345,16 @@ a {
   opacity: 0.55;
   font-size: 0.85rem;
 }
+
+/* Elements animated in by GSAP start hidden (JS-enabled, motion-OK only). */
+.js-anim .anim-hidden {
+  opacity: 0;
+}
+
+.hero__headline .split-char {
+  display: inline-block;
+  will-change: transform;
+}
+.hero__headline {
+  overflow: hidden;
+}
