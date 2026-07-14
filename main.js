@@ -54,10 +54,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function initNavTheme() {
     const nav = document.querySelector("[data-nav]");
+    if (!nav) return;
+
+    // Frosted background appears once you scroll past the top.
+    const onScroll = () =>
+      nav.classList.toggle("nav--scrolled", window.scrollY > 60);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+
     const targets = document.querySelectorAll("main > section, .site-footer");
-    if (!nav || !targets.length || typeof IntersectionObserver !== "function") {
-      return;
-    }
+    if (!targets.length || typeof IntersectionObserver !== "function") return;
     // A section is "active" when it crosses the thin band just under the bar.
     const io = new IntersectionObserver(
       (entries) => {
@@ -106,6 +112,14 @@ document.addEventListener("DOMContentLoaded", () => {
             content.style.overflow = "";
             delete d.dataset.animating;
           };
+          // Reveal the just-opened copy: title per character, text per word.
+          if (window.gsap && window.SplitText) {
+            const title = content.querySelector(".program__title");
+            if (title) splitAndReveal(title, "chars");
+            content
+              .querySelectorAll(".program__lead, .program__h3, p")
+              .forEach((el) => splitAndReveal(el, "words"));
+          }
         } else {
           const h = content.scrollHeight;
           const anim = content.animate(
@@ -125,111 +139,104 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Split an element and reveal its parts (masked rise + fade), then revert to
+  // clean, selectable text. mode "chars" = per character, "words" = per word.
+  function splitAndReveal(el, mode) {
+    const split = new SplitText(
+      el,
+      mode === "chars"
+        ? { type: "words,chars", mask: "chars", charsClass: "split-char", wordsClass: "split-word" }
+        : { type: "lines,words", mask: "lines", wordsClass: "split-word", linesClass: "split-line" }
+    );
+    const parts = mode === "chars" ? split.chars : split.words;
+    el.classList.remove("anim-hidden");
+    gsap.set(el, { autoAlpha: 1 });
+    gsap.from(parts, {
+      yPercent: 100,
+      opacity: 0,
+      ease: "power3.out",
+      duration: mode === "chars" ? 0.5 : 0.6,
+      stagger: mode === "chars" ? 0.015 : 0.03,
+      onComplete: () => split.revert(),
+    });
+  }
+
+  // Reveal an element the first time it scrolls into view.
+  function revealOnScroll(el, mode) {
+    if (!el) return;
+    el.classList.add("anim-hidden");
+    ScrollTrigger.create({
+      trigger: el,
+      start: "top 85%",
+      once: true,
+      onEnter: () => splitAndReveal(el, mode),
+    });
+  }
+
   function initAnimations() {
     document.documentElement.classList.add("js-anim");
 
-    // ---- Intro / hero ----
-    const headline = document.querySelector('.hero__headline[data-split="chars"]');
-    const heroBits = gsap.utils.toArray([
-      "#hero .eyebrow",
-      "#hero .hero__mission",
-      "#hero .btn",
-      "#hero .hero__scrollcue",
-    ]);
-    heroBits.forEach((el) => el.classList.add("anim-hidden"));
+    // ---- Intro / hero (plays on load) ----
+    const headline = document.querySelector(".hero__headline");
+    const heroEyebrow = document.querySelector("#hero .eyebrow");
+    const heroMission = document.querySelector("#hero .hero__mission");
+    const heroTail = gsap.utils.toArray(["#hero .btn", "#hero .hero__scrollcue"]);
+    [headline, heroEyebrow, heroMission, ...heroTail].forEach(
+      (el) => el && el.classList.add("anim-hidden")
+    );
 
     const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
 
-    if (headline) {
-      const split = new SplitText(headline, {
-        type: "words,chars",
-        charsClass: "split-char",
-        wordsClass: "split-word",
-      });
-      gsap.set(headline, { autoAlpha: 1 });
-      tl.from(split.chars, {
-        yPercent: 120,
-        opacity: 0,
-        duration: 0.7,
-        stagger: 0.02,
-        onComplete: () => split.revert(),
-      });
+    if (heroEyebrow) {
+      const s = new SplitText(heroEyebrow, { type: "chars", mask: "chars", charsClass: "split-char" });
+      heroEyebrow.classList.remove("anim-hidden");
+      gsap.set(heroEyebrow, { autoAlpha: 1 });
+      tl.from(s.chars, { yPercent: 100, opacity: 0, duration: 0.4, stagger: 0.012, onComplete: () => s.revert() }, 0);
     }
+    if (headline) {
+      const s = new SplitText(headline, { type: "words,chars", mask: "chars", charsClass: "split-char", wordsClass: "split-word" });
+      headline.classList.remove("anim-hidden");
+      gsap.set(headline, { autoAlpha: 1 });
+      tl.from(s.chars, { yPercent: 110, opacity: 0, duration: 0.6, stagger: 0.02, onComplete: () => s.revert() }, 0.15);
+    }
+    if (heroMission) {
+      const s = new SplitText(heroMission, { type: "lines,words", mask: "lines", wordsClass: "split-word" });
+      heroMission.classList.remove("anim-hidden");
+      gsap.set(heroMission, { autoAlpha: 1 });
+      tl.from(s.words, { yPercent: 100, opacity: 0, duration: 0.5, stagger: 0.03, onComplete: () => s.revert() }, "-=0.25");
+    }
+    tl.to(heroTail, { autoAlpha: 1, y: 0, duration: 0.6, stagger: 0.12 }, "-=0.2")
+      .from(heroTail, { y: 20, duration: 0.6, stagger: 0.12 }, "<");
 
-    tl.to(
-      heroBits,
-      { opacity: 1, y: 0, duration: 0.6, stagger: 0.12 },
-      "-=0.3"
-    ).from(
-      heroBits,
-      { y: 20, duration: 0.6, stagger: 0.12 },
-      "<"
+    // ---- Titles: per character ----
+    [
+      "#mission .eyebrow",
+      "#pipeline .eyebrow",
+      "#contact .eyebrow",
+      ".pipeline-group__title",
+      "#pipeline .index-title",
+      ".contact__title",
+    ].forEach((sel) =>
+      gsap.utils.toArray(sel).forEach((el) => revealOnScroll(el, "chars"))
     );
 
-    // ---- Section headings reveal as each section enters ----
-    gsap.utils
-      .toArray([
-        "#mission .eyebrow",
-        "#pipeline .eyebrow",
-        "#contact .eyebrow",
-        ".contact__title",
-      ])
-      .forEach((el) => {
-        el.classList.add("anim-hidden");
-        gsap.to(el, {
-          opacity: 1,
-          y: 0,
-          duration: 0.6,
-          ease: "power3.out",
-          scrollTrigger: { trigger: el, start: "top 88%" },
-        });
-        gsap.from(el, {
-          y: 24,
-          duration: 0.6,
-          ease: "power3.out",
-          scrollTrigger: { trigger: el, start: "top 88%" },
-        });
-      });
+    // ---- Other text: per word ----
+    [
+      ".mission__statement",
+      ".pipeline-group__desc",
+      "#pipeline .index-desc",
+      ".contact__list li",
+    ].forEach((sel) =>
+      gsap.utils.toArray(sel).forEach((el) => revealOnScroll(el, "words"))
+    );
 
-    // ---- Mission: masked line reveal ----
-    const mission = document.querySelector('.mission__statement[data-split="lines"]');
-    if (mission) {
-      const mSplit = new SplitText(mission, {
-        type: "lines",
-        linesClass: "reveal-line-inner",
-      });
-      // Wrap each line so it can be clipped.
-      mSplit.lines.forEach((line) => {
-        const wrap = document.createElement("span");
-        wrap.className = "reveal-line";
-        line.parentNode.insertBefore(wrap, line);
-        wrap.appendChild(line);
-      });
-      gsap.set(mission, { autoAlpha: 1 });
-      gsap.from(mSplit.lines, {
-        yPercent: 110,
-        duration: 0.8,
-        ease: "power3.out",
-        stagger: 0.12,
-        scrollTrigger: { trigger: mission, start: "top 80%" },
-      });
-    }
-
-    // ---- Numbered index items (Focus + Pipeline) ----
-    gsap.utils.toArray(".index-item").forEach((item) => {
-      item.classList.add("anim-hidden");
-      gsap.to(item, {
+    // ---- Index numbers fade in ----
+    gsap.utils.toArray("#pipeline .index-num").forEach((n) => {
+      n.classList.add("anim-hidden");
+      gsap.to(n, {
         opacity: 1,
-        y: 0,
-        duration: 0.7,
-        ease: "power3.out",
-        scrollTrigger: { trigger: item, start: "top 85%" },
-      });
-      gsap.from(item, {
-        y: 40,
-        duration: 0.7,
-        ease: "power3.out",
-        scrollTrigger: { trigger: item, start: "top 85%" },
+        duration: 0.5,
+        scrollTrigger: { trigger: n, start: "top 88%", once: true },
       });
     });
 
@@ -240,15 +247,13 @@ document.addEventListener("DOMContentLoaded", () => {
         opacity: 0,
         duration: 0.4,
         ease: "back.out(1.7)",
-        scrollTrigger: { trigger: tag, start: "top 90%" },
+        scrollTrigger: { trigger: tag, start: "top 90%", once: true },
       });
     });
 
     // ---- Active nav link highlighting ----
-    const navLinks = gsap.utils.toArray("[data-nav-link]");
-    navLinks.forEach((link) => {
-      const id = link.getAttribute("href");
-      const section = document.querySelector(id);
+    gsap.utils.toArray("[data-nav-link]").forEach((link) => {
+      const section = document.querySelector(link.getAttribute("href"));
       if (!section) return;
       ScrollTrigger.create({
         trigger: section,

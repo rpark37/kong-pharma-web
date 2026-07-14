@@ -164,6 +164,12 @@ a {
   inset: 0 0 auto 0;
   z-index: 60;
   background: transparent;
+  transition: background 0.4s ease, backdrop-filter 0.4s ease;
+}
+/* Frosted panel appears once scrolled away from the top */
+.nav--scrolled {
+  background: color-mix(in srgb, var(--nav-bg) 16%, transparent);
+  backdrop-filter: blur(12px);
 }
 /* Entrance: brand + toggle fade/slide in on load */
 @keyframes navIn {
@@ -208,6 +214,11 @@ a {
 .nav__mark {
   height: 38px;
   width: auto;
+  transition: filter 0.35s ease;
+}
+/* Lift the mark over the dark sections */
+.nav--light .nav__mark {
+  filter: brightness(1.25) saturate(1.1);
 }
 .nav__wordmark {
   font-family: var(--font-display);
@@ -367,7 +378,6 @@ a {
 .hero__headline {
   margin: 0.5rem 0 1.5rem;
   max-width: 16ch;
-  overflow: hidden;
 }
 .hero__mission {
   margin-bottom: 2.25rem;
@@ -538,17 +548,14 @@ a {
   opacity: 0;
 }
 
-.hero__headline .split-word {
-  display: inline-block;
-}
-.hero__headline .split-char {
+/* Split-text parts (titles per char, body per word) */
+.split-char,
+.split-word {
   display: inline-block;
   will-change: transform;
 }
-
-.reveal-line-inner {
+.split-line {
   display: block;
-  will-change: transform;
 }
 
 /* ===== Pipeline program detail (expandable) ===== */
