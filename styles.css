@@ -243,6 +243,78 @@ a {
   background: var(--nav-fg);
 }
 
+/* Toolbar actions group (language + menu) */
+.nav__actions {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: clamp(0.6rem, 1.6vw, 1.1rem);
+}
+.nav__lang {
+  position: relative;
+}
+.nav__lang-btn {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  color: var(--nav-fg);
+  background: none;
+  border: 1px solid color-mix(in srgb, var(--nav-fg) 40%, transparent);
+  border-radius: 999px;
+  padding: 0.32rem 0.7rem;
+  cursor: pointer;
+  transition: color 0.35s ease, border-color 0.35s ease, background 0.2s ease;
+}
+.nav__lang-btn:hover {
+  background: color-mix(in srgb, var(--nav-fg) 8%, transparent);
+}
+.nav--light .nav__lang-btn {
+  color: var(--on-teal-deep);
+  border-color: color-mix(in srgb, var(--on-teal-deep) 40%, transparent);
+}
+.nav__lang-menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  list-style: none;
+  margin: 0;
+  padding: 0.4rem;
+  min-width: 9.5rem;
+  background: var(--teal-deep);
+  border-radius: 12px;
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.28);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-6px);
+  transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s ease;
+}
+.nav__lang.is-open .nav__lang-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+}
+.nav__lang-menu button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: 0;
+  color: var(--on-teal-deep);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.nav__lang-menu button:hover {
+  background: color-mix(in srgb, var(--on-teal-deep) 12%, transparent);
+}
+.nav__lang-menu button[aria-current="true"] {
+  color: var(--teal);
+  font-weight: 600;
+}
+
 /* Menu toggle (hamburger → ✕), always visible, above the overlay */
 .nav__toggle {
   position: relative;

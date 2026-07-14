@@ -18,28 +18,47 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <a href="#hero" class="skip-link">Skip to content</a>
+    <a href="#hero" class="skip-link" data-i18n="skip">Skip to content</a>
     <header class="nav" data-nav>
       <div class="nav__inner container">
         <a class="nav__brand" href="#hero" aria-label="Kong's Pharmaceutical Co. — home">
           <img src="assets/kongs-mark.png" alt="" class="nav__mark" />
           <span class="nav__wordmark">Kong's Pharmaceutical</span>
         </a>
-        <button
-          class="nav__toggle"
-          type="button"
-          aria-label="Menu"
-          aria-expanded="false"
-          aria-controls="nav-menu"
-        >
-          <span class="nav__toggle-bar"></span>
-          <span class="nav__toggle-bar"></span>
-          <span class="nav__toggle-bar"></span>
-        </button>
+        <div class="nav__actions">
+          <div class="nav__lang">
+            <button
+              class="nav__lang-btn"
+              type="button"
+              aria-haspopup="true"
+              aria-expanded="false"
+              aria-label="Change language"
+            >
+              EN
+            </button>
+            <ul class="nav__lang-menu" role="menu">
+              <li><button type="button" role="menuitem" data-lang="en">English</button></li>
+              <li><button type="button" role="menuitem" data-lang="zh">中文</button></li>
+              <li><button type="button" role="menuitem" data-lang="es">Español</button></li>
+              <li><button type="button" role="menuitem" data-lang="ko">한국어</button></li>
+            </ul>
+          </div>
+          <button
+            class="nav__toggle"
+            type="button"
+            aria-label="Menu"
+            aria-expanded="false"
+            aria-controls="nav-menu"
+          >
+            <span class="nav__toggle-bar"></span>
+            <span class="nav__toggle-bar"></span>
+            <span class="nav__toggle-bar"></span>
+          </button>
+        </div>
         <nav class="nav__links" id="nav-menu" aria-label="Primary">
-          <a href="#mission" data-nav-link>Mission</a>
-          <a href="#pipeline" data-nav-link>Pipeline</a>
-          <a href="#contact" data-nav-link class="nav__cta">Contact</a>
+          <a href="#mission" data-nav-link data-i18n="nav.mission">Mission</a>
+          <a href="#pipeline" data-nav-link data-i18n="nav.pipeline">Pipeline</a>
+          <a href="#contact" data-nav-link class="nav__cta" data-i18n="nav.contact">Contact</a>
         </nav>
       </div>
     </header>
@@ -48,20 +67,20 @@
         <canvas class="hero__canvas" aria-hidden="true"></canvas>
         <div class="container hero__inner">
           <p class="eyebrow">Kong's Pharmaceutical Co.</p>
-          <h1 class="display hero__headline" data-split="chars">
+          <h1 class="display hero__headline" data-split="chars" data-i18n="hero.headline">
             Endocrine &amp; Oncology Drug Innovation
           </h1>
-          <p class="lead hero__mission">
+          <p class="lead hero__mission" data-i18n="hero.mission">
             Developing cutting-edge small-molecule medicines to aid patient recovery.
           </p>
-          <a href="#contact" class="btn btn--light">Get in touch</a>
-          <div class="hero__scrollcue" aria-hidden="true">Scroll</div>
+          <a href="#contact" class="btn btn--light" data-i18n="hero.cta">Get in touch</a>
+          <div class="hero__scrollcue" aria-hidden="true" data-i18n="hero.scroll">Scroll</div>
         </div>
       </section>
       <section id="mission" class="section section--ink mission">
         <div class="container">
-          <h2 class="eyebrow">Our Mission</h2>
-          <p class="display mission__statement" data-split="lines">
+          <h2 class="eyebrow" data-i18n="mission.eyebrow">Our Mission</h2>
+          <p class="display mission__statement" data-split="lines" data-i18n="mission.statement">
             We develop endocrine and oncology therapies from small-molecule compounds —
             working to transform cancer into a manageable, chronic condition through
             effective, less-toxic, and accessible treatments.
@@ -70,10 +89,10 @@
       </section>
       <section id="pipeline" class="section section--teal pipeline">
         <div class="container">
-          <h2 class="eyebrow">Pipeline</h2>
+          <h2 class="eyebrow" data-i18n="pipeline.eyebrow">Pipeline</h2>
           <div class="pipeline-group">
-            <h3 class="pipeline-group__title">Endocrine</h3>
-            <p class="pipeline-group__desc">
+            <h3 class="pipeline-group__title" data-i18n="grp.endo">Endocrine</h3>
+            <p class="pipeline-group__desc" data-i18n="grp.endo.desc">
               Supporting an aging population — including sexual-health therapies
               for men and women — by optimizing the endocrine system.
             </p>
@@ -82,12 +101,12 @@
               <span class="index-num">01</span>
               <div class="index-body">
                 <h4 class="index-title">CR-067</h4>
-                <p class="index-desc">Treating ED through a combination approach.</p>
-                <span class="status-tag">Phase 1 · 2025</span>
+                <p class="index-desc" data-i18n="cr067.desc">Treating ED through a combination approach.</p>
+                <span class="status-tag" data-i18n="tag.phase1">Phase 1 · 2025</span>
                 <details class="program">
-                  <summary class="program__summary">Program overview</summary>
+                  <summary class="program__summary" data-i18n="prog.overview">Program overview</summary>
                   <div class="program__content">
-                    <p>
+                    <p data-i18n="cr067.p1">
                       As the global population ages, the demand for endocrine support
                       to improve quality of life, especially in sexual health, is
                       growing. Erectile dysfunction (ED) is a common condition that
@@ -97,7 +116,7 @@
                       erections is normal, persistent ED can indicate underlying health
                       concerns that require medical attention.
                     </p>
-                    <p>
+                    <p data-i18n="cr067.p2">
                       Popular treatments, like Viagra and Cialis, have proven to be
                       effective in the treatment of erectile dysfunction patients.
                       However, through prolonged dosing, patients reported both
@@ -108,7 +127,7 @@
                       sexual desire modulator to restore men's sexual function as they
                       age.
                     </p>
-                    <p>
+                    <p data-i18n="cr067.p3">
                       The use of CR-067 tablets aims to decrease the effective dosage
                       for the treatment of erectile dysfunction while also minimizing
                       the potential side effects caused by current drugs on the market
@@ -122,12 +141,12 @@
               <span class="index-num">03</span>
               <div class="index-body">
                 <h4 class="index-title">Estrogen Prodrug</h4>
-                <p class="index-desc">Alternative to estrogen replacement therapies.</p>
-                <span class="status-tag">In development</span>
+                <p class="index-desc" data-i18n="estr.desc">Alternative to estrogen replacement therapies.</p>
+                <span class="status-tag" data-i18n="tag.dev">In development</span>
                 <details class="program">
-                  <summary class="program__summary">Program overview</summary>
+                  <summary class="program__summary" data-i18n="prog.overview">Program overview</summary>
                   <div class="program__content">
-                    <p>
+                    <p data-i18n="estr.p1">
                       Estrogen is a female sex hormone that regulates several
                       systems in the body. It helps regulate heart, bone, and
                       cognitive function. Its main purpose is the regulation of the
@@ -136,7 +155,7 @@
                       cycle, and plays an important role in pregnancy. The main
                       sources of estrogen are the ovaries and adrenal glands.
                     </p>
-                    <p>
+                    <p data-i18n="estr.p2">
                       For women, the onset of menopause brings a significant drop in
                       estrogen, leading to menopausal symptoms and sexual
                       dysfunction. Traditional estrogen replacement therapies raise
@@ -153,8 +172,8 @@
             </ol>
           </div>
           <div class="pipeline-group">
-            <h3 class="pipeline-group__title">Oncology</h3>
-            <p class="pipeline-group__desc">
+            <h3 class="pipeline-group__title" data-i18n="grp.onco">Oncology</h3>
+            <p class="pipeline-group__desc" data-i18n="grp.onco.desc">
               Developing therapies that suppress cancer-cell nutrient uptake —
               effective, less toxic, and accessible worldwide.
             </p>
@@ -163,12 +182,12 @@
               <span class="index-num">02</span>
               <div class="index-body">
                 <h4 class="index-title">K-119</h4>
-                <p class="index-desc">Small-molecule oral bladder-cancer therapy.</p>
-                <span class="status-tag">IND · H2 2025</span>
+                <p class="index-desc" data-i18n="k119.desc">Small-molecule oral bladder-cancer therapy.</p>
+                <span class="status-tag" data-i18n="tag.ind">IND · H2 2025</span>
                 <details class="program">
-                  <summary class="program__summary">Program overview</summary>
+                  <summary class="program__summary" data-i18n="prog.overview">Program overview</summary>
                   <div class="program__content">
-                    <p>
+                    <p data-i18n="k119.p1">
                       Cancer treatments currently on the market are known for their
                       high toxicity and side effects, including hair loss and
                       fatigue. Through extensive research, we have developed a
@@ -178,7 +197,7 @@
                       dose-dependent response, leading to increased cancer cell
                       suppression through targeted suppression of the Rac1 pathway.
                     </p>
-                    <p>
+                    <p data-i18n="k119.p2">
                       Our coated, extended-release formulation minimizes the drug's
                       toxic effects while reinforcing our strategy to slow tumor
                       progression. From extensive in vitro and in vivo studies, we
@@ -194,12 +213,12 @@
               <span class="index-num">04</span>
               <div class="index-body">
                 <h4 class="index-title">XTL-152</h4>
-                <p class="index-desc">AI-supported therapeutic agent targeting Rac1 pathways.</p>
-                <span class="status-tag">In development</span>
+                <p class="index-desc" data-i18n="xtl.desc">AI-supported therapeutic agent targeting Rac1 pathways.</p>
+                <span class="status-tag" data-i18n="tag.dev">In development</span>
                 <details class="program">
-                  <summary class="program__summary">Program overview</summary>
+                  <summary class="program__summary" data-i18n="prog.overview">Program overview</summary>
                   <div class="program__content">
-                    <p>
+                    <p data-i18n="xtl.p1">
                       The Rac1 pathway is a key player in cancer cell growth,
                       movement, and survival. As a small GTPase in the Rho family,
                       Rac1 acts like a switch, controlling how cancer cells spread
@@ -207,7 +226,7 @@
                       Rac1 is being explored as a promising target for new cancer
                       therapies.
                     </p>
-                    <p>
+                    <p data-i18n="xtl.p2">
                       Utilizing AI-driven phenotyping and drug screening, we have
                       successfully identified and patented 30 distinct small-molecule
                       drugs for further evaluation against various cancer cell lines.
@@ -228,19 +247,19 @@
       </section>
       <section id="contact" class="section section--paper contact">
         <div class="container">
-          <p class="eyebrow">Contact</p>
-          <h2 class="display contact__title">Advancing patient recovery, together.</h2>
+          <p class="eyebrow" data-i18n="contact.eyebrow">Contact</p>
+          <h2 class="display contact__title" data-i18n="contact.title">Advancing patient recovery, together.</h2>
           <ul class="contact__list">
             <li>
-              <span class="contact__label">Phone</span>
+              <span class="contact__label" data-i18n="label.phone">Phone</span>
               <a href="tel:+16037166789">(603)-716-6789</a>
             </li>
             <li>
-              <span class="contact__label">Email</span>
+              <span class="contact__label" data-i18n="label.email">Email</span>
               <a href="mailto:yanpingk@kongspharmaceutical.com">yanpingk@kongspharmaceutical.com</a>
             </li>
             <li>
-              <span class="contact__label">Address</span>
+              <span class="contact__label" data-i18n="label.address">Address</span>
               <span>110 Canal Street, 4th Floor, Lowell, MA 01852</span>
             </li>
           </ul>
@@ -254,18 +273,20 @@
           <span class="site-footer__wordmark">Kong's Pharmaceutical</span>
         </a>
         <nav class="site-footer__links" aria-label="Footer">
-          <a href="#mission">Mission</a>
-          <a href="#pipeline">Pipeline</a>
-          <a href="#contact">Contact</a>
+          <a href="#mission" data-i18n="nav.mission">Mission</a>
+          <a href="#pipeline" data-i18n="nav.pipeline">Pipeline</a>
+          <a href="#contact" data-i18n="nav.contact">Contact</a>
         </nav>
-        <p class="site-footer__copy">© 2026 Kong's Pharmaceutical Co. All rights reserved.</p>
+        <p class="site-footer__copy" data-i18n="footer.copy">© 2026 Kong's Pharmaceutical Co. All rights reserved.</p>
       </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrambleTextPlugin.min.js"></script>
     <script src="main.js"></script>
+    <script src="i18n.js"></script>
 
     <script type="importmap">
       {
