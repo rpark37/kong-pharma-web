@@ -18,13 +18,25 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <a href="#hero" class="skip-link">Skip to content</a>
     <header class="nav" data-nav>
       <div class="nav__inner container">
         <a class="nav__brand" href="#hero" aria-label="Kong's Pharmaceutical Co. — home">
           <img src="assets/kongs-mark.png" alt="" class="nav__mark" />
           <span class="nav__wordmark">Kong's Pharmaceutical</span>
         </a>
-        <nav class="nav__links" aria-label="Primary">
+        <button
+          class="nav__toggle"
+          type="button"
+          aria-label="Menu"
+          aria-expanded="false"
+          aria-controls="nav-menu"
+        >
+          <span class="nav__toggle-bar"></span>
+          <span class="nav__toggle-bar"></span>
+          <span class="nav__toggle-bar"></span>
+        </button>
+        <nav class="nav__links" id="nav-menu" aria-label="Primary">
           <a href="#mission" data-nav-link>Mission</a>
           <a href="#focus" data-nav-link>Focus</a>
           <a href="#pipeline" data-nav-link>Pipeline</a>
@@ -48,7 +60,7 @@
       </section>
       <section id="mission" class="section section--ink mission">
         <div class="container">
-          <p class="eyebrow">Our Mission</p>
+          <h2 class="eyebrow">Our Mission</h2>
           <p class="display mission__statement" data-split="lines">
             We develop endocrine and oncology therapies from small-molecule compounds —
             working to transform cancer into a manageable, chronic condition through
@@ -58,7 +70,7 @@
       </section>
       <section id="focus" class="section section--paper focus">
         <div class="container">
-          <p class="eyebrow">Focus Areas</p>
+          <h2 class="eyebrow">Focus Areas</h2>
           <ol class="index-list">
             <li class="index-item">
               <span class="index-num">01</span>
@@ -85,7 +97,7 @@
       </section>
       <section id="pipeline" class="section section--teal pipeline">
         <div class="container">
-          <p class="eyebrow">Pipeline</p>
+          <h2 class="eyebrow">Pipeline</h2>
           <ol class="index-list">
             <li class="index-item">
               <span class="index-num">01</span>

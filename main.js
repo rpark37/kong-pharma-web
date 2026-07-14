@@ -1,4 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // Core nav behavior — always runs, independent of GSAP / reduced motion.
+  initNav();
+
   const prefersReducedMotion = window.matchMedia(
     "(prefers-reduced-motion: reduce)"
   ).matches;
@@ -16,6 +19,25 @@ document.addEventListener("DOMContentLoaded", () => {
     initAnimations();
     ScrollTrigger.refresh();
   });
+
+  function initNav() {
+    const nav = document.querySelector("[data-nav]");
+    const toggle = nav && nav.querySelector(".nav__toggle");
+    if (!nav || !toggle) return;
+    const setOpen = (open) => {
+      nav.classList.toggle("is-open", open);
+      toggle.setAttribute("aria-expanded", String(open));
+    };
+    toggle.addEventListener("click", () =>
+      setOpen(!nav.classList.contains("is-open"))
+    );
+    nav.querySelectorAll(".nav__links a").forEach((a) =>
+      a.addEventListener("click", () => setOpen(false))
+    );
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") setOpen(false);
+    });
+  }
 
   function initAnimations() {
     document.documentElement.classList.add("js-anim");
