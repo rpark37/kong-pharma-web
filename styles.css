@@ -298,7 +298,21 @@ a {
 
 /* ===== Hero ===== */
 /* Full-viewport layout (min-height / flex-center) inherited from .section */
+.hero {
+  position: relative;
+  overflow: hidden;
+}
+.hero__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
 .hero__inner {
+  position: relative;
+  z-index: 1;
   padding-top: 68px;
 }
 .hero__headline {

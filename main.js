@@ -2,6 +2,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // Core nav behavior — always runs, independent of GSAP / reduced motion.
   initNav();
 
+  // Generative hero backdrop — self-contained, honors reduced motion.
+  initHeroCanvas();
+
   const prefersReducedMotion = window.matchMedia(
     "(prefers-reduced-motion: reduce)"
   ).matches;
@@ -41,6 +44,113 @@ document.addEventListener("DOMContentLoaded", () => {
     );
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") setOpen(false);
+    });
+  }
+
+  function initHeroCanvas() {
+    const canvas = document.querySelector(".hero__canvas");
+    if (!canvas || !canvas.getContext) return;
+    const ctx = canvas.getContext("2d");
+    const hero = canvas.closest(".hero");
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    // Palette pulled from the teal system: deep teal + pale mint.
+    const COLORS = [
+      [6, 58, 52],
+      [4, 40, 37],
+      [234, 252, 247],
+    ];
+
+    let w = 0;
+    let h = 0;
+    let blobs = [];
+    let raf = null;
+    const pointer = { x: 0.5, y: 0.5 };
+
+    function resize() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const rect = canvas.getBoundingClientRect();
+      w = rect.width;
+      h = rect.height;
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    function makeBlobs() {
+      const count = Math.max(6, Math.min(14, Math.round((w * h) / 90000)));
+      blobs = Array.from({ length: count }, (_, i) => ({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        r: 90 + Math.random() * 170,
+        vx: (Math.random() - 0.5) * 0.16,
+        vy: (Math.random() - 0.5) * 0.16,
+        a: 0.05 + Math.random() * 0.06,
+        depth: 0.4 + Math.random() * 0.9,
+        c: COLORS[i % COLORS.length],
+      }));
+    }
+
+    function render(animated) {
+      ctx.clearRect(0, 0, w, h);
+      const ox = (pointer.x - 0.5) * 30;
+      const oy = (pointer.y - 0.5) * 30;
+      for (const b of blobs) {
+        if (animated) {
+          b.x += b.vx;
+          b.y += b.vy;
+          if (b.x < -b.r) b.x = w + b.r;
+          else if (b.x > w + b.r) b.x = -b.r;
+          if (b.y < -b.r) b.y = h + b.r;
+          else if (b.y > h + b.r) b.y = -b.r;
+        }
+        const px = b.x + ox * b.depth;
+        const py = b.y + oy * b.depth;
+        const [r, g, bl] = b.c;
+        const grad = ctx.createRadialGradient(px, py, 0, px, py, b.r);
+        grad.addColorStop(0, `rgba(${r},${g},${bl},${b.a})`);
+        grad.addColorStop(1, `rgba(${r},${g},${bl},0)`);
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(px, py, b.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function loop() {
+      render(true);
+      raf = requestAnimationFrame(loop);
+    }
+
+    function start() {
+      if (raf || reduce) return;
+      raf = requestAnimationFrame(loop);
+    }
+    function stop() {
+      if (raf) cancelAnimationFrame(raf);
+      raf = null;
+    }
+
+    resize();
+    makeBlobs();
+    render(false);
+    start();
+
+    if (hero) {
+      hero.addEventListener("pointermove", (e) => {
+        const rect = hero.getBoundingClientRect();
+        pointer.x = (e.clientX - rect.left) / rect.width;
+        pointer.y = (e.clientY - rect.top) / rect.height;
+      });
+    }
+    window.addEventListener("resize", () => {
+      resize();
+      makeBlobs();
+      render(false);
+    });
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) stop();
+      else start();
     });
   }
 
