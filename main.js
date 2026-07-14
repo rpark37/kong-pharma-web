@@ -5,6 +5,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // Animated expand/collapse for the program-overview <details> accordions.
   initProgramAccordions();
 
+  // Transparent toolbar: adapt mark/text color to the section behind it.
+  initNavTheme();
+
   // Hero 3D backdrop lives in hero3d.js (ES module + Three.js).
 
   const prefersReducedMotion = window.matchMedia(
@@ -47,6 +50,28 @@ document.addEventListener("DOMContentLoaded", () => {
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") setOpen(false);
     });
+  }
+
+  function initNavTheme() {
+    const nav = document.querySelector("[data-nav]");
+    const targets = document.querySelectorAll("main > section, .site-footer");
+    if (!nav || !targets.length || typeof IntersectionObserver !== "function") {
+      return;
+    }
+    // A section is "active" when it crosses the thin band just under the bar.
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (!e.isIntersecting) return;
+          const dark =
+            e.target.classList.contains("section--ink") ||
+            e.target.classList.contains("site-footer");
+          nav.classList.toggle("nav--light", dark);
+        });
+      },
+      { rootMargin: "-34px 0px -95% 0px", threshold: 0 }
+    );
+    targets.forEach((t) => io.observe(t));
   }
 
   function initProgramAccordions() {

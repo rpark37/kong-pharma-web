@@ -163,13 +163,34 @@ a {
   position: fixed;
   inset: 0 0 auto 0;
   z-index: 60;
-  background: color-mix(in srgb, var(--nav-bg) 90%, transparent);
-  backdrop-filter: blur(10px);
-  transition: background 0.3s ease;
-}
-.nav.is-open {
   background: transparent;
-  backdrop-filter: none;
+}
+/* Entrance: brand + toggle fade/slide in on load */
+@keyframes navIn {
+  from {
+    opacity: 0;
+    transform: translateY(-14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.nav__brand,
+.nav__toggle {
+  animation: navIn 0.7s ease both;
+}
+.nav__brand {
+  animation-delay: 0.15s;
+}
+.nav__toggle {
+  animation-delay: 0.28s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .nav__brand,
+  .nav__toggle {
+    animation: none;
+  }
 }
 .nav__inner {
   display: flex;
@@ -194,6 +215,21 @@ a {
   font-size: clamp(1rem, 3.5vw, 1.15rem);
   letter-spacing: -0.01em;
   color: var(--nav-fg);
+  transition: color 0.35s ease;
+}
+/* Adaptive toolbar: light marks over the dark (ink) sections */
+.nav--light .nav__wordmark {
+  color: var(--on-teal-deep);
+}
+.nav--light .nav__toggle-bar {
+  background: var(--on-teal-deep);
+}
+/* While the menu overlay (green) is open, keep marks dark for contrast */
+.nav.is-open .nav__wordmark {
+  color: var(--nav-fg);
+}
+.nav.is-open .nav__toggle-bar {
+  background: var(--nav-fg);
 }
 
 /* Menu toggle (hamburger → ✕), always visible, above the overlay */
@@ -217,7 +253,12 @@ a {
   height: 2px;
   margin-inline: auto;
   background: var(--nav-fg);
-  transition: transform 0.3s ease, opacity 0.3s ease;
+  transition: transform 0.3s ease, opacity 0.3s ease,
+    background-color 0.35s ease, width 0.3s ease;
+}
+/* Subtle hover: middle bar shortens (closed state only) */
+.nav:not(.is-open) .nav__toggle:hover .nav__toggle-bar:nth-child(2) {
+  width: 16px;
 }
 .nav.is-open .nav__toggle-bar:nth-child(1) {
   transform: translateY(7px) rotate(45deg);
