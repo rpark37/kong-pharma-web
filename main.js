@@ -27,6 +27,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const setOpen = (open) => {
       nav.classList.toggle("is-open", open);
       toggle.setAttribute("aria-expanded", String(open));
+      toggle.setAttribute("aria-label", open ? "Close menu" : "Menu");
+      // Return focus to the toggle when closing from inside the panel,
+      // so keyboard focus isn't dropped to <body> when it hides.
+      if (!open && nav.contains(document.activeElement)) toggle.focus();
     };
     toggle.addEventListener("click", () =>
       setOpen(!nav.classList.contains("is-open"))
