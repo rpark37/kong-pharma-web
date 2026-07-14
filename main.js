@@ -142,23 +142,44 @@ document.addEventListener("DOMContentLoaded", () => {
   // Split an element and reveal its parts (masked rise + fade), then revert to
   // clean, selectable text. mode "chars" = per character, "words" = per word.
   function splitAndReveal(el, mode) {
-    const split = new SplitText(
-      el,
-      mode === "chars"
-        ? { type: "words,chars", mask: "chars", charsClass: "split-char", wordsClass: "split-word" }
-        : { type: "lines,words", mask: "lines", wordsClass: "split-word", linesClass: "split-line" }
-    );
-    const parts = mode === "chars" ? split.chars : split.words;
-    el.classList.remove("anim-hidden");
-    gsap.set(el, { autoAlpha: 1 });
-    gsap.from(parts, {
-      yPercent: 100,
-      opacity: 0,
-      ease: "power3.out",
-      duration: mode === "chars" ? 0.5 : 0.6,
-      stagger: mode === "chars" ? 0.015 : 0.03,
-      onComplete: () => split.revert(),
-    });
+    if (mode === "chars") {
+      const split = new SplitText(el, {
+        type: "words,chars",
+        charsClass: "split-char",
+        wordsClass: "split-word",
+      });
+      el.classList.remove("anim-hidden");
+      gsap.set(el, { autoAlpha: 1 });
+      // Scatter-and-assemble: each char drops in from a random height/rotation.
+      gsap.from(split.chars, {
+        opacity: 0,
+        yPercent: () => gsap.utils.random(-140, 140),
+        rotation: () => gsap.utils.random(-40, 40),
+        scale: 0.3,
+        transformOrigin: "50% 50%",
+        ease: "back.out(1.7)",
+        duration: 0.8,
+        stagger: { each: 0.02, from: "random" },
+        onComplete: () => split.revert(),
+      });
+    } else {
+      const split = new SplitText(el, {
+        type: "lines,words",
+        mask: "lines",
+        wordsClass: "split-word",
+        linesClass: "split-line",
+      });
+      el.classList.remove("anim-hidden");
+      gsap.set(el, { autoAlpha: 1 });
+      gsap.from(split.words, {
+        yPercent: 100,
+        opacity: 0,
+        ease: "power3.out",
+        duration: 0.6,
+        stagger: 0.03,
+        onComplete: () => split.revert(),
+      });
+    }
   }
 
   // Reveal an element the first time it scrolls into view.
@@ -188,16 +209,28 @@ document.addEventListener("DOMContentLoaded", () => {
     const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
 
     if (heroEyebrow) {
-      const s = new SplitText(heroEyebrow, { type: "chars", mask: "chars", charsClass: "split-char" });
+      const s = new SplitText(heroEyebrow, { type: "chars", charsClass: "split-char" });
       heroEyebrow.classList.remove("anim-hidden");
       gsap.set(heroEyebrow, { autoAlpha: 1 });
-      tl.from(s.chars, { yPercent: 100, opacity: 0, duration: 0.4, stagger: 0.012, onComplete: () => s.revert() }, 0);
+      tl.from(s.chars, {
+        opacity: 0, yPercent: () => gsap.utils.random(-90, 90),
+        rotation: () => gsap.utils.random(-30, 30), scale: 0.4,
+        transformOrigin: "50% 50%", ease: "back.out(1.7)",
+        duration: 0.6, stagger: { each: 0.015, from: "random" },
+        onComplete: () => s.revert(),
+      }, 0);
     }
     if (headline) {
-      const s = new SplitText(headline, { type: "words,chars", mask: "chars", charsClass: "split-char", wordsClass: "split-word" });
+      const s = new SplitText(headline, { type: "words,chars", charsClass: "split-char", wordsClass: "split-word" });
       headline.classList.remove("anim-hidden");
       gsap.set(headline, { autoAlpha: 1 });
-      tl.from(s.chars, { yPercent: 110, opacity: 0, duration: 0.6, stagger: 0.02, onComplete: () => s.revert() }, 0.15);
+      tl.from(s.chars, {
+        opacity: 0, yPercent: () => gsap.utils.random(-160, 160),
+        rotation: () => gsap.utils.random(-45, 45), scale: 0.3,
+        transformOrigin: "50% 50%", ease: "back.out(1.7)",
+        duration: 0.9, stagger: { each: 0.02, from: "random" },
+        onComplete: () => s.revert(),
+      }, 0.15);
     }
     if (heroMission) {
       const s = new SplitText(heroMission, { type: "lines,words", mask: "lines", wordsClass: "split-word" });
