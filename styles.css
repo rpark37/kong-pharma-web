@@ -173,3 +173,45 @@ a {
     font-size: 1rem;
   }
 }
+
+/* ===== Buttons ===== */
+.btn {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-weight: 500;
+  border-radius: 999px;
+  padding: 0.8rem 1.8rem;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+.btn:hover {
+  transform: translateY(-2px);
+}
+.btn--light {
+  background: var(--on-teal);
+  color: var(--teal-deep);
+}
+
+/* ===== Hero ===== */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+}
+.hero__inner {
+  padding-top: 68px;
+}
+.hero__headline {
+  margin: 0.5rem 0 1.5rem;
+  max-width: 16ch;
+}
+.hero__mission {
+  margin-bottom: 2.25rem;
+}
+.hero__scrollcue {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.7;
+  margin-top: 3.5rem;
+}
