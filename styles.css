@@ -565,6 +565,17 @@ a {
   max-width: 64ch;
 }
 
+/* Open program rows animate to a lighter highlight panel */
+.pipeline .index-item {
+  padding-inline: clamp(1rem, 2vw, 1.75rem);
+  margin-inline: calc(-1 * clamp(1rem, 2vw, 1.75rem));
+  border-radius: 16px;
+  transition: background-color 0.45s ease;
+}
+.pipeline .index-item:has(.program[open]) {
+  background-color: color-mix(in srgb, #ffffff 74%, var(--teal));
+}
+
 /* ===== Responsive polish ===== */
 @media (max-width: 640px) {
   .index-item {
