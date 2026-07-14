@@ -342,14 +342,22 @@ a {
 
 /* ===== Pipeline focus-area groups ===== */
 .pipeline-group + .pipeline-group {
-  margin-top: clamp(2.5rem, 6vh, 4rem);
+  margin-top: clamp(3.5rem, 9vh, 6rem);
 }
 .pipeline-group__title {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: clamp(1.5rem, 3.2vw, 2.4rem);
-  letter-spacing: -0.01em;
-  margin: 0 0 0.85rem;
+  font-size: clamp(2.4rem, 6vw, 4.25rem);
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+  margin: 0 0 1rem;
+}
+.pipeline-group__desc {
+  font-size: clamp(1.05rem, 1.8vw, 1.35rem);
+  line-height: 1.4;
+  max-width: 44ch;
+  opacity: 0.85;
+  margin: 0 0 2.25rem;
 }
 
 /* ===== Numbered index list (shared: Focus + Pipeline) ===== */
