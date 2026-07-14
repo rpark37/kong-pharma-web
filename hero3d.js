@@ -44,7 +44,7 @@ function initThree(placeholderCanvas) {
   const DEEP = 0x0c6055;
 
   // ---- Nodes (atoms / neurons / cells), a few as pills (drugs) ----
-  const COUNT = 72;
+  const COUNT = 54;
   const nodeGeo = new THREE.IcosahedronGeometry(0.11, 1);
   const pillGeo = new THREE.CapsuleGeometry(0.09, 0.26, 4, 10);
   const nodeMat = new THREE.MeshBasicMaterial({
@@ -126,6 +126,59 @@ function initThree(placeholderCanvas) {
     }
   }
 
+  // ---- DNA double helix centerpiece (drug development / biotech) ----
+  const helix = new THREE.Group();
+  helix.rotation.z = 0.18;
+  const beadGeo = new THREE.SphereGeometry(0.075, 10, 10);
+  const strandAMat = new THREE.MeshBasicMaterial({ color: MINT });
+  const strandBMat = new THREE.MeshBasicMaterial({ color: BRIGHT });
+  const TURNS = 3;
+  const BEADS = 30;
+  const RAD = 0.55;
+  const HEIGHT = 4.3;
+  const aPts = [];
+  const bPts = [];
+  for (let i = 0; i < BEADS; i++) {
+    const f = i / (BEADS - 1);
+    const ang = f * TURNS * Math.PI * 2;
+    const y = -HEIGHT / 2 + f * HEIGHT;
+    const a = new THREE.Vector3(Math.cos(ang) * RAD, y, Math.sin(ang) * RAD);
+    const b = new THREE.Vector3(
+      Math.cos(ang + Math.PI) * RAD,
+      y,
+      Math.sin(ang + Math.PI) * RAD
+    );
+    aPts.push(a);
+    bPts.push(b);
+    const ma = new THREE.Mesh(beadGeo, strandAMat);
+    ma.position.copy(a);
+    helix.add(ma);
+    const mb = new THREE.Mesh(beadGeo, strandBMat);
+    mb.position.copy(b);
+    helix.add(mb);
+  }
+  // Backbone curves + base-pair rungs as one set of dark strands.
+  const helixLinePos = [];
+  for (let i = 0; i < BEADS - 1; i++) {
+    helixLinePos.push(aPts[i].x, aPts[i].y, aPts[i].z, aPts[i + 1].x, aPts[i + 1].y, aPts[i + 1].z);
+    helixLinePos.push(bPts[i].x, bPts[i].y, bPts[i].z, bPts[i + 1].x, bPts[i + 1].y, bPts[i + 1].z);
+  }
+  for (let i = 0; i < BEADS; i += 2) {
+    helixLinePos.push(aPts[i].x, aPts[i].y, aPts[i].z, bPts[i].x, bPts[i].y, bPts[i].z);
+  }
+  const helixLineGeo = new THREE.BufferGeometry();
+  helixLineGeo.setAttribute(
+    "position",
+    new THREE.Float32BufferAttribute(helixLinePos, 3)
+  );
+  helix.add(
+    new THREE.LineSegments(
+      helixLineGeo,
+      new THREE.LineBasicMaterial({ color: 0x053b34, transparent: true, opacity: 0.5 })
+    )
+  );
+  group.add(helix);
+
   const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
   let raf = null;
   let t0 = 0;
@@ -153,6 +206,7 @@ function initThree(placeholderCanvas) {
     group.rotation.y = seconds * 0.12 + pointer.x * 0.5 + scrollP * 0.6;
     group.rotation.x = Math.sin(seconds * 0.15) * 0.1 + pointer.y * 0.3;
     group.scale.setScalar(1 + Math.sin(seconds * 1.6) * 0.02); // heartbeat
+    helix.rotation.y = seconds * 0.5; // helix spins on its own axis
     for (const s of signals) {
       s.t += s.speed * 0.006;
       if (s.t > 1) {
