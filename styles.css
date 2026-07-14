@@ -127,9 +127,21 @@ a {
   justify-content: space-between;
   height: 68px;
 }
-.nav__logo {
-  height: 34px;
+.nav__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.nav__mark {
+  height: 38px;
   width: auto;
+}
+.nav__wordmark {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.15rem;
+  letter-spacing: -0.01em;
+  color: var(--on-teal);
 }
 .nav__links {
   display: flex;
@@ -154,5 +166,10 @@ a {
 @media (max-width: 560px) {
   .nav__links a:not(.nav__cta) {
     display: none;
+  }
+}
+@media (max-width: 560px) {
+  .nav__wordmark {
+    font-size: 1rem;
   }
 }
