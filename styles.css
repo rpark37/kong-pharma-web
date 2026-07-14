@@ -223,3 +223,37 @@ a {
   line-height: 1.2;
   max-width: 30ch;
 }
+
+/* ===== Numbered index list (shared: Focus + Pipeline) ===== */
+.index-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+}
+.index-item {
+  display: grid;
+  grid-template-columns: 4rem 1fr;
+  gap: clamp(1rem, 4vw, 3rem);
+  align-items: start;
+  padding-block: clamp(1.75rem, 4vw, 2.75rem);
+  border-bottom: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+}
+.index-num {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  opacity: 0.6;
+  padding-top: 0.4rem;
+}
+.index-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.6rem, 3.5vw, 2.75rem);
+  margin: 0 0 0.5rem;
+  letter-spacing: -0.01em;
+}
+.index-desc {
+  margin: 0;
+  max-width: 52ch;
+  opacity: 0.85;
+}
