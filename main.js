@@ -54,11 +54,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const hero = canvas.closest(".hero");
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    // Palette pulled from the teal system: deep teal + pale mint.
+    // Palette pulled from the teal system: deep shadow teal + bright mint.
     const COLORS = [
-      [6, 58, 52],
-      [4, 40, 37],
-      [234, 252, 247],
+      [3, 34, 30],
+      [8, 74, 66],
+      [214, 255, 244],
     ];
 
     let w = 0;
@@ -82,10 +82,10 @@ document.addEventListener("DOMContentLoaded", () => {
       blobs = Array.from({ length: count }, (_, i) => ({
         x: Math.random() * w,
         y: Math.random() * h,
-        r: 90 + Math.random() * 170,
-        vx: (Math.random() - 0.5) * 0.16,
-        vy: (Math.random() - 0.5) * 0.16,
-        a: 0.05 + Math.random() * 0.06,
+        r: 110 + Math.random() * 190,
+        vx: (Math.random() - 0.5) * 0.55,
+        vy: (Math.random() - 0.5) * 0.55,
+        a: 0.16 + Math.random() * 0.16,
         depth: 0.4 + Math.random() * 0.9,
         c: COLORS[i % COLORS.length],
       }));
