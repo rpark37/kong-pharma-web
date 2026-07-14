@@ -705,7 +705,10 @@ git add index.html styles.css && git commit -m "feat: add pipeline section with 
 ```html
 <footer class="site-footer">
   <div class="container site-footer__inner">
-    <img src="assets/kongs-logo.png" alt="Kong's Pharmaceutical Co." class="site-footer__logo" />
+    <a class="site-footer__brand" href="#hero">
+      <img src="assets/kongs-mark.png" alt="" class="site-footer__mark" />
+      <span class="site-footer__wordmark">Kong's Pharmaceutical</span>
+    </a>
     <nav class="site-footer__links" aria-label="Footer">
       <a href="#mission">Mission</a>
       <a href="#focus">Focus</a>
@@ -766,8 +769,20 @@ git add index.html styles.css && git commit -m "feat: add pipeline section with 
   gap: 1.5rem 2.5rem;
   justify-content: space-between;
 }
-.site-footer__logo {
+.site-footer__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+.site-footer__mark {
   height: 30px;
+  width: auto;
+}
+.site-footer__wordmark {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
 }
 .site-footer__links {
   display: flex;
