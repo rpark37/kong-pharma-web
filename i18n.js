@@ -167,16 +167,25 @@
     if (!I18N["nav.mission"][lang]) return;
     const canScramble = ensurePlugin() && !reduce;
     document.documentElement.lang = LANGTAG[lang];
+    let i = 0;
     document.querySelectorAll("[data-i18n]").forEach((el) => {
       const t = (I18N[el.dataset.i18n] || {})[lang];
       if (t == null) return;
       if (canScramble) {
         gsap.killTweensOf(el);
         gsap.to(el, {
-          duration: 1,
-          ease: "none",
-          scrambleText: { text: t, chars: CHARS[lang] || "upperCase", speed: 0.55, delimiter: "" },
+          duration: 2.6,
+          ease: "power2.inOut",
+          delay: Math.min(i * 0.035, 0.8), // gentle top-to-bottom wave
+          scrambleText: {
+            text: t,
+            chars: CHARS[lang] || "upperCase",
+            speed: 0.35,
+            revealDelay: 0.7, // scramble a while before decoding
+            delimiter: "",
+          },
         });
+        i++;
       } else {
         el.textContent = t;
       }
