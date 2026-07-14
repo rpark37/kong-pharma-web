@@ -480,56 +480,67 @@ a {
   will-change: transform;
 }
 
-/* ===== Program detail (CR-067) ===== */
+/* ===== Pipeline program detail (expandable) ===== */
 .program {
-  justify-content: flex-start;
-  padding-top: clamp(6rem, 14vh, 9rem);
-  padding-bottom: clamp(3rem, 8vh, 6rem);
+  margin-top: 1.5rem;
 }
-.program__grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 2rem;
+.program__summary {
+  cursor: pointer;
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.85;
 }
-@media (min-width: 860px) {
-  .program__grid {
-    grid-template-columns: 0.9fr 1.1fr;
-    gap: clamp(2rem, 5vw, 5rem);
-    align-items: start;
-  }
+.program__summary::-webkit-details-marker {
+  display: none;
+}
+.program__summary::after {
+  content: "+";
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  line-height: 1;
+}
+.program[open] .program__summary::after {
+  content: "–";
+}
+.program__summary:hover {
+  opacity: 1;
+}
+.program__content {
+  padding-top: 1.5rem;
+  max-width: 68ch;
 }
 .program__title {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: clamp(1.8rem, 4vw, 3.1rem);
-  line-height: 1.05;
-  letter-spacing: -0.02em;
-  margin: 0.4rem 0 0.75rem;
-  max-width: 18ch;
+  font-size: clamp(1.2rem, 2.2vw, 1.7rem);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  margin: 0 0 0.5rem;
 }
 .program__lead {
-  font-size: clamp(1.1rem, 2vw, 1.4rem);
-  opacity: 0.8;
+  font-size: 1.05rem;
+  opacity: 0.85;
   margin: 0 0 1.5rem;
 }
 .program__h3 {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: clamp(1.3rem, 2.5vw, 1.9rem);
-  letter-spacing: -0.01em;
-  margin: 0 0 1.25rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.7;
+  margin: 0 0 1rem;
 }
-.program__body p {
-  margin: 0 0 1.25rem;
-  font-size: 1.05rem;
-  line-height: 1.65;
-  max-width: 66ch;
-}
-.index-title a {
-  transition: opacity 0.2s ease;
-}
-.index-title a:hover {
-  opacity: 0.6;
+.program__content p {
+  margin: 0 0 1rem;
+  font-size: 1rem;
+  line-height: 1.6;
+  max-width: 64ch;
 }
 
 /* ===== Responsive polish ===== */
