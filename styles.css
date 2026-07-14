@@ -358,3 +358,8 @@ a {
 .hero__headline {
   overflow: hidden;
 }
+
+.reveal-line-inner {
+  display: block;
+  will-change: transform;
+}
