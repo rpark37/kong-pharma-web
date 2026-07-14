@@ -363,3 +363,18 @@ a {
   display: block;
   will-change: transform;
 }
+
+/* ===== Responsive polish ===== */
+@media (max-width: 640px) {
+  .index-item {
+    grid-template-columns: 2.5rem 1fr;
+    gap: 1rem;
+  }
+  .contact__list li {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+  }
+  .hero {
+    min-height: 92vh;
+  }
+}
