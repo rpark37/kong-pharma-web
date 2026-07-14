@@ -1,12 +1,13 @@
 /* ===== Design tokens ===== */
 :root {
-  --teal: #0b5563;
-  --teal-deep: #083e48;
+  --teal: #44e0cc;
+  --teal-deep: #063a34;
   --teal-bright: #2fb7a6;
   --ink: #0f1416;
   --paper: #f4f1e9;
   --paper-dim: #ded9cc;
-  --on-teal: #f4f1e9;
+  --on-teal: #06322d;
+  --on-teal-deep: #eafcf7;
   --on-ink: #f4f1e9;
   --on-paper: #0f1416;
 
@@ -27,6 +28,14 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-snap-type: y proximity;
+  scroll-padding-top: 68px;
+}
+
+/* Lock page scroll while the full-screen menu overlay is open */
+html.menu-open,
+html.menu-open body {
+  overflow: hidden;
 }
 
 body {
@@ -57,7 +66,7 @@ a {
   margin: 0.75rem;
   padding: 0.6rem 1rem;
   background: var(--teal-deep);
-  color: var(--on-teal);
+  color: var(--on-teal-deep);
   border-radius: 999px;
   font-family: var(--font-display);
   font-size: 0.9rem;
@@ -66,7 +75,7 @@ a {
 }
 .skip-link:focus {
   transform: translateY(0);
-  outline: 2px solid var(--on-teal);
+  outline: 2px solid var(--on-teal-deep);
   outline-offset: 2px;
 }
 
@@ -81,6 +90,11 @@ a {
 .section {
   padding-block: var(--section-y);
   scroll-margin-top: 68px;
+  scroll-snap-align: start;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .section--teal {
@@ -136,14 +150,18 @@ a {
   }
 }
 
-/* ===== Nav ===== */
+/* ===== Nav (bar + full-screen overlay menu) ===== */
 .nav {
   position: fixed;
   inset: 0 0 auto 0;
-  z-index: 50;
+  z-index: 60;
   background: color-mix(in srgb, var(--teal-deep) 82%, transparent);
   backdrop-filter: blur(10px);
   transition: background 0.3s ease;
+}
+.nav.is-open {
+  background: transparent;
+  backdrop-filter: none;
 }
 .nav__inner {
   display: flex;
@@ -152,6 +170,8 @@ a {
   height: 68px;
 }
 .nav__brand {
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: center;
   gap: 0.6rem;
@@ -163,37 +183,21 @@ a {
 .nav__wordmark {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 1.15rem;
+  font-size: clamp(1rem, 3.5vw, 1.15rem);
   letter-spacing: -0.01em;
-  color: var(--on-teal);
+  color: var(--on-teal-deep);
 }
-.nav__links {
-  display: flex;
-  gap: clamp(1rem, 3vw, 2.5rem);
-  align-items: center;
-  font-size: 0.95rem;
-  color: var(--on-teal);
-}
-.nav__links a {
-  opacity: 0.85;
-  transition: opacity 0.2s ease;
-}
-.nav__links a:hover,
-.nav__links a[aria-current="true"] {
-  opacity: 1;
-}
-.nav__cta {
-  border: 1px solid color-mix(in srgb, var(--on-teal) 45%, transparent);
-  border-radius: 999px;
-  padding: 0.45rem 1.1rem;
-}
+
+/* Menu toggle (hamburger → ✕), always visible, above the overlay */
 .nav__toggle {
-  display: none;
+  position: relative;
+  z-index: 2;
+  display: flex;
   flex-direction: column;
   justify-content: center;
   gap: 5px;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   border: 0;
   background: none;
@@ -201,11 +205,11 @@ a {
 }
 .nav__toggle-bar {
   display: block;
-  width: 22px;
+  width: 24px;
   height: 2px;
   margin-inline: auto;
-  background: var(--on-teal);
-  transition: transform 0.25s ease, opacity 0.25s ease;
+  background: var(--on-teal-deep);
+  transition: transform 0.3s ease, opacity 0.3s ease;
 }
 .nav.is-open .nav__toggle-bar:nth-child(1) {
   transform: translateY(7px) rotate(45deg);
@@ -216,38 +220,63 @@ a {
 .nav.is-open .nav__toggle-bar:nth-child(3) {
   transform: translateY(-7px) rotate(-45deg);
 }
-@media (max-width: 560px) {
-  .nav__toggle {
-    display: flex;
-  }
-  .nav__wordmark {
-    font-size: 1rem;
-  }
-  .nav__links {
-    position: fixed;
-    top: 68px;
-    left: 0;
-    right: 0;
-    display: none;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1.5rem;
-    padding: 1.75rem var(--pad-x) 2.25rem;
-    background: var(--teal-deep);
-    font-size: 1.25rem;
-    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.28);
-  }
-  .nav.is-open .nav__links {
-    display: flex;
-  }
-  .nav__links a {
-    opacity: 1;
-  }
-  .nav__cta {
-    border: 0;
-    border-radius: 0;
-    padding: 0;
-  }
+
+/* Full-screen overlay menu */
+.nav__links {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: clamp(0.4rem, 2vh, 1.25rem);
+  padding: 0 var(--pad-x);
+  background: var(--teal-deep);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.45s ease, visibility 0.45s ease;
+}
+.nav.is-open .nav__links {
+  opacity: 1;
+  visibility: visible;
+}
+.nav__links a {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(2.4rem, 9vw, 5rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--on-teal-deep);
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.5s ease, transform 0.5s ease, color 0.2s ease;
+}
+.nav.is-open .nav__links a {
+  opacity: 1;
+  transform: translateY(0);
+}
+.nav.is-open .nav__links a:nth-child(1) {
+  transition-delay: 0.08s;
+}
+.nav.is-open .nav__links a:nth-child(2) {
+  transition-delay: 0.14s;
+}
+.nav.is-open .nav__links a:nth-child(3) {
+  transition-delay: 0.2s;
+}
+.nav.is-open .nav__links a:nth-child(4) {
+  transition-delay: 0.26s;
+}
+.nav__links a:hover,
+.nav__links a[aria-current="true"] {
+  color: var(--teal);
+}
+/* CTA reads as a plain menu item inside the overlay */
+.nav__cta {
+  border: 0;
+  border-radius: 0;
+  padding: 0;
 }
 
 /* ===== Buttons ===== */
@@ -263,16 +292,12 @@ a {
   transform: translateY(-2px);
 }
 .btn--light {
-  background: var(--on-teal);
-  color: var(--teal-deep);
+  background: var(--teal-deep);
+  color: var(--on-teal-deep);
 }
 
 /* ===== Hero ===== */
-.hero {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-}
+/* Full-viewport layout (min-height / flex-center) inherited from .section */
 .hero__inner {
   padding-top: 68px;
 }
@@ -344,8 +369,8 @@ a {
   letter-spacing: 0.08em;
   padding: 0.35rem 0.8rem;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--teal-bright) 22%, transparent);
-  border: 1px solid color-mix(in srgb, var(--teal-bright) 72%, transparent);
+  background: color-mix(in srgb, var(--teal-deep) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--teal-deep) 45%, transparent);
   color: var(--on-teal);
 }
 
@@ -379,7 +404,7 @@ a {
   padding-top: 0.15rem;
 }
 .contact__list a:hover {
-  color: var(--teal);
+  color: var(--teal-deep);
 }
 
 /* ===== Footer ===== */
@@ -450,8 +475,5 @@ a {
   .contact__list li {
     grid-template-columns: 1fr;
     gap: 0.25rem;
-  }
-  .hero {
-    min-height: 92vh;
   }
 }

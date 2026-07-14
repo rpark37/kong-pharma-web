@@ -26,9 +26,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!nav || !toggle) return;
     const setOpen = (open) => {
       nav.classList.toggle("is-open", open);
+      document.documentElement.classList.toggle("menu-open", open);
       toggle.setAttribute("aria-expanded", String(open));
       toggle.setAttribute("aria-label", open ? "Close menu" : "Menu");
-      // Return focus to the toggle when closing from inside the panel,
+      // Return focus to the toggle when closing from inside the overlay,
       // so keyboard focus isn't dropped to <body> when it hides.
       if (!open && nav.contains(document.activeElement)) toggle.focus();
     };
@@ -83,6 +84,33 @@ document.addEventListener("DOMContentLoaded", () => {
       { y: 20, duration: 0.6, stagger: 0.12 },
       "<"
     );
+
+    // ---- Section headings reveal as each section enters ----
+    gsap.utils
+      .toArray([
+        "#mission .eyebrow",
+        "#focus .eyebrow",
+        "#pipeline .eyebrow",
+        "#contact .eyebrow",
+        ".contact__title",
+      ])
+      .forEach((el) => {
+        el.classList.add("anim-hidden");
+        gsap.to(el, {
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          ease: "power3.out",
+          scrollTrigger: { trigger: el, start: "top 88%" },
+        });
+        gsap.from(el, {
+          y: 24,
+          duration: 0.6,
+          ease: "power3.out",
+          scrollTrigger: { trigger: el, start: "top 88%" },
+        });
+      });
+
     // ---- Mission: masked line reveal ----
     const mission = document.querySelector('.mission__statement[data-split="lines"]');
     if (mission) {
