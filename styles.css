@@ -117,6 +117,10 @@ a {
   background: var(--paper);
   color: var(--on-paper);
 }
+.section--white {
+  background: #ffffff;
+  color: var(--on-paper);
+}
 
 .eyebrow {
   font-family: var(--font-mono);
@@ -163,13 +167,13 @@ a {
   position: fixed;
   inset: 0 0 auto 0;
   z-index: 60;
-  background: transparent;
-  transition: background 0.4s ease, backdrop-filter 0.4s ease;
+  background: var(--teal);
+  transition: box-shadow 0.4s ease;
 }
-/* Frosted panel appears once scrolled away from the top */
+/* Subtle shadow for separation once the bar sits over other sections */
 .nav--scrolled {
-  background: color-mix(in srgb, var(--nav-bg) 16%, transparent);
-  backdrop-filter: blur(12px);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--nav-fg) 14%, transparent),
+    0 8px 24px color-mix(in srgb, var(--nav-fg) 10%, transparent);
 }
 /* Entrance: brand + toggle fade/slide in on load */
 @keyframes navIn {
@@ -184,13 +188,13 @@ a {
 }
 .nav__brand,
 .nav__toggle {
-  animation: navIn 0.7s ease both;
+  animation: navIn 0.47s ease both;
 }
 .nav__brand {
-  animation-delay: 0.15s;
+  animation-delay: 0.1s;
 }
 .nav__toggle {
-  animation-delay: 0.28s;
+  animation-delay: 0.19s;
 }
 @media (prefers-reduced-motion: reduce) {
   .nav__brand,
@@ -216,24 +220,27 @@ a {
   width: auto;
   transition: filter 0.35s ease;
 }
-/* Lift the mark over the dark sections */
+/* Opaque teal bar: the mark reads the same over every section */
 .nav--light .nav__mark {
-  filter: brightness(1.25) saturate(1.1);
+  filter: none;
 }
+/* Wordmark matches the language button's typographic treatment:
+   mono, uppercase, letter-spaced — a unified "lab label" toolbar. */
 .nav__wordmark {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: clamp(1rem, 3.5vw, 1.15rem);
-  letter-spacing: -0.01em;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: clamp(0.82rem, 2.2vw, 0.95rem);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--nav-fg);
   transition: color 0.35s ease;
 }
-/* Adaptive toolbar: light marks over the dark (ink) sections */
+/* Opaque teal bar: marks stay dark for contrast over every section */
 .nav--light .nav__wordmark {
-  color: var(--on-teal-deep);
+  color: var(--nav-fg);
 }
 .nav--light .nav__toggle-bar {
-  background: var(--on-teal-deep);
+  background: var(--nav-fg);
 }
 /* While the menu overlay (green) is open, keep marks dark for contrast */
 .nav.is-open .nav__wordmark {
@@ -270,8 +277,8 @@ a {
   background: color-mix(in srgb, var(--nav-fg) 8%, transparent);
 }
 .nav--light .nav__lang-btn {
-  color: var(--on-teal-deep);
-  border-color: color-mix(in srgb, var(--on-teal-deep) 40%, transparent);
+  color: var(--nav-fg);
+  border-color: color-mix(in srgb, var(--nav-fg) 40%, transparent);
 }
 .nav__lang-menu {
   position: absolute;
@@ -463,6 +470,36 @@ a {
   margin-top: 3.5rem;
 }
 
+/* Microscopy-style distance scale bar (fixed bottom-right; fades out with the
+   hero it measures, so it never intrudes on later sections) */
+.hero__scale {
+  position: fixed;
+  right: clamp(1.25rem, 4vw, 3rem);
+  bottom: clamp(1.25rem, 4vw, 2.5rem);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  color: var(--on-teal);
+  opacity: 0.72;
+  pointer-events: none;
+}
+.hero__scale-label {
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+/* U-shaped bar: end ticks up, line across the bottom */
+.hero__scale-bar {
+  height: 6px;
+  width: 84px;
+  border: 1.5px solid currentColor;
+  border-top: 0;
+}
+
 /* ===== Mission ===== */
 .mission__statement {
   font-size: clamp(1.6rem, 4vw, 3rem);
@@ -502,7 +539,7 @@ a {
 }
 .index-item {
   display: grid;
-  grid-template-columns: 4rem 1fr;
+  grid-template-columns: 4rem 1fr auto;
   gap: clamp(1rem, 4vw, 3rem);
   align-items: start;
   padding-block: clamp(1.75rem, 4vw, 2.75rem);
@@ -542,6 +579,10 @@ a {
 }
 
 /* ===== Contact ===== */
+/* Hairline separates the two adjacent light sections (white pipeline → cream) */
+.contact {
+  border-top: 1px solid color-mix(in srgb, var(--on-paper) 12%, transparent);
+}
 .contact__title {
   font-size: clamp(2rem, 5vw, 3.5rem);
   max-width: 16ch;
@@ -560,7 +601,7 @@ a {
   grid-template-columns: 6rem 1fr;
   gap: 1.5rem;
   padding-block: 1rem;
-  border-top: 1px solid var(--paper-dim);
+  border-top: 1px solid color-mix(in srgb, currentColor 22%, transparent);
 }
 .contact__label {
   font-family: var(--font-mono);
@@ -701,13 +742,15 @@ a {
   transition: background-color 0.45s ease;
 }
 .pipeline .index-item:has(.program[open]) {
-  background-color: color-mix(in srgb, #ffffff 74%, var(--teal));
+  background-color: color-mix(in srgb, var(--teal) 14%, #ffffff);
 }
 
 /* ===== Inline icons (currentColor mask — adapt to each section) ===== */
 [data-i18n="mission.eyebrow"]::before,
 [data-i18n="pipeline.eyebrow"]::before,
 [data-i18n="contact.eyebrow"]::before,
+#hero .eyebrow::before,
+.program__summary::before,
 .contact__label::before,
 .status-tag::before,
 .nav__lang-btn::before {
@@ -721,7 +764,9 @@ a {
   -webkit-mask: var(--ic) center / contain no-repeat;
   mask: var(--ic) center / contain no-repeat;
 }
-.pipeline-group__title::before {
+/* Larger titles carry a proportionally smaller leading icon */
+.pipeline-group__title::before,
+.index-title::before {
   content: "";
   display: inline-block;
   width: 0.62em;
@@ -731,6 +776,10 @@ a {
   background-color: currentColor;
   -webkit-mask: var(--ic) center / contain no-repeat;
   mask: var(--ic) center / contain no-repeat;
+}
+/* The summary is an inline-flex row; its gap handles icon spacing */
+.program__summary::before {
+  margin-right: 0;
 }
 .hero__scrollcue::after {
   content: "";
@@ -784,6 +833,18 @@ a {
 .hero__scrollcue {
   --ic-chevron: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>");
 }
+/* Hero kicker — hexagon (molecule / chemistry) */
+#hero .eyebrow {
+  --ic: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polygon points='12 2 21 7 21 17 12 22 3 17 3 7'/></svg>");
+}
+/* Drug-program titles — a diagonal capsule (pill) */
+.index-title {
+  --ic: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><g transform='rotate(45 12 12)'><rect x='2' y='8' width='20' height='8' rx='4'/><line x1='12' y1='8' x2='12' y2='16'/></g></svg>");
+}
+/* Program-overview toggle — list ("overview") icon */
+.program__summary {
+  --ic: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><line x1='8' y1='6' x2='21' y2='6'/><line x1='8' y1='12' x2='21' y2='12'/><line x1='8' y1='18' x2='21' y2='18'/><line x1='3' y1='6' x2='3.01' y2='6'/><line x1='3' y1='12' x2='3.01' y2='12'/><line x1='3' y1='18' x2='3.01' y2='18'/></svg>");
+}
 
 /* ===== Responsive polish ===== */
 @media (max-width: 640px) {
@@ -794,5 +855,149 @@ a {
   .contact__list li {
     grid-template-columns: 1fr;
     gap: 0.25rem;
+  }
+}
+
+/* ===== Per-drug pipeline visualizations ===== */
+.pipeline .index-item {
+  position: relative;
+}
+.index-num {
+  grid-column: 1;
+}
+.index-body {
+  grid-column: 2;
+}
+.index-viz {
+  grid-column: 3;
+  grid-row: 1;
+  align-self: start;
+  width: clamp(56px, 8vw, 88px);
+  aspect-ratio: 1 / 1;
+  color: inherit;
+  margin-top: 0.25rem;
+}
+.index-viz svg,
+.program__viz svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
+}
+
+.program__viz {
+  margin: 0 0 1.75rem;
+  width: 100%;
+  aspect-ratio: 16 / 6;
+  color: inherit;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--teal) 8%, #ffffff);
+  overflow: hidden;
+}
+.program__viz-cap {
+  margin-top: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+/* SVG palette — theme-adaptive line-art (dark base + teal accents) */
+.viz-base {
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.viz-teal {
+  stroke: var(--teal-bright);
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.viz-deep {
+  stroke: var(--teal-deep);
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.viz-bright {
+  stroke: var(--teal);
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.viz-fill-teal {
+  fill: var(--teal-bright);
+  stroke: none;
+}
+.viz-label {
+  fill: currentColor;
+  stroke: none;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  text-anchor: middle;
+  opacity: 0.7;
+}
+.draw {
+  stroke-dasharray: 1;
+}
+
+/* Emblem loops idle while the pipeline is off-screen */
+#pipeline.viz-paused .index-viz * {
+  animation-play-state: paused !important;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .index-viz [class*="emb-"] {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .emb-cr-l { animation: embCrL 3.2s ease-in-out infinite; }
+  .emb-cr-r { animation: embCrR 3.2s ease-in-out infinite; }
+  .emb-cr-dot { animation: embFlow 2.4s linear infinite; }
+  .emb-es-cage-l { animation: embCageL 3s ease-in-out infinite; }
+  .emb-es-cage-r { animation: embCageR 3s ease-in-out infinite; }
+  .emb-es-dot { animation: embRise 2.6s ease-in-out infinite; }
+  .emb-k-dot1 { animation: embKdot 1.8s ease-in infinite; }
+  .emb-k-dot2 { animation: embKdot 1.8s ease-in infinite; animation-delay: 0.9s; }
+  .emb-k-knob { animation: embKnob 2.4s ease-in-out infinite; }
+  .emb-k-cell { animation: embShrink 2.4s ease-in-out infinite; }
+  .emb-x-scan { animation: embScan 2.4s linear infinite; }
+  .emb-x-sel { animation: embSel 1.4s ease-in-out infinite; }
+}
+@keyframes embCrL { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(6px); } }
+@keyframes embCrR { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(-6px); } }
+@keyframes embFlow { 0% { transform: translateX(0); opacity: 0; } 12% { opacity: 1; } 88% { opacity: 1; } 100% { transform: translateX(68px); opacity: 0; } }
+@keyframes embCageL { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-12deg); } }
+@keyframes embCageR { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(12deg); } }
+@keyframes embRise { 0% { transform: translateY(0); opacity: 0; } 25% { opacity: 1; } 100% { transform: translateY(-14px); opacity: 0; } }
+@keyframes embKdot { 0% { transform: translateX(0); opacity: 1; } 100% { transform: translateX(22px); opacity: 0; } }
+@keyframes embKnob { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(30px); } }
+@keyframes embShrink { 0%, 100% { transform: scale(1); } 50% { transform: scale(0.72); } }
+@keyframes embScan { 0% { transform: translateX(0); opacity: 0.35; } 50% { opacity: 1; } 100% { transform: translateX(46px); opacity: 0.35; } }
+@keyframes embSel { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.3); } }
+
+/* Mobile: emblem floats top-right, out of the 2-column grid (last = wins) */
+@media (max-width: 640px) {
+  .index-viz {
+    position: absolute;
+    top: clamp(1.25rem, 4vw, 2rem);
+    right: clamp(1rem, 2vw, 1.75rem);
+    width: 44px;
+    margin-top: 0;
+    grid-column: auto;
+  }
+  .index-body {
+    padding-right: 52px;
+  }
+  .program__viz {
+    aspect-ratio: 16 / 8;
   }
 }

@@ -29,22 +29,49 @@ function initThree(placeholderCanvas) {
   placeholderCanvas.replaceWith(canvas);
   const hero = canvas.closest(".hero");
 
+  // Microscopy-style distance scale bar (bottom-right). It tracks the camera
+  // dolly + responsive zoom and snaps its label to a round value.
+  const NM_PER_UNIT = 1; // scene local unit → nanometres (schematic scale)
+  let scaleEl = null, scaleBarEl = null, scaleLabelEl = null;
+  if (hero) {
+    scaleEl = document.createElement("div");
+    scaleEl.className = "hero__scale";
+    scaleEl.setAttribute("aria-hidden", "true");
+    scaleEl.innerHTML =
+      '<span class="hero__scale-label"></span><span class="hero__scale-bar"></span>';
+    hero.appendChild(scaleEl);
+    scaleBarEl = scaleEl.querySelector(".hero__scale-bar");
+    scaleLabelEl = scaleEl.querySelector(".hero__scale-label");
+  }
+  // Round a raw distance to a "nice" 1 / 2 / 5 × 10ⁿ value for the bar label.
+  function niceDistance(x) {
+    if (!(x > 0)) return 1;
+    const exp = Math.floor(Math.log10(x));
+    const f = x / Math.pow(10, exp);
+    const nf = f < 1.5 ? 1 : f < 3.5 ? 2 : f < 7.5 ? 5 : 10;
+    return nf * Math.pow(10, exp);
+  }
+
   const scene = new THREE.Scene();
   // Depth fog: distant nodes dissolve into the hero's teal for real depth.
-  scene.fog = new THREE.Fog(0x44e0cc, 6.5, 13.5);
+  // Far plane is generous so the cluster survives being scaled up on wide screens.
+  scene.fog = new THREE.Fog(0x44e0cc, 6.5, 16);
   const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
   camera.position.set(0, 0, 9);
 
   const group = new THREE.Group();
-  group.position.x = 1.3; // bias right so the headline stays clear
-  scene.add(group);
+  scene.add(group); // position/scale are driven responsively by computeLayout()
 
   const BRIGHT = 0x8ff5e6;
   const MINT = 0xe6fff8;
   const DEEP = 0x0c6055;
 
   // ---- Nodes (atoms / neurons / cells), a few as pills (drugs) ----
-  const COUNT = 54;
+  // Denser network on wider screens; capped so mobile stays light.
+  const COUNT = Math.round(
+    Math.min(96, Math.max(46, (window.innerWidth || 1280) / 24))
+  );
+  const RADIUS = 2.95; // cluster radius (slightly larger for more presence)
   const nodeGeo = new THREE.IcosahedronGeometry(0.11, 1);
   const pillGeo = new THREE.CapsuleGeometry(0.09, 0.26, 4, 10);
   const nodeMat = new THREE.MeshBasicMaterial({
@@ -56,7 +83,7 @@ function initThree(placeholderCanvas) {
 
   const nodes = [];
   for (let i = 0; i < COUNT; i++) {
-    const r = 2.7 * Math.cbrt(Math.random());
+    const r = RADIUS * Math.cbrt(Math.random());
     const th = Math.random() * Math.PI * 2;
     const ph = Math.acos(2 * Math.random() - 1);
     const v = new THREE.Vector3(
@@ -114,7 +141,8 @@ function initThree(placeholderCanvas) {
       opacity: 0.95,
       blending: THREE.AdditiveBlending,
     });
-    for (let i = 0; i < 16; i++) {
+    const sigCount = Math.round(COUNT * 0.38); // pulses scale with the network
+    for (let i = 0; i < sigCount; i++) {
       const mesh = new THREE.Mesh(sigGeo, sigMat);
       group.add(mesh);
       signals.push({
@@ -183,29 +211,63 @@ function initThree(placeholderCanvas) {
   let raf = null;
   let t0 = 0;
   let scrollP = 0; // 0 at top of hero → 1 when scrolled a full viewport
+  let cssH = 1; // canvas height in CSS px (for the scale-bar projection math)
 
   function onScroll() {
     const vh = window.innerHeight || 1;
     scrollP = Math.min(1, Math.max(0, window.scrollY / vh));
   }
 
+  // Responsive framing: the network grows, shifts right, and the camera dollies
+  // in as the viewport widens — so it fills the frame and feels alive on resize.
+  // `layout` holds the target; `view` lerps toward it each frame for smoothness.
+  const layout = { scale: 1, biasX: 1.3, camZ: 9 };
+  const view = { scale: 1, biasX: 1.3, camZ: 9 };
+  function computeLayout() {
+    const w = window.innerWidth || 1;
+    const h = window.innerHeight || 1;
+    const aspect = w / h;
+    // 0 on a tall/portrait phone → 1 on a wide desktop.
+    const wide = Math.min(1, Math.max(0, (aspect - 0.8) / 1.4));
+    // Centered behind the copy on mobile, pushed far right on desktop.
+    layout.biasX = -0.2 + wide * 2.4;
+    // Base growth with width + an extra nudge on very large monitors,
+    // then boosted 1.62× for a larger overall visualization.
+    layout.scale =
+      (0.85 + wide * 0.5 + Math.min(0.3, Math.max(0, (w - 1280) / 3600))) * 1.62;
+    // Pull back when portrait (fit it in), move in and enlarge when wide.
+    layout.camZ = 10.6 - wide * 2.1;
+  }
+
   function resize() {
     const rect = canvas.getBoundingClientRect();
-    renderer.setSize(rect.width, rect.height, false);
-    camera.aspect = rect.width / rect.height || 1;
+    // Guard against a degenerate rect (0 during early layout) so we never hand
+    // Three a zero-size buffer, which renders nothing.
+    const w = rect.width || window.innerWidth || 1;
+    const h = rect.height || window.innerHeight || 1;
+    cssH = h;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h || 1;
     camera.updateProjectionMatrix();
+    computeLayout();
   }
 
   function tick(seconds) {
     pointer.x += (pointer.tx - pointer.x) * 0.04;
     pointer.y += (pointer.ty - pointer.y) * 0.04;
+    // Ease the responsive framing toward its target so a window resize glides.
+    view.scale += (layout.scale - view.scale) * 0.08;
+    view.biasX += (layout.biasX - view.biasX) * 0.08;
+    view.camZ += (layout.camZ - view.camZ) * 0.08;
+    group.position.x = view.biasX;
     // Scroll-coupling: dolly the camera into the cluster and fade out as the
     // hero leaves — the scroll-driven feel of immersive sites.
-    camera.position.z = 9 - scrollP * 3.5;
+    camera.position.z = view.camZ - scrollP * 3.5;
     canvas.style.opacity = String(1 - scrollP * 0.85);
     group.rotation.y = seconds * 0.12 + pointer.x * 0.5 + scrollP * 0.6;
     group.rotation.x = Math.sin(seconds * 0.15) * 0.1 + pointer.y * 0.3;
-    group.scale.setScalar(1 + Math.sin(seconds * 1.6) * 0.02); // heartbeat
+    // Responsive base scale × subtle heartbeat pulse.
+    group.scale.setScalar(view.scale * (1 + Math.sin(seconds * 1.6) * 0.02));
     helix.rotation.y = seconds * 0.5; // helix spins on its own axis
     for (const s of signals) {
       s.t += s.speed * 0.006;
@@ -215,6 +277,17 @@ function initThree(placeholderCanvas) {
       }
       const [a, b] = edges[s.edge];
       s.mesh.position.lerpVectors(nodes[a], nodes[b], s.t);
+    }
+    // Update the distance scale bar for the current camera zoom.
+    if (scaleBarEl) {
+      const fov = (camera.fov * Math.PI) / 180;
+      const worldPerPx = (2 * Math.tan(fov / 2) * camera.position.z) / cssH;
+      const localPerPx = worldPerPx / (view.scale || 1);
+      const nice = niceDistance(84 * localPerPx * NM_PER_UNIT);
+      scaleBarEl.style.width = (nice / NM_PER_UNIT / localPerPx).toFixed(1) + "px";
+      scaleLabelEl.textContent = +nice.toFixed(2) + " nm";
+      // Fade out well before the hero leaves so it never sits over later sections.
+      scaleEl.style.opacity = String(Math.max(0, 1 - scrollP * 1.6) * 0.72);
     }
     renderer.render(scene, camera);
   }
@@ -235,6 +308,10 @@ function initThree(placeholderCanvas) {
   }
 
   resize();
+  // Snap the smoothed view to the target so the first frame is framed correctly.
+  view.scale = layout.scale;
+  view.biasX = layout.biasX;
+  view.camZ = layout.camZ;
   onScroll();
   tick(2.5); // one composed frame (also the reduced-motion still)
   start();
@@ -242,7 +319,13 @@ function initThree(placeholderCanvas) {
   window.addEventListener("scroll", onScroll, { passive: true });
   window.addEventListener("resize", () => {
     resize();
-    if (reduce) tick(2.5);
+    if (reduce) {
+      // No animation loop to ease it in — snap to the new framing and redraw.
+      view.scale = layout.scale;
+      view.biasX = layout.biasX;
+      view.camZ = layout.camZ;
+      tick(2.5);
+    }
   });
   if (hero) {
     hero.addEventListener("pointermove", (e) => {

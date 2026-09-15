@@ -106,20 +106,12 @@ document.addEventListener("DOMContentLoaded", () => {
               { height: "0px", opacity: 0 },
               { height: h + "px", opacity: 1 },
             ],
-            { duration: 380, easing: "cubic-bezier(0.22, 1, 0.36, 1)" }
+            { duration: 253.333, easing: "cubic-bezier(0.22, 1, 0.36, 1)" }
           );
           anim.onfinish = anim.oncancel = () => {
             content.style.overflow = "";
             delete d.dataset.animating;
           };
-          // Reveal the just-opened copy: title per character, text per word.
-          if (window.gsap && window.SplitText) {
-            const title = content.querySelector(".program__title");
-            if (title) splitAndReveal(title, "chars");
-            content
-              .querySelectorAll(".program__lead, .program__h3, p")
-              .forEach((el) => splitAndReveal(el, "words"));
-          }
         } else {
           const h = content.scrollHeight;
           const anim = content.animate(
@@ -127,7 +119,7 @@ document.addEventListener("DOMContentLoaded", () => {
               { height: h + "px", opacity: 1 },
               { height: "0px", opacity: 0 },
             ],
-            { duration: 300, easing: "cubic-bezier(0.4, 0, 0.2, 1)" }
+            { duration: 200.0, easing: "cubic-bezier(0.4, 0, 0.2, 1)" }
           );
           anim.onfinish = anim.oncancel = () => {
             d.open = false; // collapse + hide from assistive tech
@@ -142,7 +134,29 @@ document.addEventListener("DOMContentLoaded", () => {
   // Split an element and reveal its parts (masked rise + fade), then revert to
   // clean, selectable text. mode "chars" = per character, "words" = per word.
   function splitAndReveal(el, mode) {
-    if (mode === "chars") {
+    if (mode === "anime") {
+      const split = new SplitText(el, {
+        type: "words,chars",
+        charsClass: "split-char",
+        wordsClass: "split-word",
+      });
+      el.classList.remove("anim-hidden");
+      gsap.set(el, { autoAlpha: 1 });
+      // Anime "title-card" impact: each character zooms in slightly oversized
+      // and softly blurred, then snaps sharp — a rapid left-to-right slam.
+      gsap.from(split.chars, {
+        opacity: 0,
+        scale: 1.6,
+        filter: "blur(7px)",
+        rotation: () => gsap.utils.random(-8, 8),
+        y: () => gsap.utils.random(-14, 14),
+        transformOrigin: "50% 50%",
+        ease: "expo.out",
+        duration: 0.45,
+        stagger: { each: 0.02, from: "start" },
+        onComplete: () => split.revert(),
+      });
+    } else if (mode === "chars") {
       const split = new SplitText(el, {
         type: "words,chars",
         charsClass: "split-char",
@@ -157,9 +171,9 @@ document.addEventListener("DOMContentLoaded", () => {
         rotation: () => gsap.utils.random(-40, 40),
         scale: 0.3,
         transformOrigin: "50% 50%",
-        ease: "back.out(1.7)",
-        duration: 0.8,
-        stagger: { each: 0.02, from: "random" },
+        ease: "power1.out",
+        duration: 0.533,
+        stagger: { each: 0.013, from: "random" },
         onComplete: () => split.revert(),
       });
     } else {
@@ -174,9 +188,9 @@ document.addEventListener("DOMContentLoaded", () => {
       gsap.from(split.words, {
         yPercent: 100,
         opacity: 0,
-        ease: "power3.out",
-        duration: 0.6,
-        stagger: 0.03,
+        ease: "power1.out",
+        duration: 0.4,
+        stagger: 0.02,
         onComplete: () => split.revert(),
       });
     }
@@ -188,7 +202,9 @@ document.addEventListener("DOMContentLoaded", () => {
     el.classList.add("anim-hidden");
     ScrollTrigger.create({
       trigger: el,
-      start: "top 85%",
+      // Fire as the element first enters from the bottom, so it never animates
+      // once it has scrolled up into a closer region of the viewport.
+      start: "top bottom",
       once: true,
       onEnter: () => splitAndReveal(el, mode),
     });
@@ -206,7 +222,7 @@ document.addEventListener("DOMContentLoaded", () => {
       (el) => el && el.classList.add("anim-hidden")
     );
 
-    const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+    const tl = gsap.timeline({ defaults: { ease: "power1.out" } });
 
     if (heroEyebrow) {
       const s = new SplitText(heroEyebrow, { type: "chars", charsClass: "split-char" });
@@ -215,8 +231,8 @@ document.addEventListener("DOMContentLoaded", () => {
       tl.from(s.chars, {
         opacity: 0, yPercent: () => gsap.utils.random(-90, 90),
         rotation: () => gsap.utils.random(-30, 30), scale: 0.4,
-        transformOrigin: "50% 50%", ease: "back.out(1.7)",
-        duration: 0.6, stagger: { each: 0.015, from: "random" },
+        transformOrigin: "50% 50%", ease: "power1.out",
+        duration: 0.4, stagger: { each: 0.01, from: "random" },
         onComplete: () => s.revert(),
       }, 0);
     }
@@ -227,8 +243,8 @@ document.addEventListener("DOMContentLoaded", () => {
       tl.from(s.chars, {
         opacity: 0, yPercent: () => gsap.utils.random(-160, 160),
         rotation: () => gsap.utils.random(-45, 45), scale: 0.3,
-        transformOrigin: "50% 50%", ease: "back.out(1.7)",
-        duration: 0.9, stagger: { each: 0.02, from: "random" },
+        transformOrigin: "50% 50%", ease: "power1.out",
+        duration: 0.6, stagger: { each: 0.013, from: "random" },
         onComplete: () => s.revert(),
       }, 0.15);
     }
@@ -236,53 +252,27 @@ document.addEventListener("DOMContentLoaded", () => {
       const s = new SplitText(heroMission, { type: "lines,words", mask: "lines", wordsClass: "split-word" });
       heroMission.classList.remove("anim-hidden");
       gsap.set(heroMission, { autoAlpha: 1 });
-      tl.from(s.words, { yPercent: 100, opacity: 0, duration: 0.5, stagger: 0.03, onComplete: () => s.revert() }, "-=0.25");
+      tl.from(s.words, { yPercent: 100, opacity: 0, duration: 0.333, stagger: 0.02, onComplete: () => s.revert() }, "-=0.25");
     }
-    tl.to(heroTail, { autoAlpha: 1, y: 0, duration: 0.6, stagger: 0.12 }, "-=0.2")
-      .from(heroTail, { y: 20, duration: 0.6, stagger: 0.12 }, "<");
+    tl.to(heroTail, { autoAlpha: 1, y: 0, duration: 0.4, stagger: 0.08 }, "-=0.2")
+      .from(heroTail, { y: 20, duration: 0.4, stagger: 0.08 }, "<");
 
-    // ---- Titles: per character ----
+    // ---- Titles: per character (scatter) — mission + contact ----
     [
       "#mission .eyebrow",
-      "#pipeline .eyebrow",
       "#contact .eyebrow",
-      ".pipeline-group__title",
-      "#pipeline .index-title",
       ".contact__title",
     ].forEach((sel) =>
       gsap.utils.toArray(sel).forEach((el) => revealOnScroll(el, "chars"))
     );
 
-    // ---- Other text: per word ----
+    // ---- Other text: per word — mission statement + contact list ----
     [
       ".mission__statement",
-      ".pipeline-group__desc",
-      "#pipeline .index-desc",
       ".contact__list li",
     ].forEach((sel) =>
       gsap.utils.toArray(sel).forEach((el) => revealOnScroll(el, "words"))
     );
-
-    // ---- Index numbers fade in ----
-    gsap.utils.toArray("#pipeline .index-num").forEach((n) => {
-      n.classList.add("anim-hidden");
-      gsap.to(n, {
-        opacity: 1,
-        duration: 0.5,
-        scrollTrigger: { trigger: n, start: "top 88%", once: true },
-      });
-    });
-
-    // ---- Status tags pop in ----
-    gsap.utils.toArray(".status-tag").forEach((tag) => {
-      gsap.from(tag, {
-        scale: 0.85,
-        opacity: 0,
-        duration: 0.4,
-        ease: "back.out(1.7)",
-        scrollTrigger: { trigger: tag, start: "top 90%", once: true },
-      });
-    });
 
     // ---- Active nav link highlighting ----
     gsap.utils.toArray("[data-nav-link]").forEach((link) => {

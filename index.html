@@ -41,6 +41,9 @@
               <li><button type="button" role="menuitem" data-lang="zh">中文</button></li>
               <li><button type="button" role="menuitem" data-lang="es">Español</button></li>
               <li><button type="button" role="menuitem" data-lang="ko">한국어</button></li>
+              <li><button type="button" role="menuitem" data-lang="fr">Français</button></li>
+              <li><button type="button" role="menuitem" data-lang="de">Deutsch</button></li>
+              <li><button type="button" role="menuitem" data-lang="ja">日本語</button></li>
             </ul>
           </div>
           <button
@@ -87,7 +90,7 @@
           </p>
         </div>
       </section>
-      <section id="pipeline" class="section section--teal pipeline">
+      <section id="pipeline" class="section section--white pipeline">
         <div class="container">
           <h2 class="eyebrow" data-i18n="pipeline.eyebrow">Pipeline</h2>
           <div class="pipeline-group">
@@ -99,6 +102,7 @@
             <ol class="index-list">
             <li class="index-item">
               <span class="index-num">01</span>
+              <span class="index-viz" data-viz-emblem="cr067" aria-hidden="true"></span>
               <div class="index-body">
                 <h4 class="index-title">CR-067</h4>
                 <p class="index-desc" data-i18n="cr067.desc">Treating ED through a combination approach.</p>
@@ -106,6 +110,9 @@
                 <details class="program">
                   <summary class="program__summary" data-i18n="prog.overview">Program overview</summary>
                   <div class="program__content">
+                    <figure class="program__viz" data-viz-banner="cr067" aria-hidden="true">
+                      <figcaption class="program__viz-cap" data-i18n="cr067.viz">Combination therapy: two agents, one lower dose.</figcaption>
+                    </figure>
                     <p data-i18n="cr067.p1">
                       As the global population ages, the demand for endocrine support
                       to improve quality of life, especially in sexual health, is
@@ -139,6 +146,7 @@
             </li>
             <li class="index-item">
               <span class="index-num">03</span>
+              <span class="index-viz" data-viz-emblem="estr" aria-hidden="true"></span>
               <div class="index-body">
                 <h4 class="index-title">Estrogen Prodrug</h4>
                 <p class="index-desc" data-i18n="estr.desc">Alternative to estrogen replacement therapies.</p>
@@ -146,6 +154,9 @@
                 <details class="program">
                   <summary class="program__summary" data-i18n="prog.overview">Program overview</summary>
                   <div class="program__content">
+                    <figure class="program__viz" data-viz-banner="estr" aria-hidden="true">
+                      <figcaption class="program__viz-cap" data-i18n="estr.viz">Prodrug cage releases estrogen gradually and safely.</figcaption>
+                    </figure>
                     <p data-i18n="estr.p1">
                       Estrogen is a female sex hormone that regulates several
                       systems in the body. It helps regulate heart, bone, and
@@ -180,6 +191,7 @@
             <ol class="index-list">
             <li class="index-item">
               <span class="index-num">02</span>
+              <span class="index-viz" data-viz-emblem="k119" aria-hidden="true"></span>
               <div class="index-body">
                 <h4 class="index-title">K-119</h4>
                 <p class="index-desc" data-i18n="k119.desc">Small-molecule oral bladder-cancer therapy.</p>
@@ -187,6 +199,9 @@
                 <details class="program">
                   <summary class="program__summary" data-i18n="prog.overview">Program overview</summary>
                   <div class="program__content">
+                    <figure class="program__viz" data-viz-banner="k119" aria-hidden="true">
+                      <figcaption class="program__viz-cap" data-i18n="k119.viz">Extended release suppresses the Rac1 pathway.</figcaption>
+                    </figure>
                     <p data-i18n="k119.p1">
                       Cancer treatments currently on the market are known for their
                       high toxicity and side effects, including hair loss and
@@ -211,6 +226,7 @@
             </li>
             <li class="index-item">
               <span class="index-num">04</span>
+              <span class="index-viz" data-viz-emblem="xtl" aria-hidden="true"></span>
               <div class="index-body">
                 <h4 class="index-title">XTL-152</h4>
                 <p class="index-desc" data-i18n="xtl.desc">AI-supported therapeutic agent targeting Rac1 pathways.</p>
@@ -218,6 +234,9 @@
                 <details class="program">
                   <summary class="program__summary" data-i18n="prog.overview">Program overview</summary>
                   <div class="program__content">
+                    <figure class="program__viz" data-viz-banner="xtl" aria-hidden="true">
+                      <figcaption class="program__viz-cap" data-i18n="xtl.viz">AI screens candidate molecules against Rac1.</figcaption>
+                    </figure>
                     <p data-i18n="xtl.p1">
                       The Rac1 pathway is a key player in cancer cell growth,
                       movement, and survival. As a small GTPase in the Rho family,
@@ -286,6 +305,7 @@
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrambleTextPlugin.min.js"></script>
     <script src="main.js"></script>
+    <script src="pipeline-viz.js"></script>
     <script src="i18n.js"></script>
 
     <script type="importmap">
