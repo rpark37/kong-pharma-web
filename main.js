@@ -257,19 +257,16 @@ document.addEventListener("DOMContentLoaded", () => {
     tl.to(heroTail, { autoAlpha: 1, y: 0, duration: 0.4, stagger: 0.08 }, "-=0.2")
       .from(heroTail, { y: 20, duration: 0.4, stagger: 0.08 }, "<");
 
-    // ---- Titles: per character (scatter) — mission + contact ----
+    // ---- Titles: per character (scatter) — mission ----
     [
       "#mission .eyebrow",
-      "#contact .eyebrow",
-      ".contact__title",
     ].forEach((sel) =>
       gsap.utils.toArray(sel).forEach((el) => revealOnScroll(el, "chars"))
     );
 
-    // ---- Other text: per word — mission statement + contact list ----
+    // ---- Other text: per word — mission statement ----
     [
       ".mission__statement",
-      ".contact__list li",
     ].forEach((sel) =>
       gsap.utils.toArray(sel).forEach((el) => revealOnScroll(el, "words"))
     );
