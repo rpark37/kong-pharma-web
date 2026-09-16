@@ -2430,15 +2430,6 @@ main > section:nth-of-type(even)::after {
   .panels svg [class*="an-"], .shape svg { animation: none; }
   .an-draw { stroke-dasharray: none; stroke-dashoffset: 0; }
 }
-/* Eccentricity (6) and Form factor (7) diagrams stay still */
-.panel:nth-child(6) svg [class*="an-"],
-.panel:nth-child(7) svg [class*="an-"] {
-  animation: none;
-}
-.panel:nth-child(6) svg .an-dash,
-.panel:nth-child(7) svg .an-dash {
-  stroke-dasharray: none;
-}
 
 /* ===== Design pass: motion tokens, layout, nav, contrast, reveals ===== */
 :root {
