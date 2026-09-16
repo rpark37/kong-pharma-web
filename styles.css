@@ -2461,20 +2461,28 @@ main > section:nth-of-type(even)::after {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
-/* Toolbar: white glass over light sections, teal only over dark ones */
+/* Toolbar: white glass over light sections, teal only over dark ones.
+   The glass lives on a ::before layer: a backdrop-filter on .nav itself
+   would become the containing block for the fixed full-screen menu. */
 .nav {
+  background: transparent;
+}
+.nav::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
   background: color-mix(in srgb, #ffffff 84%, transparent);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   box-shadow: 0 1px 0 color-mix(in srgb, var(--ink) 8%, transparent);
-  transition: background-color var(--dur) ease, box-shadow var(--dur) ease;
+  transition: background-color var(--dur) ease, opacity var(--dur) ease;
 }
-.nav--light {
+.nav--light::before {
   background: var(--teal);
 }
-.nav.is-open {
-  background: transparent;
-  box-shadow: none;
+.nav.is-open::before {
+  opacity: 0;
 }
 /* Contrast: secondary labels lifted above ~4.5:1 */
 .panel__def { opacity: 0.92; }
