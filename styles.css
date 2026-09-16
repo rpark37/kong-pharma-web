@@ -1031,7 +1031,10 @@ a {
   aspect-ratio: 4 / 5;
   object-fit: cover;
   border-radius: 12px;
-  background: color-mix(in srgb, var(--on-ink) 6%, transparent);
+  /* transparent cutouts sit on a light backdrop: white center, pale mint edge */
+  background:
+    radial-gradient(75% 60% at 50% 35%, #ffffff, color-mix(in srgb, var(--teal) 14%, #ffffff) 72%),
+    color-mix(in srgb, var(--teal) 14%, #ffffff);
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--teal) 28%, transparent);
   margin-bottom: 0;
 }
