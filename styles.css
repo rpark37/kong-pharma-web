@@ -1288,7 +1288,6 @@ a {
 }
 #hero,
 #team,
-#partnership,
 .section--white,
 .section--paper {
   --teal: var(--teal-ink);
@@ -1296,8 +1295,7 @@ a {
   color: var(--on-paper);
 }
 #hero,
-#team,
-#partnership {
+#team {
   background-color: var(--paper);
 }
 #hero .hero__headline {
@@ -2357,6 +2355,8 @@ svg text {
   background-size: 80px 80px, 80px 80px, 40px 40px, 40px 40px, 8px 8px, 8px 8px;
 }
 #mission,
+#science,
+#partnership,
 #contact {
   --grid-fine: color-mix(in srgb, var(--teal) 3%, transparent);
   --grid-minor: color-mix(in srgb, var(--teal) 6%, transparent);
@@ -2461,29 +2461,7 @@ main > section:nth-of-type(even)::after {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
-/* Toolbar: white glass over light sections, teal only over dark ones.
-   The glass lives on a ::before layer: a backdrop-filter on .nav itself
-   would become the containing block for the fixed full-screen menu. */
-.nav {
-  background: transparent;
-}
-.nav::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background: color-mix(in srgb, #ffffff 84%, transparent);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  box-shadow: 0 1px 0 color-mix(in srgb, var(--ink) 8%, transparent);
-  transition: background-color var(--dur) ease, opacity var(--dur) ease;
-}
-.nav--light::before {
-  background: var(--teal);
-}
-.nav.is-open::before {
-  opacity: 0;
-}
+/* Toolbar: solid teal over every section (the base .nav rule) */
 /* Contrast: secondary labels lifted above ~4.5:1 */
 .panel__def { opacity: 0.92; }
 .shape figcaption { opacity: 0.9; }
@@ -2542,4 +2520,239 @@ main > section:nth-of-type(even)::after {
 }
 @media (prefers-reduced-motion: reduce) {
   .js-reveal { opacity: 1; transform: none; transition: none; }
+}
+
+
+/* ===== Globe: screen-space label pinned to Lowell, MA ===== */
+.globe-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  pointer-events: none;
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  column-gap: 0.45rem;
+  /* anchored just above-right of the marker */
+  margin: -2.4rem 0 0 0.6rem;
+  padding: 0.35rem 0.6rem 0.4rem;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--ink) 78%, transparent);
+  border: 1px solid color-mix(in srgb, var(--teal) 45%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--on-ink);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  will-change: transform, opacity;
+}
+.globe-label__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--teal);
+  box-shadow: 0 0 8px var(--teal);
+}
+.globe-label__text {
+  font-weight: 500;
+  color: var(--teal);
+}
+.globe-label__sub {
+  grid-column: 2;
+  font-size: 0.56rem;
+  opacity: 0.75;
+}
+.globe-label--left {
+  margin-left: -0.6rem;
+}
+
+/* ===== Hero: headline, lead, proof strip ===== */
+.hero__headline {
+  max-width: 16ch; /* "Making cancer as treatable as high blood pressure." on three lines */
+}
+.hero__mission {
+  max-width: 56ch;
+  font-size: clamp(1.02rem, 1.6vw, 1.3rem);
+  margin-bottom: 1.5rem;
+}
+.hero__proof {
+  list-style: none;
+  margin: 0 0 1.75rem;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.6rem;
+  max-width: 64ch;
+}
+.hero__proof li {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  padding: 0.38rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--teal) 40%, transparent);
+  background: color-mix(in srgb, #ffffff 55%, transparent);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.hero__proof-k {
+  font-weight: 500;
+  color: var(--teal);
+}
+.hero__proof-k::after {
+  content: "";
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin-left: 0.45rem;
+  border-radius: 50%;
+  background: var(--teal);
+  vertical-align: 0.1em;
+}
+@media (max-width: 640px) {
+  .hero__proof li { font-size: 0.62rem; padding: 0.32rem 0.6rem; }
+}
+.hero__proof li {
+  align-items: flex-start;
+}
+.hero__proof-k {
+  white-space: nowrap;
+}
+
+/* ===== Partnership on the dark slate (like Mission) ===== */
+#partnership {
+  background-color: var(--ink);
+  color: var(--on-ink);
+}
+#partnership .dmta__card,
+#partnership .tox__card {
+  background: color-mix(in srgb, #ffffff 4%, transparent);
+  border-color: color-mix(in srgb, var(--teal) 24%, transparent);
+  box-shadow: 0 0 32px color-mix(in srgb, var(--teal) 8%, transparent);
+  backdrop-filter: blur(10px);
+}
+#partnership .dmta__side--xtalpi .dmta__card {
+  border-color: color-mix(in srgb, var(--violet) 45%, transparent);
+}
+#partnership .dmta__card p,
+#partnership .tox__card p {
+  opacity: 0.85;
+}
+#partnership .dmta__track {
+  stroke: color-mix(in srgb, #ffffff 14%, transparent);
+}
+#partnership .dmta__node circle {
+  fill: var(--ink-2);
+}
+#partnership .dmta__node text {
+  fill: var(--on-ink);
+}
+#partnership .dmta__centre--sub {
+  fill: var(--on-ink);
+}
+#partnership .speed__bar {
+  background: color-mix(in srgb, #ffffff 10%, transparent);
+}
+#partnership .speed__bar i {
+  background: color-mix(in srgb, #ffffff 38%, transparent);
+}
+#partnership .speed__row--ai .speed__bar i {
+  background: linear-gradient(90deg, var(--violet), var(--teal));
+}
+#partnership .tox__n {
+  color: var(--ink);
+}
+
+/* ===== Science on the dark slate (like Partnership) ===== */
+#science {
+  background-color: var(--ink);
+  color: var(--on-ink);
+  --teal: #44e0cc; /* luminous teal again on the dark surface */
+  --on-ink: #e6f6f3;
+}
+#science .science__video,
+#science .panel,
+#science .table-wrap {
+  background: color-mix(in srgb, #ffffff 4%, transparent);
+  border-color: color-mix(in srgb, var(--teal) 24%, transparent);
+  box-shadow: 0 0 32px color-mix(in srgb, var(--teal) 8%, transparent);
+  backdrop-filter: blur(10px);
+}
+#science .panel__tab {
+  background: color-mix(in srgb, var(--teal) 10%, transparent);
+  border-bottom-color: color-mix(in srgb, var(--teal) 26%, transparent);
+}
+#science .panel__n {
+  color: var(--ink);
+}
+#science .panel__note {
+  background: color-mix(in srgb, var(--teal) 8%, transparent);
+  border-color: color-mix(in srgb, var(--teal) 32%, transparent);
+}
+#science .shape-table thead th {
+  background: color-mix(in srgb, var(--teal) 10%, transparent);
+  border-bottom-color: color-mix(in srgb, var(--teal) 32%, transparent);
+}
+#science .shape-table td,
+#science .shape-table tbody th {
+  border-top-color: color-mix(in srgb, var(--teal) 18%, transparent);
+}
+#science .science__video video {
+  background: var(--ink);
+}
+#science .science__intro p,
+#science .science__blurb,
+#science .panel__def,
+#science .panel__note,
+#science .shape figcaption {
+  opacity: 0.88;
+}
+#science .ro-warm {
+  stroke: #e0a94a; /* warmer ochre so rings and networks read on the slate */
+}
+
+/* ===== Menu overlay: same teal as the toolbar, dark ink text ===== */
+.nav__links {
+  background: var(--teal);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.nav__links a {
+  color: var(--on-teal);
+}
+.nav__links a:hover,
+.nav__links a[aria-current="true"] {
+  color: #ffffff;
+}
+.nav__links a:hover::before {
+  filter: drop-shadow(0 0 8px color-mix(in srgb, #ffffff 70%, transparent));
+}
+.nav__links a[aria-current="true"]::before {
+  animation: menuIconBreatheTeal 2.4s ease-in-out infinite;
+}
+@keyframes menuIconBreatheTeal {
+  0%, 100% { filter: drop-shadow(0 0 0 transparent); transform: scale(1); }
+  50% { filter: drop-shadow(0 0 10px color-mix(in srgb, #ffffff 80%, transparent)); transform: scale(1.08); }
+}
+.nav__subdesc {
+  color: var(--on-teal);
+}
+/* toolbar marks stay dark while the teal overlay is open */
+.nav.is-open .nav__wordmark,
+.nav.is-open .nav__lang-btn {
+  color: var(--nav-fg);
+}
+.nav.is-open .nav__lang-btn {
+  border-color: color-mix(in srgb, var(--nav-fg) 40%, transparent);
+}
+.nav.is-open .nav__toggle-bar {
+  background: var(--nav-fg);
 }

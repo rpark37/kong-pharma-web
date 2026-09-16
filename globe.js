@@ -1,6 +1,6 @@
 // Contact-section globe: a dotted-continent Earth in the site's teal-on-ink
-// style, slowly turning, draggable with the mouse / touch, with comet-like
-// arcs launching from Lowell, MA to partner sites.
+// style, slowly turning, draggable with the mouse / touch. Ballistic arcs
+// launch from Lowell, MA to partner sites; a screen-space label tracks Lowell.
 import * as THREE from "three";
 
 const host = document.querySelector("[data-globe]");
@@ -12,6 +12,7 @@ function init() {
 
   const TEAL = 0x44e0cc;
   const MINT = 0xe6fff8;
+  const AMBER = 0xffb547;
   const INK = 0x121c24;
   const R = 1;
 
@@ -33,8 +34,9 @@ function init() {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 50);
-  camera.position.set(0, 0, 3.4);
+  // Camera sits back far enough that the highest trajectories (≈1.5 R) stay in frame
+  const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 50);
+  camera.position.set(0, 0, 4.4);
 
   // tilt (drag up/down) > globe (spin about its own axis)
   const tilt = new THREE.Group();
@@ -51,6 +53,11 @@ function init() {
     const lo = THREE.MathUtils.degToRad(lon);
     return new THREE.Vector3(r * Math.cos(la) * Math.sin(lo), r * Math.sin(la), r * Math.cos(la) * Math.cos(lo));
   };
+
+  // ---- Easing helpers ----
+  const easeInOutCubic = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+  const easeOutCubic = (x) => 1 - Math.pow(1 - x, 3);
+  const smooth = (x) => x * x * (3 - 2 * x);
 
   // ---- Body: dark sphere occludes the far side of the dot field ----
   globe.add(
@@ -140,8 +147,31 @@ function init() {
     render();
   };
 
-  // ---- Site markers: dot + pulsing ring flat against the surface ----
+  // ---- Soft radial sprite used for comet heads and particles ----
+  const glowSprite = (() => {
+    const c = document.createElement("canvas");
+    c.width = c.height = 64;
+    const g = c.getContext("2d");
+    const grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    grad.addColorStop(0, "rgba(255,255,255,1)");
+    grad.addColorStop(0.35, "rgba(230,255,248,0.6)");
+    grad.addColorStop(1, "rgba(68,224,204,0)");
+    g.fillStyle = grad;
+    g.fillRect(0, 0, 64, 64);
+    return new THREE.CanvasTexture(c);
+  })();
+
+  // ---- Site markers: dot + gently breathing ring flat against the surface ----
   const rings = [];
+  const surfaceRing = (p, inner, outer, color, opacity) => {
+    const ring = new THREE.Mesh(
+      new THREE.RingGeometry(inner, outer, 40),
+      new THREE.MeshBasicMaterial({ color, transparent: true, opacity, side: THREE.DoubleSide, depthWrite: false })
+    );
+    ring.position.copy(p);
+    ring.lookAt(p.clone().multiplyScalar(2));
+    return ring;
+  };
   const addMarker = (lat, lon, isOrigin) => {
     const p = toVec(lat, lon, R * 1.006);
     const dot = new THREE.Mesh(
@@ -150,49 +180,72 @@ function init() {
     );
     dot.position.copy(p);
     globe.add(dot);
-    const ring = new THREE.Mesh(
-      new THREE.RingGeometry(isOrigin ? 0.024 : 0.016, isOrigin ? 0.032 : 0.022, 32),
-      new THREE.MeshBasicMaterial({ color: isOrigin ? MINT : TEAL, transparent: true, opacity: 0.7, side: THREE.DoubleSide })
-    );
-    ring.position.copy(p);
-    ring.lookAt(p.clone().multiplyScalar(2));
+    const ring = surfaceRing(p, isOrigin ? 0.024 : 0.016, isOrigin ? 0.032 : 0.022, isOrigin ? MINT : TEAL, 0.6);
     ring.userData.phase = Math.random() * Math.PI * 2;
     globe.add(ring);
     rings.push(ring);
+    return p;
   };
-  addMarker(ORIGIN[1], ORIGIN[2], true);
+  const originP = addMarker(ORIGIN[1], ORIGIN[2], true);
   SITES.forEach(([, lat, lon]) => addMarker(lat, lon, false));
 
-  // ---- Arcs: great-circle bezier lifted off the surface; comet head + fading tail ----
-  const SAMPLES = 160;
-  const TRAIL = 46;
+  // ---- Screen-space label that follows Lowell around the globe ----
+  const label = document.createElement("div");
+  label.className = "globe-label";
+  label.innerHTML = '<span class="globe-label__dot"></span><span class="globe-label__text">Lowell, MA</span><span class="globe-label__sub">Kong’s Pharmaceutical · HQ</span>';
+  host.appendChild(label);
+  const labelAnchor = originP.clone().multiplyScalar(1.02);
+  const tmpV = new THREE.Vector3();
+  const tmpN = new THREE.Vector3();
+  const camDir = new THREE.Vector3();
+  const placeLabel = () => {
+    tmpV.copy(labelAnchor);
+    globe.localToWorld(tmpV);
+    tmpN.copy(tmpV).normalize();
+    camDir.copy(camera.position).sub(tmpV).normalize();
+    const facing = tmpN.dot(camDir); // > 0: on the near side of the globe
+    tmpV.project(camera);
+    const x = (tmpV.x * 0.5 + 0.5) * host.clientWidth;
+    const y = (-tmpV.y * 0.5 + 0.5) * host.clientHeight;
+    // keep the chip inside the box: hang it to the left once the marker passes centre
+    const flip = x + label.offsetWidth + 16 > host.clientWidth; // would spill past the right edge
+    label.classList.toggle("globe-label--left", flip);
+    label.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)${flip ? " translateX(-100%)" : ""}`;
+    label.style.opacity = facing > 0.08 ? String(Math.min(1, (facing - 0.08) * 4)) : "0";
+  };
+
+  // ---- Ballistic arcs: one high apex mid-flight; head + tapering plume ----
+  const SAMPLES = 200;
+  const TRAIL = 60;
+  const FLIGHT = 0.64; // fraction of each cycle spent in flight
   const comets = [];
   const origin = toVec(ORIGIN[1], ORIGIN[2]);
   SITES.forEach(([, lat, lon], i) => {
     const dest = toVec(lat, lon);
     const angle = origin.angleTo(dest);
-    const lift = 0.06 + 0.5 * Math.pow(angle / Math.PI, 0.85);
-    const slerp = (t) => new THREE.Vector3().copy(origin).lerp(dest, t).normalize();
-    const c1 = slerp(0.25).multiplyScalar(R + lift);
-    const c2 = slerp(0.75).multiplyScalar(R + lift);
-    const curve = new THREE.CubicBezierCurve3(origin.clone(), c1, c2, dest.clone());
+    // Quadratic path: the apex sits at R + lift/2, so a trans-Pacific shot
+    // peaks near 1.5 R and even the short New England hops loft visibly.
+    const lift = 0.2 + 0.9 * Math.pow(angle / Math.PI, 0.9);
+    const mid = new THREE.Vector3().copy(origin).lerp(dest, 0.5).normalize().multiplyScalar(R + lift);
+    const curve = new THREE.QuadraticBezierCurve3(origin.clone(), mid, dest.clone());
     const pts = curve.getPoints(SAMPLES);
 
-    // faint static path
+    // faint static trajectory
     globe.add(
       new THREE.Line(
         new THREE.BufferGeometry().setFromPoints(pts),
-        new THREE.LineBasicMaterial({ color: TEAL, transparent: true, opacity: 0.16 })
+        new THREE.LineBasicMaterial({ color: TEAL, transparent: true, opacity: 0.12 })
       )
     );
 
-    // comet tail: TRAIL vertices re-filled each frame; colour fades head -> tail
+    // plume: TRAIL vertices re-filled each frame; colour fades head -> tail
     const tailPos = new Float32Array(TRAIL * 3);
     const tailCol = new Float32Array(TRAIL * 3);
-    const head = new THREE.Color(MINT), tail = new THREE.Color(INK);
+    const stops = [new THREE.Color(0xffffff), new THREE.Color(MINT), new THREE.Color(TEAL), new THREE.Color(INK)];
     for (let k = 0; k < TRAIL; k++) {
-      const f = k / (TRAIL - 1);
-      const col = head.clone().lerp(tail, Math.pow(f, 0.7));
+      const f = Math.pow(k / (TRAIL - 1), 0.8) * (stops.length - 1);
+      const s = Math.min(stops.length - 2, Math.floor(f));
+      const col = stops[s].clone().lerp(stops[s + 1], f - s);
       tailCol.set([col.r, col.g, col.b], k * 3);
     }
     const tg = new THREE.BufferGeometry();
@@ -200,40 +253,33 @@ function init() {
     tg.setAttribute("color", new THREE.BufferAttribute(tailCol, 3));
     const tailLine = new THREE.Line(
       tg,
-      new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending })
+      new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending })
     );
     tailLine.visible = false;
     globe.add(tailLine);
 
-    const headMesh = new THREE.Mesh(
-      new THREE.SphereGeometry(0.016, 10, 10),
-      new THREE.MeshBasicMaterial({ color: MINT })
+    const head = new THREE.Sprite(
+      new THREE.SpriteMaterial({ map: glowSprite, color: MINT, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })
     );
-    headMesh.visible = false;
-    globe.add(headMesh);
+    head.scale.setScalar(0.1);
+    head.visible = false;
+    globe.add(head);
+
+    // ripples: launch at the pad, arrival at the target
+    const launchRipple = surfaceRing(originP.clone().multiplyScalar(1.002), 0.024, 0.03, MINT, 0);
+    const landRipple = surfaceRing(dest.clone().multiplyScalar(1.008), 0.018, 0.024, AMBER, 0);
+    globe.add(launchRipple, landRipple);
 
     comets.push({
-      pts, tailPos, tg, tailLine, headMesh,
-      // staggered launches; each cycle includes a rest before relaunch
-      period: 7.5 + angle * 2.2,
-      offset: i * 1.9,
+      pts, tailPos, tg, tailLine, head, launchRipple, landRipple,
+      // unhurried cadence, staggered per site so launches never bunch up
+      period: 5.5 + angle * 1.3,
+      offset: i * 1.7,
     });
   });
 
   // ---- Particle traffic: small glowing points streaming along low arcs
   //      between every pair of sites, in both directions ----
-  const glowSprite = (() => {
-    const c = document.createElement("canvas");
-    c.width = c.height = 32;
-    const g = c.getContext("2d");
-    const grad = g.createRadialGradient(16, 16, 0, 16, 16, 16);
-    grad.addColorStop(0, "rgba(255,255,255,1)");
-    grad.addColorStop(0.4, "rgba(180,255,240,0.55)");
-    grad.addColorStop(1, "rgba(68,224,204,0)");
-    g.fillStyle = grad;
-    g.fillRect(0, 0, 32, 32);
-    return new THREE.CanvasTexture(c);
-  })();
   const ALL = [ORIGIN, ...SITES].map(([, la, lo]) => toVec(la, lo));
   const PAIR_SAMPLES = 120;
   const pairArcs = [];
@@ -261,7 +307,7 @@ function init() {
   const pPos = new Float32Array(pairArcs.length * PER_ARC * 3);
   pairArcs.forEach((pts, arc) => {
     for (let k = 0; k < PER_ARC; k++) {
-      particles.push({ arc, t: Math.random(), speed: 0.025 + Math.random() * 0.045, dir: Math.random() < 0.5 ? 1 : -1 });
+      particles.push({ arc, t: Math.random(), speed: 0.04 + Math.random() * 0.06, dir: Math.random() < 0.5 ? 1 : -1 });
     }
   });
   const pGeo = new THREE.BufferGeometry();
@@ -325,7 +371,7 @@ function init() {
     }, { threshold: 0.05 }).observe(host);
   }
 
-  function render() { renderer.render(scene, camera); }
+  function render() { renderer.render(scene, camera); placeLabel(); }
 
   function tick(now) {
     raf = 0;
@@ -353,20 +399,46 @@ function init() {
     if (!reduce) {
       stepTraffic(dt);
       comets.forEach((c) => {
-        const u = ((t + c.offset) % c.period) / c.period; // 0..1 over the cycle
-        const travel = u / 0.72; // move for 72% of the cycle, rest for the remainder
-        if (travel > 1 + TRAIL / SAMPLES) { c.tailLine.visible = c.headMesh.visible = false; return; }
-        const headIdx = travel * SAMPLES;
-        for (let k = 0; k < TRAIL; k++) {
-          const idx = THREE.MathUtils.clamp(Math.round(headIdx - k), 0, SAMPLES);
-          const p = c.pts[idx];
-          c.tailPos.set([p.x, p.y, p.z], k * 3);
+        const cycle = (t + c.offset) % c.period;
+        const u = cycle / c.period;
+        const flight = u / FLIGHT; // 0..1 while in flight
+
+        // launch ripple: a ring that spreads from the pad over the first 0.8 s
+        if (cycle < 0.8) {
+          const k = cycle / 0.8;
+          c.launchRipple.scale.setScalar(1 + 4 * easeOutCubic(k));
+          c.launchRipple.material.opacity = 0.7 * (1 - k);
+        } else c.launchRipple.material.opacity = 0;
+
+        if (flight <= 1) {
+          // ballistic pacing: boost off the pad, coast through the apex, ease into the target
+          const p = easeInOutCubic(flight);
+          const headIdx = p * SAMPLES;
+          // plume length breathes with speed: longest through the middle of the flight
+          const stretch = 0.5 + 0.7 * Math.sin(flight * Math.PI);
+          for (let k = 0; k < TRAIL; k++) {
+            const idx = THREE.MathUtils.clamp(Math.round(headIdx - k * stretch), 0, SAMPLES);
+            const q = c.pts[idx];
+            c.tailPos.set([q.x, q.y, q.z], k * 3);
+          }
+          c.tg.attributes.position.needsUpdate = true;
+          c.tailLine.visible = true;
+          // fade the plume in at launch and out on approach
+          c.tailLine.material.opacity = 0.9 * smooth(Math.min(1, flight * 6)) * smooth(Math.min(1, (1 - flight) * 4 + 0.15));
+          c.head.position.copy(c.pts[Math.round(headIdx)]);
+          c.head.visible = true;
+          c.head.scale.setScalar(0.08 + 0.05 * Math.sin(flight * Math.PI)); // brightest at apex
+          c.landRipple.material.opacity = 0;
+        } else {
+          c.tailLine.visible = c.head.visible = false;
+          // arrival ripple in the first second after touchdown
+          const since = cycle - FLIGHT * c.period;
+          if (since < 1.1) {
+            const k = since / 1.1;
+            c.landRipple.scale.setScalar(1 + 5 * easeOutCubic(k));
+            c.landRipple.material.opacity = 0.8 * (1 - k);
+          } else c.landRipple.material.opacity = 0;
         }
-        c.tg.attributes.position.needsUpdate = true;
-        c.tailLine.visible = true;
-        const hp = c.pts[THREE.MathUtils.clamp(Math.round(headIdx), 0, SAMPLES)];
-        c.headMesh.position.copy(hp);
-        c.headMesh.visible = headIdx <= SAMPLES;
       });
     }
 
