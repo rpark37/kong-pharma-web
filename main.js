@@ -234,20 +234,32 @@ document.addEventListener("DOMContentLoaded", () => {
     const scrollThenOpen = (item, d) => {
       collapseOthers(d);
       const html = document.documentElement;
-      const prevSnap = html.style.scrollSnapType;
-      html.style.scrollSnapType = "none"; // proximity snap would tug toward the section top
       const target = () =>
         Math.min(
           Math.round(item.getBoundingClientRect().top + window.scrollY - NAV_OFFSET),
           html.scrollHeight - window.innerHeight
         );
+      let done = false;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        window.removeEventListener("scrollend", finish);
+        openProgram(d);
+      };
+      // `scrollend` fires exactly when the smooth scroll settles; the frame
+      // check is the fallback for browsers without it (long jumps can take >2 s)
+      window.addEventListener("scrollend", finish, { once: true });
       window.scrollTo({ top: target(), behavior: reduce ? "auto" : "smooth" });
       const t0 = performance.now();
+      let still = 0, lastY = -1;
       const check = () => {
-        const arrived = Math.abs(window.scrollY - target()) < 2;
-        if (!arrived && performance.now() - t0 < 1500) return requestAnimationFrame(check);
-        html.style.scrollSnapType = prevSnap;
-        openProgram(d);
+        if (done) return;
+        const y = window.scrollY;
+        still = Math.abs(y - lastY) < 0.5 ? still + 1 : 0;
+        lastY = y;
+        const arrived = Math.abs(y - target()) < 2 || still > 6; // settled, even if short of target
+        if (!arrived && performance.now() - t0 < 4000) return requestAnimationFrame(check);
+        finish();
       };
       requestAnimationFrame(check);
     };

@@ -36,7 +36,6 @@
 
 html {
   scroll-behavior: smooth;
-  scroll-snap-type: y proximity;
   scroll-padding-top: 68px;
   scrollbar-width: none; /* Firefox — immersive, full-screen feel */
 }
@@ -102,7 +101,6 @@ a {
 .section {
   padding-block: var(--section-y);
   scroll-margin-top: 68px;
-  scroll-snap-align: start;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
