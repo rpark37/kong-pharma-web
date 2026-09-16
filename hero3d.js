@@ -55,7 +55,7 @@ function initThree(placeholderCanvas) {
   const scene = new THREE.Scene();
   // Depth fog: distant nodes dissolve into the hero's teal for real depth.
   // Far plane is generous so the cluster survives being scaled up on wide screens.
-  scene.fog = new THREE.Fog(0x070b0f, 6.5, 16); // matches the obsidian hero
+  scene.fog = new THREE.Fog(0x121c24, 6.5, 16); // matches the slate hero background
   const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
   camera.position.set(0, 0, 9);
 

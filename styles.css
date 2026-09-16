@@ -4,11 +4,11 @@
   --teal-deep: #063a34;
   --teal-bright: #2fb7a6;
   /* Futuristic AI theme: deep-obsidian base, teal as a luminous accent */
-  --ink: #070b0f;
-  --ink-2: #0b1218;
+  --ink: #121c24;
+  --ink-2: #192630;
   --violet: #8b7cff;
-  --paper: #0b1218;
-  --paper-dim: #16222b;
+  --paper: #192630;
+  --paper-dim: #24343f;
   --on-teal: #06322d;
   --on-teal-deep: #eafcf7;
   --on-ink: #e6f6f3;
@@ -245,12 +245,16 @@ a {
 .nav--light .nav__toggle-bar {
   background: var(--nav-fg);
 }
-/* While the menu overlay (green) is open, keep marks dark for contrast */
+/* While the dark menu overlay is open, lift the marks to light for contrast */
 .nav.is-open .nav__wordmark {
-  color: var(--nav-fg);
+  color: var(--on-ink);
 }
 .nav.is-open .nav__toggle-bar {
-  background: var(--nav-fg);
+  background: var(--on-ink);
+}
+.nav.is-open .nav__lang-btn {
+  color: var(--on-ink);
+  border-color: color-mix(in srgb, var(--on-ink) 40%, transparent);
 }
 
 /* Toolbar actions group (language + menu) */
@@ -374,7 +378,12 @@ a {
   align-items: flex-start;
   gap: clamp(0.4rem, 2vh, 1.25rem);
   padding: 0 var(--pad-x);
-  background: var(--nav-bg);
+  /* Dark glass overlay carrying the site's aurora, replacing the logo-green fill */
+  background:
+    radial-gradient(60% 50% at 82% 8%, color-mix(in srgb, var(--teal) 16%, transparent), transparent 70%),
+    radial-gradient(42% 42% at 8% 92%, color-mix(in srgb, var(--violet) 12%, transparent), transparent 70%),
+    color-mix(in srgb, var(--ink) 94%, transparent);
+  backdrop-filter: blur(18px);
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.45s ease, visibility 0.45s ease;
@@ -389,7 +398,7 @@ a {
   font-size: clamp(2.4rem, 9vw, 5rem);
   line-height: 1.05;
   letter-spacing: -0.02em;
-  color: var(--nav-fg);
+  color: var(--on-ink);
   opacity: 0;
   transform: translateY(28px);
   transition: opacity 0.5s ease, transform 0.5s ease, color 0.2s ease;
@@ -412,7 +421,7 @@ a {
 }
 .nav__links a:hover,
 .nav__links a[aria-current="true"] {
-  color: var(--paper);
+  color: var(--teal);
 }
 /* CTA reads as a plain menu item inside the overlay */
 .nav__cta {
@@ -459,7 +468,7 @@ a {
 }
 .hero__headline {
   margin: 0.5rem 0 1.5rem;
-  max-width: 16ch;
+  max-width: 24ch; /* "AI Endocrine & Oncology …" wraps to two lines */
 }
 .hero__mission {
   margin-bottom: 2.25rem;
@@ -1227,6 +1236,34 @@ a {
 }
 .site-footer {
   border-top: 1px solid color-mix(in srgb, var(--teal) 16%, transparent);
+}
+
+/* Trial-registration links under a status tag */
+.index-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin: 0.85rem 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.index-links__label {
+  opacity: 0.6;
+}
+.index-links a {
+  color: var(--teal);
+  border-bottom: 1px solid color-mix(in srgb, var(--teal) 40%, transparent);
+  transition: border-color 0.2s ease;
+}
+.index-links a:hover {
+  border-bottom-color: var(--teal);
+}
+/* "Currently Enrolling" tag — user-plus icon */
+[data-i18n="tag.enrolling"] {
+  --ic: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2'/><circle cx='8.5' cy='7' r='4'/><line x1='20' y1='8' x2='20' y2='14'/><line x1='23' y1='11' x2='17' y2='11'/></svg>");
 }
 
 /* Team section kicker — users icon */
