@@ -202,11 +202,16 @@ function init() {
     makeLabel(ORIGIN[1], ORIGIN[2], "Lowell, MA", "Kong’s Pharmaceutical · HQ"),
     makeLabel(-33.8688, 151.2093, "Sydney, Australia", "Novotech · clinical research partner"),
   ];
+  // one extra chip for whichever site was clicked (permanent ones stay put)
+  const focusLabel = makeLabel(0, 0, "", "");
+  focusLabel.hidden = true;
+  labels.push(focusLabel);
   const tmpV = new THREE.Vector3();
   const tmpN = new THREE.Vector3();
   const camDir = new THREE.Vector3();
   const placeLabel = () => {
-    labels.forEach(({ el, anchor }) => {
+    labels.forEach(({ el, anchor, hidden }) => {
+      if (hidden) { el.style.opacity = "0"; return; }
       tmpV.copy(anchor);
       globe.localToWorld(tmpV);
       tmpN.copy(tmpV).normalize();
@@ -225,6 +230,32 @@ function init() {
       el.style.opacity = facing > 0.08 ? String(Math.min(1, (facing - 0.08) * 4)) : "0";
     });
   };
+
+  // ---- Clickable site chips: tween the globe to centre a site, show its label ----
+  const focus = { active: false, t0: 0, dur: 1.4, fromY: 0, fromX: 0, toY: 0, toX: 0 };
+  let idleUntil = 0; // auto-rotation resumes after this timestamp (seconds)
+  const TWO_PI = Math.PI * 2;
+  const siteButtons = [...document.querySelectorAll(".globe-site")];
+  const focusOn = (btn) => {
+    const lat = parseFloat(btn.dataset.lat), lon = parseFloat(btn.dataset.lon);
+    // face the longitude: same convention as the initial spin (lon 0 faces the camera)
+    let toY = THREE.MathUtils.degToRad(-lon);
+    const cur = spin.y;
+    toY = cur + ((((toY - cur) % TWO_PI) + TWO_PI * 1.5) % TWO_PI) - Math.PI; // shortest way round
+    const toX = THREE.MathUtils.clamp(THREE.MathUtils.degToRad(lat) - 0.28, -0.9, 0.9);
+    Object.assign(focus, { active: true, t0: performance.now(), fromY: spin.y, fromX: spin.x, toY, toX });
+    spin.vy = spin.vx = 0;
+    idleUntil = performance.now() / 1000 + 9;
+    siteButtons.forEach((b) => b.setAttribute("aria-pressed", String(b === btn)));
+    // permanent labels already cover Lowell and Sydney; anything else gets the focus chip
+    const permanent = labels.slice(0, 2).some(({ anchor }) => anchor.angleTo(toVec(lat, lon, R * 1.02)) < 0.01);
+    if (permanent) { focusLabel.hidden = true; return; }
+    focusLabel.el.querySelector(".globe-label__text").textContent = btn.textContent.trim();
+    focusLabel.el.querySelector(".globe-label__sub").textContent = btn.dataset.sub || "";
+    focusLabel.anchor.copy(toVec(lat, lon, R * 1.02));
+    focusLabel.hidden = false;
+  };
+  siteButtons.forEach((b) => b.addEventListener("click", () => focusOn(b)));
 
   // ---- Ballistic arcs: one high apex mid-flight; head + tapering plume ----
   const SAMPLES = 200;
@@ -392,12 +423,24 @@ function init() {
     last = now;
     const t = now / 1000;
 
-    if (!dragging) {
-      // inertia, then ease back into the slow idle rotation
+    if (dragging) {
+      focus.active = false;
+      idleUntil = 0;
+    } else if (focus.active) {
+      // glide to the chosen site
+      const k = Math.min(1, (now - focus.t0) / (focus.dur * 1000));
+      const e = easeInOutCubic(k);
+      spin.y = focus.fromY + (focus.toY - focus.fromY) * e;
+      spin.x = focus.fromX + (focus.toX - focus.fromX) * e;
+      if (k >= 1) focus.active = false;
+    } else {
+      // inertia, then ease back into the slow idle rotation (paused while a site is in focus)
       spin.vy *= 0.94; spin.vx *= 0.9;
       spin.y += spin.vy; spin.x += spin.vx;
-      if (!reduce) spin.y += 0.11 * dt; // ~57 s per revolution
-      spin.x *= 0.995; // drift the tilt back toward level
+      if (!reduce && t > idleUntil) {
+        spin.y += 0.11 * dt; // ~57 s per revolution
+        spin.x *= 0.995; // drift the tilt back toward level
+      }
     }
     globe.rotation.y = spin.y;
     tilt.rotation.x = 0.28 + spin.x;

@@ -2751,3 +2751,44 @@ main > section:nth-of-type(even)::after {
 .nav.is-open .nav__toggle-bar {
   background: var(--nav-fg);
 }
+
+/* ===== Globe: clickable site chips (centre the globe, show the label) ===== */
+.contact__globe-cap {
+  margin-bottom: 0.6rem;
+}
+.globe-sites {
+  list-style: none;
+  margin: 0 auto;
+  padding: 0;
+  max-width: 560px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem 0.45rem;
+}
+.globe-site {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--on-ink);
+  background: color-mix(in srgb, #ffffff 4%, transparent);
+  border: 1px solid color-mix(in srgb, var(--teal) 35%, transparent);
+  border-radius: 999px;
+  padding: 0.36rem 0.7rem;
+  cursor: pointer;
+  transition: background-color var(--dur-fast) ease, border-color var(--dur-fast) ease, color var(--dur-fast) ease;
+}
+.globe-site:hover {
+  border-color: var(--teal);
+  color: var(--teal);
+}
+.globe-site[aria-pressed="true"] {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: var(--on-teal);
+}
+.globe-site:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
