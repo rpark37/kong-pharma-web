@@ -55,7 +55,7 @@ function initThree(placeholderCanvas) {
   const scene = new THREE.Scene();
   // Depth fog: distant nodes dissolve into the hero's teal for real depth.
   // Far plane is generous so the cluster survives being scaled up on wide screens.
-  scene.fog = new THREE.Fog(0x44e0cc, 6.5, 16);
+  scene.fog = new THREE.Fog(0x070b0f, 6.5, 16); // matches the obsidian hero
   const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
   camera.position.set(0, 0, 9);
 
@@ -124,9 +124,9 @@ function initThree(placeholderCanvas) {
   const lines = new THREE.LineSegments(
     lineGeo,
     new THREE.LineBasicMaterial({
-      color: 0x053b34,
+      color: 0x44e0cc, // luminous teal bonds read on the dark hero
       transparent: true,
-      opacity: 0.55,
+      opacity: 0.35,
     })
   );
   group.add(lines);
@@ -202,7 +202,7 @@ function initThree(placeholderCanvas) {
   helix.add(
     new THREE.LineSegments(
       helixLineGeo,
-      new THREE.LineBasicMaterial({ color: 0x053b34, transparent: true, opacity: 0.5 })
+      new THREE.LineBasicMaterial({ color: 0x44e0cc, transparent: true, opacity: 0.4 })
     )
   );
   group.add(helix);

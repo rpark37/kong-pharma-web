@@ -98,48 +98,6 @@
   }
 
   // =======================================================================
-  // Estrogen prodrug — caged steroid released gradually; rising level curve.
-  // =======================================================================
-  function estrBanner() {
-    var steroid =
-      path(hex(300, 120, 30), "viz-base", true) +
-      path(hex(348, 120, 30), "viz-base", true) +
-      path(hex(396, 120, 30), "viz-base", true) +
-      path("M436 120 l18 -20 l24 8 l-6 28 l-28 6 Z", "viz-base", true);
-    var particles = "";
-    for (var i = 0; i < 5; i++) {
-      particles += circle(300 + i * 40, 70, 4, "viz-fill-teal particle p" + i);
-    }
-    var body =
-      '<path class="viz-teal draw cage-l" pathLength="1" d="M368 42 A96 96 0 0 0 368 198"/>' +
-      '<path class="viz-teal draw cage-r" pathLength="1" d="M368 42 A96 96 0 0 1 368 198"/>' +
-      steroid +
-      particles +
-      path("M120 206 C 220 206, 300 150, 540 96", "viz-deep", true) +
-      circle(540, 96, 5, "viz-fill-teal curve-dot");
-    return svg(BVB, body);
-  }
-  function estrAnim(s, g) {
-    var tl = g.timeline();
-    tl.from(s.querySelectorAll(".draw:not(.cage-l):not(.cage-r)"), { strokeDashoffset: 1, duration: 0.7, stagger: 0.05, ease: "power2.out" })
-      .from([s.querySelector(".cage-l"), s.querySelector(".cage-r")], { strokeDashoffset: 1, duration: 0.5, ease: "power2.out" }, "-=0.3")
-      .to(s.querySelector(".cage-l"), { rotation: -20, svgOrigin: "368 120", yoyo: true, repeat: -1, duration: 1.6, ease: "sine.inOut" }, ">")
-      .to(s.querySelector(".cage-r"), { rotation: 20, svgOrigin: "368 120", yoyo: true, repeat: -1, duration: 1.6, ease: "sine.inOut" }, "<")
-      .from(s.querySelectorAll(".particle"), { y: 26, opacity: 0, stagger: 0.12, duration: 0.6, ease: "power1.out" }, "<")
-      .to(s.querySelectorAll(".particle"), { y: -18, opacity: 0, stagger: 0.12, repeat: -1, repeatDelay: 0.4, duration: 1.4, ease: "power1.in" }, ">");
-    return tl;
-  }
-  function estrEmblem() {
-    var body =
-      '<path class="viz-teal emb-es-cage-l" d="M52 22 A30 30 0 0 0 52 82"/>' +
-      '<path class="viz-teal emb-es-cage-r" d="M52 22 A30 30 0 0 1 52 82"/>' +
-      path(hex(44, 52, 13), "viz-base") +
-      path(hex(60, 52, 13), "viz-base") +
-      circle(52, 68, 3.5, "viz-fill-teal emb-es-dot");
-    return svg(EVB, body);
-  }
-
-  // =======================================================================
   // K-119 — coated capsule releases particles; a Rac1 switch flips OFF; a
   // tumor cluster shrinks.
   // =======================================================================
@@ -247,7 +205,6 @@
   // ---- registry ---------------------------------------------------------
   var VIZ = {
     cr067: { emblem: cr067Emblem, banner: cr067Banner, anim: cr067Anim },
-    estr: { emblem: estrEmblem, banner: estrBanner, anim: estrAnim },
     k119: { emblem: k119Emblem, banner: k119Banner, anim: k119Anim },
     xtl: { emblem: xtlEmblem, banner: xtlBanner, anim: xtlAnim },
   };
