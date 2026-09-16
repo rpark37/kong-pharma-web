@@ -1,6 +1,7 @@
 /* ===== Design tokens ===== */
 :root {
   --teal: #44e0cc;
+  --teal-bar: #44e0cc; /* fixed toolbar teal — immune to per-section --teal re-scoping */
   --teal-deep: #063a34;
   --teal-bright: #2fb7a6;
   /* Futuristic AI theme: deep-obsidian base, teal as a luminous accent */
@@ -1148,14 +1149,15 @@ a {
 .hero__scale {
   color: var(--teal);
 }
+/* Same teal as the toolbar (the hero re-scopes --teal to a deeper shade) */
 .btn--light {
-  background: var(--teal);
+  background: var(--teal-bar);
   color: var(--on-teal);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--teal) 60%, transparent),
-    0 0 28px color-mix(in srgb, var(--teal) 35%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--teal-bar) 60%, transparent),
+    0 0 28px color-mix(in srgb, var(--teal-bar) 35%, transparent);
 }
 .btn--light:hover {
-  box-shadow: 0 0 0 1px var(--teal), 0 0 40px color-mix(in srgb, var(--teal) 55%, transparent);
+  box-shadow: 0 0 0 1px var(--teal-bar), 0 0 40px color-mix(in srgb, var(--teal-bar) 55%, transparent);
 }
 /* Formerly-light sections become lifted dark glass */
 .section--white {
@@ -1269,4 +1271,138 @@ a {
 /* Team section kicker — users icon */
 [data-i18n="team.eyebrow"] {
   --ic: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2'/><circle cx='9' cy='7' r='4'/><path d='M23 21v-2a4 4 0 0 0-3-3.87'/><path d='M16 3.13a4 4 0 0 1 0 7.75'/></svg>");
+}
+
+/* ===== Light surfaces: content sections on near-white =====
+   The hero (3D network on dark fog), the menu overlay and the footer stay
+   dark; mission, pipeline, team and contact sit on white. Inside those
+   sections --teal is re-scoped to a deeper teal so accents keep contrast. */
+:root {
+  --paper: #f4f9f9;
+  --paper-dim: #e6efef;
+  --on-paper: #121c24;
+  --teal-ink: #0f8577;
+}
+.section--ink,
+.section--white,
+.section--paper {
+  --teal: var(--teal-ink);
+  --on-ink: var(--on-paper);
+  color: var(--on-paper);
+}
+.section--ink {
+  background-color: var(--paper);
+}
+.section--white {
+  background-color: #ffffff;
+}
+.section--paper {
+  background-color: var(--paper-dim);
+}
+.section--white .pipeline-group__title {
+  text-shadow: none;
+}
+/* Glass cards become paper cards: solid white, soft lift */
+.pipeline .index-item,
+.member {
+  background: #ffffff;
+  border-color: color-mix(in srgb, var(--teal) 22%, transparent);
+  box-shadow: 0 6px 24px color-mix(in srgb, var(--ink) 6%, transparent);
+  backdrop-filter: none;
+}
+.pipeline .index-item:has(.program[open]) {
+  background-color: #ffffff;
+  border-color: color-mix(in srgb, var(--teal) 45%, transparent);
+  box-shadow: 0 10px 36px color-mix(in srgb, var(--teal) 14%, transparent);
+}
+.member__photo {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--teal) 35%, transparent),
+    0 6px 20px color-mix(in srgb, var(--ink) 10%, transparent);
+}
+
+/* ===== "Currently Enrolling" — muted ochre badge with a slow glow breath ===== */
+.status-tag--live {
+  --live: #b8862b; /* burnt ochre: warm but low-saturation, reads on white */
+  position: relative;
+  background: color-mix(in srgb, var(--live) 12%, transparent);
+  border-color: color-mix(in srgb, var(--live) 55%, transparent);
+  color: color-mix(in srgb, var(--live) 85%, #2b1a00);
+  font-weight: 500;
+  box-shadow: 0 0 0 0 transparent;
+  animation: livePulse 3.2s ease-in-out infinite;
+}
+@keyframes livePulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 transparent, 0 0 6px color-mix(in srgb, var(--live) 10%, transparent);
+    border-color: color-mix(in srgb, var(--live) 55%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--live) 12%, transparent),
+      0 0 14px color-mix(in srgb, var(--live) 28%, transparent);
+    border-color: color-mix(in srgb, var(--live) 80%, transparent);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .status-tag--live {
+    animation: none;
+  }
+}
+
+/* ===== Compact pipeline subsections: tighter vertical rhythm ===== */
+.index-item {
+  padding-block: clamp(1.1rem, 2.5vw, 1.6rem);
+}
+.pipeline .index-item + .index-item {
+  margin-top: 0.5rem;
+}
+.index-title {
+  margin-bottom: 0.3rem;
+}
+.status-tag {
+  margin-top: 0.6rem;
+}
+.index-links {
+  margin-top: 0.5rem;
+}
+.program {
+  margin-top: 0.9rem;
+}
+.program__content {
+  padding-top: 0.9rem;
+}
+.program__title {
+  margin-bottom: 0.35rem;
+}
+.program__lead {
+  margin-bottom: 1rem;
+}
+.program__h3 {
+  margin-bottom: 0.6rem;
+}
+.program__content p {
+  margin-bottom: 0.7rem;
+}
+.program__viz {
+  margin-bottom: 1.1rem;
+}
+
+/* ===== Pipeline item header: title and subtitle share a line =====
+   Baseline-aligned flex row; the subtitle wraps under the title only when
+   the row is too narrow to hold both. */
+.index-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 1rem;
+  row-gap: 0.15rem;
+  margin-bottom: 0.3rem;
+}
+.index-head .index-title {
+  margin: 0;
+}
+.index-head .index-desc {
+  margin: 0;
+  flex: 1 1 18ch;
+  min-width: 0;
 }

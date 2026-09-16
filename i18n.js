@@ -5,7 +5,7 @@
   const I18N = {
     "skip": { fr: "Aller au contenu", de: "Zum Inhalt springen", ja: "コンテンツへスキップ", en: "Skip to content", zh: "跳至正文", es: "Saltar al contenido", ko: "본문으로 건너뛰기" },
     "nav.mission": { fr: "Mission", de: "Mission", ja: "ミッション", en: "Mission", zh: "使命", es: "Misión", ko: "미션" },
-    "nav.pipeline": { fr: "Pipeline", de: "Pipeline", ja: "パイプライン", en: "Pipeline", zh: "产品管线", es: "Cartera", ko: "파이프라인" },
+    "nav.pipeline": { fr: "Pipeline de médicaments", de: "Wirkstoff-Pipeline", ja: "医薬品パイプライン", en: "Drug Pipeline", zh: "药物管线", es: "Cartera de fármacos", ko: "신약 파이프라인" },
     "nav.contact": { fr: "Contact", de: "Kontakt", ja: "お問い合わせ", en: "Contact", zh: "联系我们", es: "Contacto", ko: "문의" },
     "hero.headline": { en: "AI Endocrine & Oncology Drug Innovation", zh: "AI 内分泌与肿瘤药物创新", es: "Innovación IA en fármacos endocrinos y oncológicos", ko: "AI 내분비 및 종양학 신약 혁신", fr: "Innovation IA en médicaments endocriniens et oncologiques", de: "KI-Innovation bei endokrinen und onkologischen Medikamenten", ja: "AI 内分泌・腫瘍医薬品イノベーション" },
     "hero.mission": { fr: "Nous développons des médicaments à petites molécules de pointe pour favoriser le rétablissement des patients.", de: "Wir entwickeln hochmoderne niedermolekulare Arzneimittel, um die Genesung der Patienten zu unterstützen.", ja: "患者の回復を支える最先端の低分子医薬品を開発しています。",
@@ -23,9 +23,9 @@
       es: "Desarrollamos terapias endocrinas y oncológicas a partir de compuestos de moléculas pequeñas, con el fin de convertir el cáncer en una enfermedad crónica manejable mediante tratamientos eficaces, menos tóxicos y accesibles.",
       ko: "우리는 소분자 화합물로 내분비 및 종양학 치료제를 개발하며, 효과적이고 독성이 낮으며 접근 가능한 치료를 통해 암을 관리 가능한 만성 질환으로 전환하고자 합니다.",
     },
-    "pipeline.eyebrow": { fr: "Pipeline", de: "Pipeline", ja: "パイプライン", en: "Pipeline", zh: "产品管线", es: "Cartera de productos", ko: "파이프라인" },
+    "pipeline.eyebrow": { fr: "Pipeline de médicaments", de: "Wirkstoff-Pipeline", ja: "医薬品パイプライン", en: "Drug Pipeline", zh: "药物管线", es: "Cartera de fármacos", ko: "신약 파이프라인" },
     "grp.all": { en: "Endocrine & Oncology", zh: "内分泌与肿瘤学", es: "Endocrino y oncología", ko: "내분비 및 종양학", fr: "Endocrinien et oncologie", de: "Endokrin und Onkologie", ja: "内分泌・腫瘍学" },
-    "grp.all.desc": { en: "Supporting an aging population — including sexual-health therapies for men and women — by optimizing the endocrine system, and developing therapies that suppress cancer-cell nutrient uptake: effective, less toxic, and accessible worldwide.", zh: "通过优化内分泌系统支持老龄化人群——包括为男性和女性提供性健康疗法——并研发抑制癌细胞营养摄取的疗法：高效、低毒，并可在全球普及。", es: "Apoyamos a una población que envejece —incluidas terapias de salud sexual para hombres y mujeres— optimizando el sistema endocrino, y desarrollamos terapias que inhiben la captación de nutrientes de las células cancerosas: eficaces, menos tóxicas y accesibles en todo el mundo.", ko: "내분비 시스템을 최적화하여 고령화 인구를 지원하고 — 남성과 여성을 위한 성 건강 치료 포함 — 암세포의 영양분 흡수를 억제하는 치료제를 개발합니다: 효과적이고 독성이 낮으며 전 세계적으로 접근 가능합니다.", fr: "Soutenir une population vieillissante — y compris par des thérapies de santé sexuelle pour les hommes et les femmes — en optimisant le système endocrinien, et développer des thérapies qui inhibent l'absorption des nutriments par les cellules cancéreuses : efficaces, moins toxiques et accessibles dans le monde entier.", de: "Unterstützung einer alternden Bevölkerung – einschließlich Therapien für die sexuelle Gesundheit von Männern und Frauen – durch Optimierung des endokrinen Systems sowie Entwicklung von Therapien, die die Nährstoffaufnahme von Krebszellen unterdrücken: wirksam, weniger toxisch und weltweit zugänglich.", ja: "内分泌系を最適化することで、男女の性の健康に関する治療を含め高齢化する人々を支援し、がん細胞の栄養取り込みを抑制する治療法を開発します。効果的で毒性が低く、世界中で利用可能です。" },
+    "grp.all.desc": { en: "Developing therapies that suppress cancer-cell nutrient uptake — effective, less toxic, and accessible worldwide.", zh: "研发抑制癌细胞营养摄取的疗法——高效、低毒，并可在全球普及。", es: "Desarrollamos terapias que inhiben la captación de nutrientes de las células cancerosas: eficaces, menos tóxicas y accesibles en todo el mundo.", ko: "암세포의 영양분 흡수를 억제하는 치료제를 개발합니다 — 효과적이고 독성이 낮으며 전 세계적으로 접근 가능합니다.", fr: "Développer des thérapies qui inhibent l'absorption des nutriments par les cellules cancéreuses — efficaces, moins toxiques et accessibles dans le monde entier.", de: "Entwicklung von Therapien, die die Nährstoffaufnahme von Krebszellen unterdrücken – wirksam, weniger toxisch und weltweit zugänglich.", ja: "がん細胞の栄養取り込みを抑制する治療法を開発します。効果的で毒性が低く、世界中で利用可能です。" },
     "cr067.desc": { fr: "Traiter la dysfonction érectile par une approche combinée.", de: "Behandlung der erektilen Dysfunktion durch einen Kombinationsansatz.", ja: "併用アプローチによる ED の治療。",
       en: "Treating ED through a combination approach.",
       zh: "通过联合疗法治疗勃起功能障碍。",
@@ -167,6 +167,73 @@
     return ready;
   }
 
+  // Split a string into small pieces so it unscrambles segment by segment.
+  // Space-delimited text splits on words; long CJK runs split every 4 chars.
+  // Whitespace is returned as its own entries so it can be kept verbatim.
+  function segments(text) {
+    const out = [];
+    text.split(/(\s+)/).forEach((part) => {
+      if (!part) return;
+      if (/^\s+$/.test(part)) { out.push(part); return; }
+      if (part.length > 10 && /[　-鿿가-힯]/.test(part)) {
+        for (let k = 0; k < part.length; k += 4) out.push(part.slice(k, k + 4));
+      } else {
+        out.push(part);
+      }
+    });
+    return out;
+  }
+
+  // Pin an element to the size it will have with its final text, so the box
+  // never reflows while the scramble runs (one clean resize, before it starts).
+  function lockToFinalSize(el, t) {
+    const old = el.textContent;
+    el.textContent = t;
+    const r = el.getBoundingClientRect();
+    el.textContent = old;
+    el.style.boxSizing = "border-box";
+    el.style.width = r.width + "px";
+    el.style.height = r.height + "px";
+  }
+  function unlock(el) {
+    el.style.boxSizing = "";
+    el.style.width = "";
+    el.style.height = "";
+  }
+
+  // Scramble `el` into text `t`: segments in their own spans (inside one inline
+  // wrapper so flex/inline-flex parents see a single child), staggered left to
+  // right, then collapsed back to plain text when the timeline completes.
+  function scrambleInto(el, t, lang, delay) {
+    if (el._i18nTl) el._i18nTl.kill();
+    lockToFinalSize(el, t);
+    el.textContent = "";
+    const wrap = document.createElement("span");
+    const spans = [];
+    segments(t).forEach((seg) => {
+      if (/^\s+$/.test(seg)) { wrap.appendChild(document.createTextNode(seg)); return; }
+      const s = document.createElement("span");
+      wrap.appendChild(s);
+      spans.push({ s, seg });
+    });
+    el.appendChild(wrap);
+    const step = Math.min(0.05, 0.8 / Math.max(spans.length, 1)); // cap the spread at ~0.8s
+    const tl = gsap.timeline({
+      delay,
+      onComplete: () => { el.textContent = t; unlock(el); el._i18nTl = null; },
+    });
+    spans.forEach(({ s, seg }, k) => {
+      tl.to(s, {
+        duration: 0.9,
+        ease: "power2.inOut",
+        // tweenLength:false — show the full-length scramble at once so the
+        // segment doesn't visibly grow from empty while the box stays fixed.
+        scrambleText: { text: seg, chars: CHARS[lang] || "upperCase", speed: 0.5, revealDelay: 0.3, delimiter: "", tweenLength: false },
+      }, k * step);
+    });
+    el._i18nTl = tl;
+  }
+
   function setLang(lang) {
     if (!I18N["nav.mission"][lang]) return;
     const canScramble = ensurePlugin() && !reduce;
@@ -176,19 +243,7 @@
       const t = (I18N[el.dataset.i18n] || {})[lang];
       if (t == null) return;
       if (canScramble) {
-        gsap.killTweensOf(el);
-        gsap.to(el, {
-          duration: 1.733,
-          ease: "power2.inOut",
-          delay: Math.min(i * 0.023, 0.5), // gentle top-to-bottom wave
-          scrambleText: {
-            text: t,
-            chars: CHARS[lang] || "upperCase",
-            speed: 0.5,
-            revealDelay: 0.47, // scramble a while before decoding
-            delimiter: "",
-          },
-        });
+        scrambleInto(el, t, lang, Math.min(i * 0.023, 0.5)); // gentle top-to-bottom wave
         i++;
       } else {
         el.textContent = t;
