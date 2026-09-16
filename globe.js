@@ -256,7 +256,7 @@ function init() {
       );
     }
   }
-  const PER_ARC = 3;
+  const PER_ARC = (window.innerWidth || 1280) < 600 ? 0 : 3; // no particle traffic on phones
   const particles = [];
   const pPos = new Float32Array(pairArcs.length * PER_ARC * 3);
   pairArcs.forEach((pts, arc) => {

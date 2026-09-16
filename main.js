@@ -17,6 +17,12 @@ document.addEventListener("DOMContentLoaded", () => {
   // Partnership speed bars grow in when they scroll into view.
   initSpeedBars();
 
+  // Sections mark themselves visible (perpetual CSS loops pause off-screen),
+  // cards fade-rise once as they enter, and the globe module loads lazily.
+  initSectionVisibility();
+  initReveals();
+  initLazyGlobe();
+
   // Transparent toolbar: adapt mark/text color to the section behind it.
   initNavTheme();
 
@@ -134,6 +140,49 @@ document.addEventListener("DOMContentLoaded", () => {
       }, { threshold: 0.3 });
       io.observe(box);
     } else countUp();
+  }
+
+  function initSectionVisibility() {
+    const sections = document.querySelectorAll("main > section");
+    if (!sections.length || typeof IntersectionObserver !== "function") {
+      sections.forEach((sec) => sec.classList.add("is-visible"));
+      return;
+    }
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => e.target.classList.toggle("is-visible", e.isIntersecting));
+    }, { rootMargin: "120px 0px", threshold: 0 });
+    sections.forEach((sec) => io.observe(sec));
+  }
+
+  function initReveals() {
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const cards = document.querySelectorAll(".panel, .member, .tox__card, .dmta__card, .pipeline .index-item");
+    if (reduce || !cards.length || typeof IntersectionObserver !== "function") return;
+    cards.forEach((el) => {
+      el.classList.add("js-reveal");
+      // stagger within each parent so a grid ripples in
+      const i = Array.prototype.indexOf.call(el.parentElement.children, el);
+      el.style.transitionDelay = Math.min(i, 5) * 70 + "ms";
+    });
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        e.target.classList.add("is-in");
+        io.unobserve(e.target);
+      });
+    }, { rootMargin: "0px 0px -8% 0px", threshold: 0.1 });
+    cards.forEach((el) => io.observe(el));
+  }
+
+  function initLazyGlobe() {
+    const host = document.querySelector("[data-globe]");
+    if (!host) return;
+    const load = () => import("./globe.js").catch((err) => console.warn("globe failed to load", err));
+    if (typeof IntersectionObserver !== "function") return load();
+    const io = new IntersectionObserver((entries) => {
+      if (entries.some((e) => e.isIntersecting)) { io.disconnect(); load(); }
+    }, { rootMargin: "1200px 0px" });
+    io.observe(host);
   }
 
   function initSpeedBars() {

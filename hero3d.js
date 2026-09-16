@@ -70,9 +70,10 @@ function initThree(placeholderCanvas) {
 
   // ---- Nodes (atoms / neurons / cells), a few as pills (drugs) ----
   // Denser network on wider screens; capped so mobile stays light.
-  const COUNT = Math.round(
-    Math.min(96, Math.max(46, (window.innerWidth || 1280) / 24))
-  );
+  // Phones get a much lighter network (fewer nodes = fewer bonds and pulses).
+  const COUNT = (window.innerWidth || 1280) < 600
+    ? 28
+    : Math.round(Math.min(96, Math.max(46, (window.innerWidth || 1280) / 24)));
   const RADIUS = 2.95; // cluster radius (slightly larger for more presence)
   const nodeGeo = new THREE.IcosahedronGeometry(0.11, 1);
   const pillGeo = new THREE.CapsuleGeometry(0.09, 0.26, 4, 10);
