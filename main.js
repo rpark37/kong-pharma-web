@@ -5,6 +5,18 @@ document.addEventListener("DOMContentLoaded", () => {
   // Animated expand/collapse for the program-overview <details> accordions.
   initProgramAccordions();
 
+  // Deep links to a drug (#cr-067 etc.) expand its overview before scrolling.
+  initProgramLinks();
+
+  // Mission explainer video plays only while it is on screen.
+  initScienceVideo();
+
+  // CR-067 live enrolment counter (figures set in initTrialCounter).
+  initTrialCounter();
+
+  // Partnership speed bars grow in when they scroll into view.
+  initSpeedBars();
+
   // Transparent toolbar: adapt mark/text color to the section behind it.
   initNavTheme();
 
@@ -50,6 +62,163 @@ document.addEventListener("DOMContentLoaded", () => {
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") setOpen(false);
     });
+  }
+
+  function initTrialCounter() {
+    const box = document.querySelector("[data-trial-stats]");
+    if (!box) return;
+    // Current CR-067 figures (update here as the trial progresses).
+    const stats = { enrolled: 1, testing: 14, sites: 1, excluded: 1, cancelled: 5 };
+    const SIMULATE_DRIFT = false; // true = demo mode: numbers tick over on their own
+    const els = {};
+    box.querySelectorAll("[data-stat]").forEach((el) => (els[el.dataset.stat] = el));
+    const fmt = (n) => n.toLocaleString(document.documentElement.lang || "en");
+    const show = (key, tick) => {
+      const el = els[key];
+      if (!el) return;
+      el.textContent = fmt(stats[key]);
+      if (tick) {
+        el.classList.remove("is-tick");
+        void el.offsetWidth; // restart the animation
+        el.classList.add("is-tick");
+      }
+    };
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    // Count up from zero the first time the panel scrolls into view
+    let started = false;
+    const countUp = () => {
+      if (started) return;
+      started = true;
+      if (reduce) {
+        Object.keys(stats).forEach((k) => show(k));
+        return drift();
+      }
+      const t0 = performance.now();
+      const DUR = 1800;
+      const step = (now) => {
+        const p = Math.min(1, (now - t0) / DUR);
+        const e = 1 - Math.pow(1 - p, 3);
+        Object.keys(stats).forEach((k) => {
+          if (els[k]) els[k].textContent = fmt(Math.round(stats[k] * e));
+        });
+        if (p < 1) requestAnimationFrame(step);
+        else drift();
+      };
+      requestAnimationFrame(step);
+    };
+
+    // Then drift: a new patient every so often moves from testing to enrolled,
+    // and new candidates enter screening.
+    const drift = () => {
+      if (!SIMULATE_DRIFT) return;
+      const next = 5000 + Math.random() * 9000;
+      setTimeout(() => {
+        const roll = Math.random();
+        if (roll < 0.55 && stats.testing > 0) {
+          stats.testing -= 1;
+          stats.enrolled += 1;
+          show("testing", true);
+          show("enrolled", true);
+        } else {
+          stats.testing += 1 + ((Math.random() * 2) | 0);
+          show("testing", true);
+        }
+        drift();
+      }, next);
+    };
+
+    if (typeof IntersectionObserver === "function") {
+      const io = new IntersectionObserver(([e]) => {
+        if (e.isIntersecting) { countUp(); io.disconnect(); }
+      }, { threshold: 0.3 });
+      io.observe(box);
+    } else countUp();
+  }
+
+  function initSpeedBars() {
+    const box = document.querySelector("[data-speed]");
+    if (!box) return;
+    if (typeof IntersectionObserver !== "function") return box.classList.add("is-in");
+    const io = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) { box.classList.add("is-in"); io.disconnect(); }
+    }, { threshold: 0.4 });
+    io.observe(box);
+  }
+
+  function initScienceVideo() {
+    const video = document.querySelector(".science__video video");
+    if (!video || typeof IntersectionObserver !== "function") return;
+    new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) video.play().catch(() => {});
+        else video.pause();
+      },
+      { threshold: 0.25 }
+    ).observe(video);
+  }
+
+  function initProgramLinks() {
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const NAV_OFFSET = 84; // matches .index-item { scroll-margin-top }
+
+    const programOf = (hash) => {
+      if (!hash || hash.length < 2) return {};
+      const item = document.getElementById(hash.slice(1));
+      const d = item && item.querySelector("details.program");
+      return d ? { item, d } : {};
+    };
+    // One drug at a time. Collapsing is instant (setting .open fires `toggle`,
+    // so the viz timelines pause) which keeps the scroll target stable.
+    const collapseOthers = (d) =>
+      document.querySelectorAll("details.program").forEach((other) => {
+        if (other !== d && other.open) other.open = false;
+      });
+    // Opening goes through the summary so the accordion's grow-in animation runs.
+    const openProgram = (d) => {
+      if (d.open) return;
+      const summary = d.querySelector("summary");
+      if (summary && !reduce) summary.click();
+      else d.open = true;
+    };
+    // Scroll the item under the toolbar first; open it only once we've arrived.
+    const scrollThenOpen = (item, d) => {
+      collapseOthers(d);
+      const html = document.documentElement;
+      const prevSnap = html.style.scrollSnapType;
+      html.style.scrollSnapType = "none"; // proximity snap would tug toward the section top
+      const target = () =>
+        Math.min(
+          Math.round(item.getBoundingClientRect().top + window.scrollY - NAV_OFFSET),
+          html.scrollHeight - window.innerHeight
+        );
+      window.scrollTo({ top: target(), behavior: reduce ? "auto" : "smooth" });
+      const t0 = performance.now();
+      const check = () => {
+        const arrived = Math.abs(window.scrollY - target()) < 2;
+        if (!arrived && performance.now() - t0 < 1500) return requestAnimationFrame(check);
+        html.style.scrollSnapType = prevSnap;
+        openProgram(d);
+      };
+      requestAnimationFrame(check);
+    };
+
+    document.querySelectorAll('a[href^="#"]').forEach((a) =>
+      a.addEventListener("click", (e) => {
+        const { item, d } = programOf(a.getAttribute("href"));
+        if (!d) return;
+        e.preventDefault(); // we drive the scroll ourselves
+        history.pushState(null, "", a.getAttribute("href"));
+        scrollThenOpen(item, d);
+      })
+    );
+    window.addEventListener("hashchange", () => {
+      const { d } = programOf(location.hash);
+      if (d) { collapseOthers(d); openProgram(d); }
+    });
+    // Arriving on a #drug URL: the browser scrolls there itself, so open at once.
+    const { d: initial } = programOf(location.hash);
+    if (initial) { collapseOthers(initial); initial.open = true; }
   }
 
   function initNavTheme() {
