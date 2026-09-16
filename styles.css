@@ -1409,24 +1409,45 @@ a {
   min-width: 0;
 }
 
-/* ===== Menu: drug sub-choices under "Drug Pipeline" ===== */
-.nav__sublink {
+/* ===== Menu: spacing, hierarchy and the drug sub-choices ===== */
+.nav__links {
+  padding-top: 68px; /* centre the list in the space below the toolbar */
+  gap: clamp(0.35rem, 1.6vh, 1rem);
+  overflow-y: auto; /* short viewports can scroll the overlay */
+  -webkit-overflow-scrolling: touch;
+}
+.nav__links a {
+  font-size: clamp(2rem, 7vw, 4.2rem);
+  line-height: 1.1;
+}
+/* Sub-choices: small mono labels nested under "Drug Pipeline"
+   (selector carries .nav__links so it outranks the generic link rule) */
+.nav__links .nav__sublink {
   font-family: var(--font-mono);
   font-weight: 500;
-  font-size: clamp(1rem, 3.2vw, 1.5rem);
-  line-height: 1.2;
-  letter-spacing: 0.1em;
+  font-size: clamp(0.95rem, 2.8vw, 1.3rem);
+  line-height: 1.3;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  padding-left: clamp(1rem, 4vw, 2.5rem);
+  padding-left: clamp(1.25rem, 4vw, 2.75rem);
+  margin-top: calc(-1 * clamp(0.1rem, 0.8vh, 0.45rem));
   opacity: 0.8;
 }
-.nav__sublink + .nav__sublink {
-  margin-top: calc(-1 * clamp(0.2rem, 1vh, 0.6rem));
+.nav__links .nav__sublink + .nav__sublink {
+  margin-top: calc(-1 * clamp(0.15rem, 1vh, 0.55rem));
 }
-.nav__sublink::before {
+.nav__links .nav__sublink::before {
   content: "—";
   margin-right: 0.6rem;
   opacity: 0.5;
+}
+.nav__links .nav__sublink:hover,
+.nav__links .nav__sublink[aria-current="true"] {
+  opacity: 1;
+}
+/* breathing room after the sub-group before the next top-level link */
+.nav__links .nav__sublink + a:not(.nav__sublink) {
+  margin-top: clamp(0.2rem, 1.2vh, 0.6rem);
 }
 /* Extra menu children: continue the staggered entrance */
 .nav.is-open .nav__links a:nth-child(5) {
@@ -2197,4 +2218,30 @@ svg text {
   .speed__val {
     grid-column: 1;
   }
+}
+
+/* Drug sub-choices carry their one-line subheader */
+.nav__links .nav__sublink {
+  /* dash | code | description — a long description wraps inside its own
+     column instead of dropping under the code */
+  display: grid;
+  grid-template-columns: auto max-content minmax(0, 1fr);
+  align-items: baseline;
+  column-gap: 0.6rem;
+  max-width: 40rem;
+}
+.nav__links .nav__sublink::before {
+  margin-right: 0;
+}
+.nav__subcode {
+  white-space: nowrap;
+}
+.nav__subdesc {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 0.86em;
+  letter-spacing: 0;
+  text-transform: none;
+  opacity: 0.7;
+  line-height: 1.35;
 }
