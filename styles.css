@@ -2532,8 +2532,8 @@ main > section:nth-of-type(even)::after {
   grid-template-columns: auto auto;
   align-items: center;
   column-gap: 0.45rem;
-  /* anchored just above-right of the marker */
-  margin: -2.4rem 0 0 0.6rem;
+  /* sits just above the marker; horizontal offset is computed in globe.js */
+  margin: -2.4rem 0 0 0;
   padding: 0.35rem 0.6rem 0.4rem;
   border-radius: 8px;
   background: color-mix(in srgb, var(--ink) 78%, transparent);
@@ -2565,9 +2565,6 @@ main > section:nth-of-type(even)::after {
   grid-column: 2;
   font-size: 0.56rem;
   opacity: 0.75;
-}
-.globe-label--left {
-  margin-left: -0.6rem;
 }
 
 /* ===== Hero: headline, lead, proof strip ===== */

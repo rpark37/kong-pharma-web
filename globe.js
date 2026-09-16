@@ -27,6 +27,7 @@ function init() {
     ["Shenzhen · XtalPi", 22.5431, 114.0579],
     ["Hong Kong", 22.3193, 114.1694],
     ["Brisbane", -27.4698, 153.0251],
+    ["Novotech · Sydney", -33.8688, 151.2093],
   ];
 
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
@@ -63,7 +64,7 @@ function init() {
   globe.add(
     new THREE.Mesh(
       new THREE.SphereGeometry(R * 0.995, 64, 48),
-      new THREE.MeshBasicMaterial({ color: 0x15222c })
+      new THREE.MeshBasicMaterial({ color: 0x0b141b }) // darker ocean so the land dots pop
     )
   );
 
@@ -141,7 +142,7 @@ function init() {
     globe.add(
       new THREE.Points(
         g,
-        new THREE.PointsMaterial({ color: TEAL, size: 0.0115, transparent: true, opacity: 0.9, sizeAttenuation: true })
+        new THREE.PointsMaterial({ color: 0x8cf3e3, size: 0.014, transparent: true, opacity: 1, sizeAttenuation: true })
       )
     );
     render();
@@ -189,29 +190,40 @@ function init() {
   const originP = addMarker(ORIGIN[1], ORIGIN[2], true);
   SITES.forEach(([, lat, lon]) => addMarker(lat, lon, false));
 
-  // ---- Screen-space label that follows Lowell around the globe ----
-  const label = document.createElement("div");
-  label.className = "globe-label";
-  label.innerHTML = '<span class="globe-label__dot"></span><span class="globe-label__text">Lowell, MA</span><span class="globe-label__sub">Kong’s Pharmaceutical · HQ</span>';
-  host.appendChild(label);
-  const labelAnchor = originP.clone().multiplyScalar(1.02);
+  // ---- Screen-space labels that follow their markers around the globe ----
+  const makeLabel = (lat, lon, text, sub) => {
+    const el = document.createElement("div");
+    el.className = "globe-label";
+    el.innerHTML = `<span class="globe-label__dot"></span><span class="globe-label__text">${text}</span><span class="globe-label__sub">${sub}</span>`;
+    host.appendChild(el);
+    return { el, anchor: toVec(lat, lon, R * 1.02) };
+  };
+  const labels = [
+    makeLabel(ORIGIN[1], ORIGIN[2], "Lowell, MA", "Kong’s Pharmaceutical · HQ"),
+    makeLabel(-33.8688, 151.2093, "Sydney, Australia", "Novotech · clinical research partner"),
+  ];
   const tmpV = new THREE.Vector3();
   const tmpN = new THREE.Vector3();
   const camDir = new THREE.Vector3();
   const placeLabel = () => {
-    tmpV.copy(labelAnchor);
-    globe.localToWorld(tmpV);
-    tmpN.copy(tmpV).normalize();
-    camDir.copy(camera.position).sub(tmpV).normalize();
-    const facing = tmpN.dot(camDir); // > 0: on the near side of the globe
-    tmpV.project(camera);
-    const x = (tmpV.x * 0.5 + 0.5) * host.clientWidth;
-    const y = (-tmpV.y * 0.5 + 0.5) * host.clientHeight;
-    // keep the chip inside the box: hang it to the left once the marker passes centre
-    const flip = x + label.offsetWidth + 16 > host.clientWidth; // would spill past the right edge
-    label.classList.toggle("globe-label--left", flip);
-    label.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)${flip ? " translateX(-100%)" : ""}`;
-    label.style.opacity = facing > 0.08 ? String(Math.min(1, (facing - 0.08) * 4)) : "0";
+    labels.forEach(({ el, anchor }) => {
+      tmpV.copy(anchor);
+      globe.localToWorld(tmpV);
+      tmpN.copy(tmpV).normalize();
+      camDir.copy(camera.position).sub(tmpV).normalize();
+      const facing = tmpN.dot(camDir); // > 0: on the near side of the globe
+      tmpV.project(camera);
+      const x = (tmpV.x * 0.5 + 0.5) * host.clientWidth;
+      const y = (-tmpV.y * 0.5 + 0.5) * host.clientHeight;
+      // keep the chip inside the box on both sides: prefer sitting to the
+      // right of the marker, otherwise slide it left, never past either edge
+      const w = el.offsetWidth, pad = 8;
+      let left = x + 10;
+      if (left + w > host.clientWidth - pad) left = Math.max(pad, x - 10 - w);
+      left = Math.min(Math.max(left, pad), Math.max(pad, host.clientWidth - w - pad));
+      el.style.transform = `translate(${left.toFixed(1)}px, ${y.toFixed(1)}px)`;
+      el.style.opacity = facing > 0.08 ? String(Math.min(1, (facing - 0.08) * 4)) : "0";
+    });
   };
 
   // ---- Ballistic arcs: one high apex mid-flight; head + tapering plume ----
