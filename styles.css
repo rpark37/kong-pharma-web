@@ -2792,3 +2792,8 @@ main > section:nth-of-type(even)::after {
   outline: 2px solid var(--teal);
   outline-offset: 2px;
 }
+
+/* Advisors: card grid sits under the heading, above the text list */
+.team__grid--advisors {
+  margin-bottom: 1.5rem;
+}
