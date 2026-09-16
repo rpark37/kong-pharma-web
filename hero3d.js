@@ -55,15 +55,17 @@ function initThree(placeholderCanvas) {
   const scene = new THREE.Scene();
   // Depth fog: distant nodes dissolve into the hero's teal for real depth.
   // Far plane is generous so the cluster survives being scaled up on wide screens.
-  scene.fog = new THREE.Fog(0x121c24, 6.5, 16); // matches the slate hero background
+  scene.fog = new THREE.Fog(0xf4f9f9, 6.5, 16); // matches the light hero background (--paper)
   const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
   camera.position.set(0, 0, 9);
 
   const group = new THREE.Group();
   scene.add(group); // position/scale are driven responsively by computeLayout()
 
-  const BRIGHT = 0x8ff5e6;
-  const MINT = 0xe6fff8;
+  // Node palette: the original mint / bright teal, taken one step darker so
+  // the network holds its own on the light hero; bonds stay dark for contrast
+  const BRIGHT = 0x66dcc8;
+  const MINT = 0xc4efe4;
   const DEEP = 0x0c6055;
 
   // ---- Nodes (atoms / neurons / cells), a few as pills (drugs) ----
@@ -124,9 +126,9 @@ function initThree(placeholderCanvas) {
   const lines = new THREE.LineSegments(
     lineGeo,
     new THREE.LineBasicMaterial({
-      color: 0x44e0cc, // luminous teal bonds read on the dark hero
+      color: 0x0a6a5f, // deep teal bonds, strong enough to read on the light hero
       transparent: true,
-      opacity: 0.35,
+      opacity: 0.7,
     })
   );
   group.add(lines);
@@ -135,11 +137,11 @@ function initThree(placeholderCanvas) {
   const signals = [];
   if (edges.length) {
     const sigGeo = new THREE.SphereGeometry(0.05, 8, 8);
+    // Dark pulses with normal blending: additive white vanishes on a light background
     const sigMat = new THREE.MeshBasicMaterial({
-      color: 0xffffff,
+      color: 0x063a34,
       transparent: true,
-      opacity: 0.95,
-      blending: THREE.AdditiveBlending,
+      opacity: 0.9,
     });
     const sigCount = Math.round(COUNT * 0.38); // pulses scale with the network
     for (let i = 0; i < sigCount; i++) {
@@ -202,7 +204,7 @@ function initThree(placeholderCanvas) {
   helix.add(
     new THREE.LineSegments(
       helixLineGeo,
-      new THREE.LineBasicMaterial({ color: 0x44e0cc, transparent: true, opacity: 0.4 })
+      new THREE.LineBasicMaterial({ color: 0x0a6a5f, transparent: true, opacity: 0.75 })
     )
   );
   group.add(helix);
