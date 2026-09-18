@@ -39,12 +39,7 @@ function parseCsv(text: string): Purchase[] {
   template: `
     <section class="head">
       <p class="eyebrow" data-reveal>MorphCharts · path traced</p>
-      <h1 data-reveal>Every Google Merchandise Store purchase, stacked by day and category</h1>
-      <p class="lede" data-reveal>
-        One block per purchase, stacked within its day and product category and coloured by price.
-        The landscape is a MorphCharts specification: the CSV is loaded once, turned into units by
-        the <span class="mono">unitstack</span> transform, and ray traced on WebGPU.
-      </p>
+      <h1 data-reveal>Every Google Merchandise Store Purchase</h1>
     </section>
 
     <section class="kpis">
@@ -75,7 +70,6 @@ function parseCsv(text: string): Purchase[] {
   styles: `
     :host { display: block; padding: clamp(1.5rem, 4vh, 3rem) var(--pad-x) 4rem; max-width: 1400px; margin: 0 auto; width: 100%; }
     h1 { font-size: clamp(1.5rem, 3.2vw, 2.3rem); margin: 6px 0 10px; max-width: 900px; }
-    .lede { color: var(--on-ink-dim); max-width: 860px; margin-bottom: 20px; }
     .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 16px; }
     .card { padding: 14px 16px; }
     .card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
