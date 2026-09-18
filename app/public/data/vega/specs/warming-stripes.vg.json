@@ -80,7 +80,7 @@
   "data": [
     {
       "name": "dataset",
-      "url": "assets/data/global-temp.csv",
+      "url": "data/global-temp.csv",
       "format": {
         "type": "csv",
         "parse": "auto",

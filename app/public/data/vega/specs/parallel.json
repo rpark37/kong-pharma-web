@@ -19,7 +19,7 @@
   "data": [
     {
       "name": "cars",
-      "url": "assets/data/cars.json",
+      "url": "data/cars.json",
       "format": {
         "type": "json",
         "parse": {"Year": "date:%Y-%m-%d"}

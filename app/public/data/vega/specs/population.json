@@ -8,7 +8,7 @@
   "data": [
     {
       "name": "source_0",
-      "url": "assets/data/population.json",
+      "url": "data/population.json",
       "format": {"type": "json"},
       "transform": [
         {"type": "filter", "expr": "datum.year == 2000"},
