@@ -56,11 +56,15 @@ def main() -> None:
     concept_rows = [{"concept_id": c["id"], "name": c["name"], "element_id": e} for c in atlas["concepts"] for e in c["elements"]]
     pq.write_table(pa.Table.from_pylist(concept_rows), OUT / "concepts.parquet", compression="zstd")
 
-    # Trimmed JSON for the static app: [id, name, conceptId, system, cx, cy, cz, sx, sy, sz]
+    # Trimmed JSON for the static app. Columns: id, name, conceptId, system, cx, cy, cz, sx, sy, sz,
+    # then the geometry locator [chunk, positions, normals, indices, vertexCount, indexCount] used by the
+    # three.js viewer to slice each structure out of the binary chunks.
     compact = {
         "version": atlas.get("version"), "source": atlas.get("source"), "scope": atlas.get("scope"), "triangles": atlas.get("triangles"),
-        "columns": ["id", "name", "conceptId", "system", "cx", "cy", "cz", "sx", "sy", "sz"],
-        "parts": [[r["id"], r["name"], r["concept_id"], r["system"], round(r["cx"], 4), round(r["cy"], 4), round(r["cz"], 4), round(r["sx"], 4), round(r["sy"], 4), round(r["sz"], 4)] for r in rows],
+        "columns": ["id", "name", "conceptId", "system", "cx", "cy", "cz", "sx", "sy", "sz", "geom"],
+        "chunks": [{"file": c["url"].rsplit("/", 1)[-1], "bytes": c["bytes"], "gzip": (c.get("gzip") or "").rsplit("/", 1)[-1] or None, "gzipBytes": c.get("gzipBytes")} for c in atlas["chunks"]],
+        "parts": [[r["id"], r["name"], r["concept_id"], r["system"], round(r["cx"], 5), round(r["cy"], 5), round(r["cz"], 5), round(r["sx"], 5), round(r["sy"], 5), round(r["sz"], 5),
+                   [p["chunk"], p["positions"], p["normals"], p["indices"], p["vertexCount"], p["indexCount"]]] for r, p in zip(rows, parts)],
     }
     (APP_OUT / "parts.json").write_text(json.dumps(compact, separators=(",", ":")))
     (APP_OUT / "concepts.json").write_text(json.dumps([[c["id"], c["name"], c["elements"]] for c in atlas["concepts"]], separators=(",", ":")))

@@ -2,6 +2,13 @@
 .studio { position: relative; height: calc(100vh - var(--nav-h)); min-height: 560px; overflow: hidden; background: radial-gradient(1200px 700px at 50% 30%, #1a2a35, var(--ink) 70%); }
 .stage { position: absolute; inset: 0; touch-action: none; }
 .stage app-morphcharts-canvas { position: absolute; inset: 0; }
+.anatomy-host { position: absolute; inset: 0; }
+:host ::ng-deep .anatomy-host canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+:host ::ng-deep .anatomy-host .part-hover { position: absolute; z-index: 3; padding: 4px 8px; border-radius: 6px; background: rgba(6,12,16,0.85); color: var(--on-ink); font-size: 12px; pointer-events: none; max-width: 240px; }
+.viewer-error { padding: 18px; max-width: 420px; display: flex; flex-direction: column; gap: 8px; p { color: var(--on-ink-dim); } }
+.mode-toggle { display: flex; padding: 3px; gap: 2px; border-radius: 999px; }
+.mode-toggle button { font: inherit; font-size: 12px; background: none; border: 0; color: var(--on-ink-dim); padding: 5px 12px; border-radius: 999px; cursor: pointer; }
+.mode-toggle button.active { background: var(--teal); color: var(--teal-deep); }
 .vignette { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(70% 60% at 50% 50%, transparent 55%, rgba(6, 12, 16, 0.55)); }
 .fallback-wrap { position: absolute; inset: 0; overflow: auto; padding: 100px 24px 220px; display: flex; flex-direction: column; gap: 16px; align-items: center; }
 .fallback-chart { width: min(1000px, 100%); }

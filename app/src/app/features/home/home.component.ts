@@ -77,10 +77,10 @@ export class HomeComponent {
     },
     {
       path: '/atlas',
-      eyebrow: 'Anatomy · MorphCharts',
+      eyebrow: 'Anatomy · three.js + MorphCharts',
       title: 'Human Atlas',
-      blurb: 'The human-atlas explorer reinterpreted as data: 2,234 BodyParts3D structures as a spec-driven 3D scene you can explode and isolate.',
-      tags: ['MorphCharts', 'BodyParts3D', 'GSAP'],
+      blurb: 'The human-atlas explorer: the real BodyParts3D meshes in three.js, or the same 2,234 structures as a spec-driven MorphCharts scene, with explode, isolate and search.',
+      tags: ['three.js', 'MorphCharts', 'BodyParts3D', 'GSAP'],
     },
     {
       path: '/bayes',

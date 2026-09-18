@@ -8,7 +8,9 @@ import { MorphchartsCanvasComponent } from '../../shared/morphcharts/morphcharts
 import { SwitchComponent } from '../../shared/ui/switch.component';
 import { VegaChartComponent } from '../../shared/vega/vega-chart.component';
 import { WebGpuFallbackComponent } from '../../shared/webgpu/webgpu-fallback.component';
-import { DEFAULT_VISIBLE, EXPLANATIONS, SYSTEMS, explanation, type AtlasCatalogue, type Concept, type Part, type SystemId, type View } from './anatomy';
+import { environment } from '../../../environments/environment';
+import { DEFAULT_VISIBLE, EXPLANATIONS, SYSTEMS, explanation, type AtlasCatalogue, type ChunkInfo, type Concept, type Part, type SystemId, type View } from './anatomy';
+import type { AnatomyViewer } from './anatomy-viewer';
 import type { AtlasScene } from './atlas-scene';
 import { atlasTreemapSpec } from './atlas-fallback-spec';
 
@@ -32,6 +34,12 @@ export class AtlasPageComponent {
   private readonly el = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly destroyRef = inject(DestroyRef);
   readonly stage = viewChild<ElementRef<HTMLDivElement>>('stage');
+  readonly anatomyHost = viewChild<ElementRef<HTMLDivElement>>('anatomyHost');
+  /** 'anatomy' = real BodyParts3D meshes in three.js; 'data' = MorphCharts spec of the catalogue. */
+  readonly mode = signal<'anatomy' | 'data'>('anatomy');
+  readonly chunks = signal<ChunkInfo[]>([]);
+  readonly viewerError = signal('');
+  readonly resetCounter = signal(0);
 
   readonly systems = SYSTEMS;
   readonly parts = signal<Part[]>([]);
@@ -84,6 +92,8 @@ export class AtlasPageComponent {
 
   private host: MorphChartsHost | null = null;
   private scene: AtlasScene | null = null;
+  private viewer: AnatomyViewer | null = null;
+  private readonly explodeAnim = { t: 0 };
   private resize: ResizeObserver | null = null;
   private tapStart: { x: number; y: number } | null = null;
   private readonly onKey = (e: KeyboardEvent) => {
@@ -97,8 +107,23 @@ export class AtlasPageComponent {
       window.addEventListener('keydown', this.onKey);
       void this.loadCatalogue();
     });
-    this.destroyRef.onDestroy(() => { window.removeEventListener('keydown', this.onKey); this.scene?.dispose(); this.resize?.disconnect(); });
+    this.destroyRef.onDestroy(() => { window.removeEventListener('keydown', this.onKey); this.scene?.dispose(); this.resize?.disconnect(); this.viewer?.dispose(); this.gsap.kill(this.explodeAnim); });
 
+    // three.js viewer lifecycle: mount when in anatomy mode and the catalogue is loaded.
+    effect(() => {
+      const host = this.anatomyHost()?.nativeElement;
+      const parts = this.parts();
+      const chunks = this.chunks();
+      const mode = this.mode();
+      untracked(() => {
+        if (mode !== 'anatomy' || !host || !parts.length || !chunks.length) { if (this.viewer && (mode !== 'anatomy' || !host)) { this.viewer.dispose(); this.viewer = null; } return; }
+        if (!this.viewer) void this.mountViewer(host, parts, chunks);
+      });
+    });
+    effect(() => {
+      const state = { visible: this.visible(), selected: this.selected(), isolate: this.isolate(), view: this.view(), rotate: this.rotate(), reset: this.resetCounter(), inspectorOpen: this.details() && this.selectedParts().length > 0 };
+      untracked(() => this.viewer?.setState(state));
+    });
     // Scene reactions
     effect(() => { const ids = this.visibleIds(); untracked(() => { if (this.scene) { this.scene.setVisibility(ids); this.scene.updateLayout(ids); } }); });
     effect(() => { const sel = new Set(this.selected()); untracked(() => this.scene?.setSelection(sel)); });
@@ -126,10 +151,11 @@ export class AtlasPageComponent {
       ]);
       this.progress.set(60);
       this.catalogue.set(cat);
-      this.parts.set(cat.parts.map(([id, name, conceptId, system, cx, cy, cz, sx, sy, sz]) => ({ id, name, conceptId, system, cx, cy, cz, sx, sy, sz })));
+      this.parts.set(cat.parts.map(([id, name, conceptId, system, cx, cy, cz, sx, sy, sz, geom]) => ({ id, name, conceptId, system, cx, cy, cz, sx, sy, sz, geom })));
       this.concepts.set(concepts.map(([id, name, elements]) => ({ id, name, elements })));
-      this.progress.set(this.host ? 100 : 80);
-      if (this.host) await this.buildScene();
+      this.chunks.set(cat.chunks ?? []);
+      if (this.mode() === 'data') { this.progress.set(this.host ? 100 : 80); if (this.host) await this.buildScene(); }
+      else this.progress.set(15);
     } catch (e) {
       this.error.set(e instanceof Error ? e.message : 'The anatomy catalogue could not be loaded.');
     }
@@ -147,6 +173,36 @@ export class AtlasPageComponent {
   onFailed(message: string): void {
     this.fallback.set(message);
     this.progress.set(100);
+  }
+
+  private async mountViewer(host: HTMLDivElement, parts: Part[], chunks: ChunkInfo[]): Promise<void> {
+    try {
+      const { AnatomyViewer } = await import('./anatomy-viewer');
+      if (this.mode() !== 'anatomy' || this.viewer) return;
+      const viewer = new AnatomyViewer(host, parts, chunks, environment.atlasModelsBases, {
+        onSelect: (id) => this.choosePart(id),
+        onProgress: (pct) => { this.progress.set(15 + Math.round(pct * 0.85)); if (pct >= 100) this.ready.set(true); },
+        onError: (msg) => this.viewerError.set(msg),
+      });
+      viewer.reducedMotion = this.gsap.reducedMotion;
+      this.viewer = viewer;
+      viewer.setState({ visible: this.visible(), selected: this.selected(), isolate: this.isolate(), view: this.view(), rotate: this.rotate(), reset: this.resetCounter(), inspectorOpen: false });
+      viewer.setExplode(this.explode());
+      viewer.start();
+    } catch (e) {
+      this.viewerError.set(e instanceof Error ? e.message : String(e));
+    }
+  }
+
+  setMode(mode: 'anatomy' | 'data'): void {
+    if (mode === this.mode()) return;
+    this.mode.set(mode);
+    this.viewerError.set('');
+    if (mode === 'data') {
+      if (this.scene) this.progress.set(100); else if (this.host && this.parts().length) { this.progress.set(80); void this.buildScene(); } else this.progress.set(this.parts().length ? 80 : 10);
+    } else {
+      this.progress.set(this.viewer ? 100 : 15);
+    }
   }
 
   private async buildScene(): Promise<void> {
@@ -187,7 +243,7 @@ export class AtlasPageComponent {
   onPointerUp(e: PointerEvent): void {
     const start = this.tapStart;
     this.tapStart = null;
-    if (!start || !this.scene || Math.hypot(e.clientX - start.x, e.clientY - start.y) > 6) return;
+    if (this.mode() !== 'data' || !start || !this.scene || Math.hypot(e.clientX - start.x, e.clientY - start.y) > 6) return;
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     const idx = this.scene.pick(e.clientX - rect.left, e.clientY - rect.top);
     if (idx >= 0) this.choosePart(this.parts()[idx].id);
@@ -246,12 +302,16 @@ export class AtlasPageComponent {
   }
   private setExplodeValue(t: number, animate: boolean): void {
     this.explode.set(t);
+    this.gsap.kill(this.explodeAnim);
+    if (!animate || this.gsap.reducedMotion) { this.explodeAnim.t = t; this.viewer?.setExplode(t); }
+    else this.gsap.tweenObject(this.explodeAnim, { t, duration: this.gsap.MOTION.duration.slow, onUpdate: () => this.viewer?.setExplode(this.explodeAnim.t) });
     if (!this.scene) return;
     this.scene.setExplode(t, this.visibleIds(), animate);
     if (!this.isolate()) this.scene.goToView(t > 0.5 ? 'front' : this.view(), t, animate);
   }
 
   reset(): void {
+    this.resetCounter.set(this.resetCounter() + 1);
     this.visible.set(DEFAULT_VISIBLE);
     this.selected.set([]);
     this.isolate.set(false);

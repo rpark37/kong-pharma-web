@@ -1,6 +1,11 @@
 <main class="studio">
   <div class="stage" #stage (pointerdown)="onPointerDown($event)" (pointerup)="onPointerUp($event)">
-    @if (!fallback()) {
+    @if (mode() === 'anatomy') {
+      <div #anatomyHost class="anatomy-host"></div>
+      @if (viewerError()) {
+        <div class="fallback-wrap"><div class="glass viewer-error"><p class="eyebrow">3D viewer</p><p>{{ viewerError() }}</p><button type="button" class="btn small" (click)="setMode('data')">Open the data view instead</button></div></div>
+      }
+    } @else if (!fallback()) {
       <app-morphcharts-canvas (hostReady)="onHost($event)" (failed)="onFailed($event)" />
     } @else {
       <div class="fallback-wrap">
@@ -22,6 +27,10 @@
   </header>
 
   <nav class="top-actions" aria-label="Explorer panels" data-reveal>
+    <div class="mode-toggle glass" role="radiogroup" aria-label="Rendering mode">
+      <button type="button" role="radio" [attr.aria-checked]="mode() === 'anatomy'" [class.active]="mode() === 'anatomy'" (click)="setMode('anatomy')" title="Real BodyParts3D meshes in three.js">Anatomy</button>
+      <button type="button" role="radio" [attr.aria-checked]="mode() === 'data'" [class.active]="mode() === 'data'" (click)="setMode('data')" title="Spec-driven MorphCharts scene of the catalogue">Data</button>
+    </div>
     <button type="button" class="btn small" [class.active]="panel() === 'search'" (click)="openPanel('search')" aria-label="Search anatomy">🔍 <span>Find a structure</span><kbd>/</kbd></button>
     <button type="button" class="btn small icon" aria-label="About this atlas" (click)="openAbout()">i</button>
   </nav>
@@ -83,7 +92,7 @@
   </div>
 
   <footer class="studio-footer" data-reveal>
-    <span>{{ explode() > 0.8 ? 'Drag to pan' : 'Drag to orbit' }} <b>·</b> Wheel to zoom <b>·</b> Tap to inspect</span>
+    <span>{{ explode() > 0.8 ? 'Drag to pan' : 'Drag to orbit' }} <b>·</b> Wheel to zoom <b>·</b> Tap to inspect <b>·</b> {{ mode() === 'anatomy' ? 'three.js · BodyParts3D meshes' : 'MorphCharts · path traced' }}</span>
     <button type="button" class="btn small" (click)="openAbout()">Source &amp; credits ↗</button>
   </footer>
 

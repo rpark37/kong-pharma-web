@@ -13,10 +13,10 @@ Two things live in this repository:
 - `/app/morphcharts` — a recreation of the [MorphCharts client](https://microsoft.github.io/morphcharts/client.html): write a Vega-style spec, path-trace it on WebGPU, capture it at up to 8K.
 - `/app/ares` — [OHDSI Ares](https://github.com/OHDSI/Ares)-style data characterization reports (person, observation period, density, concepts, data quality) as Vega-Lite specs over a synthetic OMOP-like dataset.
 - `/app/merchandise` — Google Merchandise Store analytics from the public GA4 sample (or a schema-faithful synthetic sample when no BigQuery credentials are available), including a MorphCharts 3D revenue cube.
-- `/app/atlas` — [human-atlas](https://github.com/ashemag/human-atlas) reinterpreted as data: 2,234 BodyParts3D structures as a spec-driven MorphCharts scene with system toggles, search, isolate and an explode slider.
+- `/app/atlas` — a hybrid of [human-atlas](https://github.com/ashemag/human-atlas): **Anatomy** mode streams the real BodyParts3D meshes (2,234 structures, 2.3 M triangles, ~33 MB gzipped from jsDelivr with a GitHub fallback) into three.js; **Data** mode renders the same catalogue as a spec-driven MorphCharts scene. Both share the system toggles, search, isolate, camera presets and the GSAP-tweened explode slider.
 - `/app/bayes` — the therapeutic-tests Bayes' theorem visualization (source in `docs/bayes-source/`) rebuilt on the current MorphCharts: a synthetic population of blocks that morphs between four views (everyone, disease vs healthy, the 2×2 outcome grid, positive tests only) with GSAP-staggered transitions, plus Vega-Lite companions sharing the same inputs.
 
-Every visualization is a Vega-style specification: Vega-Lite / Vega for 2D (rendered by Vega's D3-based SVG renderer), MorphCharts' Vega-derived grammar for 3D. All motion uses GreenSock Quad eases with shared delays and staggers (`app/src/app/shared/animation/motion.ts`).
+Every visualization is a Vega-style specification: Vega-Lite / Vega for 2D (rendered by Vega's D3-based SVG renderer), MorphCharts' Vega-derived grammar for 3D. The one exception is the atlas's Anatomy mode, which is a mesh viewer (three.js) rather than a chart; its Data mode is the spec-driven equivalent. All motion uses GreenSock Quad eases with shared delays and staggers (`app/src/app/shared/animation/motion.ts`).
 
 ## Run the app
 

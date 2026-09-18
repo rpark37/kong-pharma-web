@@ -17,9 +17,10 @@ export const SYSTEMS: {id:SystemId;name:string;color:string;description:string}[
  {id:'integumentary',name:'Body surface',color:'#ba9b7d',description:'The body surface provides an outer anatomical reference. The integumentary system forms a protective barrier and contributes to sensation and temperature regulation.'},
  {id:'connective',name:'Connective tissue',color:'#aec3bb',description:'Cartilage, ligaments, and other connective tissues support, connect, and separate structures. Their roles include stabilizing joints and distributing mechanical loads.'},
 ];
-export interface Part { id: string; name: string; conceptId: string; system: SystemId; cx: number; cy: number; cz: number; sx: number; sy: number; sz: number; }
+export interface Part { id: string; name: string; conceptId: string; system: SystemId; cx: number; cy: number; cz: number; sx: number; sy: number; sz: number; geom?: [number, number, number, number, number, number]; }
+export interface ChunkInfo { file: string; bytes: number; gzip: string | null; gzipBytes: number | null; }
 export interface Concept { id: string; name: string; elements: string[]; }
-export interface AtlasCatalogue { version?: string; source?: string; scope?: string; triangles?: number; columns: string[]; parts: Array<[string, string, string, SystemId, number, number, number, number, number, number]>; }
+export interface AtlasCatalogue { version?: string; source?: string; scope?: string; triangles?: number; columns: string[]; chunks?: ChunkInfo[]; parts: Array<[string, string, string, SystemId, number, number, number, number, number, number, [number, number, number, number, number, number]?]>; }
 export type View = 'three-quarter'|'front'|'back'|'side';
 export interface SceneState {inspectorOpen?:boolean;explode:number;visible:SystemId[];selected:string[];isolate:boolean;view:View;rotate:boolean;reset:number}
 export const DEFAULT_VISIBLE:SystemId[] = ['cardiac','sensory','skeletal','muscular','arterial','venous','nervous','respiratory','digestive','urinary','lymphatic','endocrine','reproductive','connective'];
