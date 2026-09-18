@@ -9,7 +9,7 @@
   gap: 24px;
   height: var(--nav-h);
   padding: 0 var(--pad-x);
-  background: rgba(18, 28, 36, 0.82);
+  background: rgba(245, 245, 243, 0.82); // --ink-2 at the same translucency as the old dark literal
   border-bottom: 1px solid var(--hairline);
   backdrop-filter: blur(14px);
 }
@@ -53,7 +53,7 @@ nav {
     &:focus-visible { outline: 2px solid var(--glow); outline-offset: 2px; }
   }
   &.open-route > summary { color: var(--teal); }
-  &[open] > summary { color: var(--on-ink); background: rgba(68, 224, 204, 0.1); }
+  &[open] > summary { color: var(--on-ink); background: rgba(0, 112, 93, 0.1); }
   &[open] > summary::after { content: "\25B4"; }
 
   .menu {

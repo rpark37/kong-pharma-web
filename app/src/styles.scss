@@ -52,7 +52,7 @@ code, kbd, .mono { font-family: var(--font-mono); }
   color: var(--on-ink);
   cursor: pointer;
   transition: background var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
-  &:hover { background: rgba(68, 224, 204, 0.1); border-color: rgba(68, 224, 204, 0.4); }
+  &:hover { background: rgba(0, 112, 93, 0.1); border-color: rgba(0, 112, 93, 0.4); }
   &.active, &[aria-pressed="true"] { background: var(--teal); color: var(--ink); border-color: var(--teal); }
   &:disabled { opacity: 0.4; cursor: not-allowed; }
   &.small { padding: 5px 10px; font-size: 13px; }
@@ -67,7 +67,7 @@ code, kbd, .mono { font-family: var(--font-mono); }
   input, select, textarea {
     font: inherit;
     color: var(--on-ink);
-    background: rgba(0, 0, 0, 0.25);
+    background: var(--ink-3);
     border: 1px solid var(--hairline);
     border-radius: var(--radius-sm);
     padding: 6px 8px;

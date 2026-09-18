@@ -9,7 +9,7 @@ import { Component, input, model } from '@angular/core';
   `,
   styles: `
     :host { display: inline-block; }
-    .switch { width: 36px; height: 20px; border-radius: 999px; border: 1px solid var(--hairline); background: rgba(255,255,255,0.08); padding: 0; position: relative; cursor: pointer; transition: background var(--dur-fast) var(--ease-out); }
+    .switch { width: 36px; height: 20px; border-radius: 999px; border: 1px solid var(--hairline); background: rgba(0,0,0,0.08); padding: 0; position: relative; cursor: pointer; transition: background var(--dur-fast) var(--ease-out); }
     .switch[aria-checked="true"] { background: var(--teal); border-color: var(--teal); }
     .knob { position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: var(--on-ink); transition: transform var(--dur-fast) var(--ease-out); }
     .switch[aria-checked="true"] .knob { transform: translateX(16px); background: var(--teal-deep); }

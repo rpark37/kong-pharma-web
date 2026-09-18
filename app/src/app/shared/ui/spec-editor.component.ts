@@ -33,11 +33,11 @@ import { Component, ElementRef, afterNextRender, model, output, signal, viewChil
   `,
   styles: `
     :host { display: block; height: 100%; min-height: 240px; }
-    .editor { display: flex; height: 100%; border: 1px solid var(--hairline); border-radius: var(--radius-sm); overflow: hidden; background: rgba(0,0,0,0.3); font-family: var(--font-mono); font-size: 12px; line-height: 18px; }
+    .editor { display: flex; height: 100%; border: 1px solid var(--hairline); border-radius: var(--radius-sm); overflow: hidden; background: var(--ink-3); font-family: var(--font-mono); font-size: 12px; line-height: 18px; }
     .lines { width: 44px; padding: 8px 0; text-align: right; color: var(--on-ink-faint); overflow: hidden; user-select: none; border-right: 1px solid var(--hairline); }
     .lines div { padding-right: 8px; }
-    .lines .current { color: var(--teal); background: rgba(68,224,204,0.08); }
-    .lines .error { color: var(--rose); background: rgba(239,122,138,0.18); }
+    .lines .current { color: var(--teal); background: rgba(0,112,93,0.08); }
+    .lines .error { color: var(--rose); background: rgba(179,38,30,0.18); }
     .content { flex: 1; margin: 0; padding: 8px; border: 0; outline: none; resize: none; background: transparent; color: var(--on-ink); font: inherit; white-space: pre; overflow: auto; tab-size: 2; }
   `,
 })
