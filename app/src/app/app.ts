@@ -48,6 +48,17 @@ export class App {
         { path: '/controls', label: 'Controls' },
       ],
     },
+    {
+      // Public evidence for the pipeline: XTL-152's target, K-119's indication, and the
+      // competitive field around all three programmes. Snapshots, refreshed by
+      // app/scripts/fetch-science.py.
+      label: 'Science',
+      children: [
+        { path: '/science-rac1', label: 'RAC1 target' },
+        { path: '/science-bladder', label: 'Bladder targets' },
+        { path: '/science-trials', label: 'Trial landscape' },
+      ],
+    },
     { path: '/atlas', label: 'Human Atlas' },
   ];
 

@@ -1,0 +1,412 @@
+{
+  "captured": "2026-09-18T10:53:29Z",
+  "conditions": [
+    {
+      "key": "bladder",
+      "label": "Bladder cancer",
+      "cond": "bladder cancer",
+      "programme": "K-119",
+      "total": 2304,
+      "phases": [
+        {
+          "phase": "Early Phase 1",
+          "count": 33
+        },
+        {
+          "phase": "Phase 1",
+          "count": 469
+        },
+        {
+          "phase": "Phase 2",
+          "count": 744
+        },
+        {
+          "phase": "Phase 3",
+          "count": 227
+        },
+        {
+          "phase": "Phase 4",
+          "count": 45
+        }
+      ],
+      "statuses": [
+        {
+          "status": "Recruiting",
+          "count": 405
+        },
+        {
+          "status": "Not yet recruiting",
+          "count": 120
+        },
+        {
+          "status": "Active, not recruiting",
+          "count": 198
+        },
+        {
+          "status": "Completed",
+          "count": 900
+        },
+        {
+          "status": "Terminated",
+          "count": 221
+        },
+        {
+          "status": "Withdrawn",
+          "count": 83
+        }
+      ]
+    },
+    {
+      "key": "ed",
+      "label": "Erectile dysfunction",
+      "cond": "erectile dysfunction",
+      "programme": "CR-067",
+      "total": 739,
+      "phases": [
+        {
+          "phase": "Early Phase 1",
+          "count": 3
+        },
+        {
+          "phase": "Phase 1",
+          "count": 81
+        },
+        {
+          "phase": "Phase 2",
+          "count": 98
+        },
+        {
+          "phase": "Phase 3",
+          "count": 116
+        },
+        {
+          "phase": "Phase 4",
+          "count": 109
+        }
+      ],
+      "statuses": [
+        {
+          "status": "Recruiting",
+          "count": 68
+        },
+        {
+          "status": "Not yet recruiting",
+          "count": 39
+        },
+        {
+          "status": "Active, not recruiting",
+          "count": 18
+        },
+        {
+          "status": "Completed",
+          "count": 407
+        },
+        {
+          "status": "Terminated",
+          "count": 30
+        },
+        {
+          "status": "Withdrawn",
+          "count": 26
+        }
+      ]
+    },
+    {
+      "key": "solid",
+      "label": "Solid tumour",
+      "cond": "solid tumor",
+      "programme": "XTL-152",
+      "total": 9804,
+      "phases": [
+        {
+          "phase": "Early Phase 1",
+          "count": 205
+        },
+        {
+          "phase": "Phase 1",
+          "count": 7006
+        },
+        {
+          "phase": "Phase 2",
+          "count": 2607
+        },
+        {
+          "phase": "Phase 3",
+          "count": 215
+        },
+        {
+          "phase": "Phase 4",
+          "count": 45
+        }
+      ],
+      "statuses": [
+        {
+          "status": "Recruiting",
+          "count": 1946
+        },
+        {
+          "status": "Not yet recruiting",
+          "count": 430
+        },
+        {
+          "status": "Active, not recruiting",
+          "count": 718
+        },
+        {
+          "status": "Completed",
+          "count": 4160
+        },
+        {
+          "status": "Terminated",
+          "count": 1163
+        },
+        {
+          "status": "Withdrawn",
+          "count": 262
+        }
+      ]
+    }
+  ],
+  "recent": [
+    {
+      "condition": "Bladder cancer",
+      "nctId": "NCT07667335",
+      "title": "Enfortumab Vedotin, Pembrolizumab and Quemliclustat for the Treatment of Unresectable Locally Advanced and Metastatic Urothelial Cancer",
+      "phase": "PHASE1, PHASE2",
+      "status": "RECRUITING",
+      "sponsor": "Fred Hutchinson Cancer Center",
+      "enrollment": 27,
+      "start": "2026-10-15"
+    },
+    {
+      "condition": "Bladder cancer",
+      "nctId": "NCT07646847",
+      "title": "A Study of a Side Effects and Resource Navigation Program for People With Cancer",
+      "phase": "NA",
+      "status": "RECRUITING",
+      "sponsor": "Memorial Sloan Kettering Cancer Center",
+      "enrollment": 200,
+      "start": "2026-09-14"
+    },
+    {
+      "condition": "Bladder cancer",
+      "nctId": "NCT07548476",
+      "title": "Acupuncture and Exercise for EV-Pembro-Induced Peripheral Neuropathy",
+      "phase": "NA",
+      "status": "RECRUITING",
+      "sponsor": "Dana-Farber Cancer Institute",
+      "enrollment": 20,
+      "start": "2026-09-03"
+    },
+    {
+      "condition": "Bladder cancer",
+      "nctId": "NCT06290687",
+      "title": "Partial Cystectomy & Extended Pelvic Lymph Node Dissection With SOC Perioperative Systemic Therapy",
+      "phase": "PHASE2",
+      "status": "RECRUITING",
+      "sponsor": "Case Comprehensive Cancer Center",
+      "enrollment": 40,
+      "start": "2026-09"
+    },
+    {
+      "condition": "Bladder cancer",
+      "nctId": "NCT07140315",
+      "title": "DK222 Study at Hopkins",
+      "phase": "PHASE1",
+      "status": "RECRUITING",
+      "sponsor": "Sidney Kimmel Comprehensive Cancer Center at Johns Hopkins",
+      "enrollment": 6,
+      "start": "2026-09-01"
+    },
+    {
+      "condition": "Bladder cancer",
+      "nctId": "NCT07726992",
+      "title": "A Study of SHR-1501 Combination With BCG Versus Placebo Combined With BCG in Subjects With Papillary-Only NMIBC",
+      "phase": "PHASE3",
+      "status": "RECRUITING",
+      "sponsor": "Suzhou Suncadia Biopharmaceuticals Co., Ltd.",
+      "enrollment": 750,
+      "start": "2026-08-25"
+    },
+    {
+      "condition": "Bladder cancer",
+      "nctId": "NCT07784387",
+      "title": "A Study to Characterize High-Risk Non-Muscle-Invasive Bladder Cancer Participants in Portugal",
+      "phase": "N/A",
+      "status": "RECRUITING",
+      "sponsor": "Janssen-Cilag Farmaceutica Ltda.",
+      "enrollment": 250,
+      "start": "2026-08-25"
+    },
+    {
+      "condition": "Bladder cancer",
+      "nctId": "NCT07662824",
+      "title": "Flyte Device for Improving Urinary Incontinence Among Endometrial and Cervical Cancer Survivors Who Have Undergone Radiation Therapy",
+      "phase": "NA",
+      "status": "RECRUITING",
+      "sponsor": "Mayo Clinic",
+      "enrollment": 44,
+      "start": "2026-08-20"
+    },
+    {
+      "condition": "Erectile dysfunction",
+      "nctId": "NCT07576335",
+      "title": "Multimodal Prehabilitation and Rehabilitation for Men Undergoing Robot-Assisted Radical Prostatectomy",
+      "phase": "PHASE2",
+      "status": "RECRUITING",
+      "sponsor": "Surgical Outcomes Research Centre (SOuRCe)",
+      "enrollment": 64,
+      "start": "2026-08-31"
+    },
+    {
+      "condition": "Erectile dysfunction",
+      "nctId": "NCT07783958",
+      "title": "Male Sexual Function and Sexual Quality of Life in Polygamous Versus Monogamous Marriages",
+      "phase": "N/A",
+      "status": "RECRUITING",
+      "sponsor": "Al-Azhar University",
+      "enrollment": 1820,
+      "start": "2026-08-20"
+    },
+    {
+      "condition": "Erectile dysfunction",
+      "nctId": "NCT07773103",
+      "title": "Endothelial Markers and Tadalafil Response",
+      "phase": "N/A",
+      "status": "RECRUITING",
+      "sponsor": "Al-Azhar University",
+      "enrollment": 120,
+      "start": "2026-08-19"
+    },
+    {
+      "condition": "Erectile dysfunction",
+      "nctId": "NCT07753720",
+      "title": "Daily Tadalafil as Adjunctive Therapy Versus Monotherapy for PDE5 Inhibitor-Resistant Erectile Dysfunction",
+      "phase": "PHASE4",
+      "status": "RECRUITING",
+      "sponsor": "Al-Azhar University",
+      "enrollment": 260,
+      "start": "2026-08-13"
+    },
+    {
+      "condition": "Erectile dysfunction",
+      "nctId": "NCT07758842",
+      "title": "Lifestyle Modification for Erectile Dysfunction in Men With Metabolic Syndrome",
+      "phase": "NA",
+      "status": "RECRUITING",
+      "sponsor": "Al-Azhar University",
+      "enrollment": 55,
+      "start": "2026-08-13"
+    },
+    {
+      "condition": "Erectile dysfunction",
+      "nctId": "NCT07048314",
+      "title": "Stem Cells for Erectile Dysfunction Post RALP",
+      "phase": "PHASE1, PHASE2",
+      "status": "RECRUITING",
+      "sponsor": "The Methodist Hospital Research Institute",
+      "enrollment": 40,
+      "start": "2026-07-07"
+    },
+    {
+      "condition": "Erectile dysfunction",
+      "nctId": "NCT07642505",
+      "title": "L-Citrulline and Tadalafil for Mild to Moderate Erectile Dysfunction",
+      "phase": "PHASE4",
+      "status": "RECRUITING",
+      "sponsor": "Beni-Suef University",
+      "enrollment": 133,
+      "start": "2026-06-08"
+    },
+    {
+      "condition": "Erectile dysfunction",
+      "nctId": "NCT07601646",
+      "title": "A Single-Arm, Dose Escalation of an Intraurethral Alprostadil Paste for Erectile Dysfunction",
+      "phase": "PHASE2",
+      "status": "RECRUITING",
+      "sponsor": "Ryan Flannigan, MD",
+      "enrollment": 83,
+      "start": "2026-05"
+    },
+    {
+      "condition": "Solid tumour",
+      "nctId": "NCT07170293",
+      "title": "Phase II Trial of Tunlametinib in Patients With NRAS Mutant Non-melanoma Refractory Solid Tumors",
+      "phase": "PHASE2",
+      "status": "RECRUITING",
+      "sponsor": "Tianjin Medical University Second Hospital",
+      "enrollment": 15,
+      "start": "2027-08-31"
+    },
+    {
+      "condition": "Solid tumour",
+      "nctId": "NCT07137416",
+      "title": "Testing the Safety of the Combination of Anti-Cancer Drugs CX-5461 (Pidnarulex) and Trastuzumab Deruxtecan (T-DXd) for Human Epidermal Growth Factor Receptor 2 (HER2)-Positive Solid Tumors and Breast Cancer",
+      "phase": "PHASE1",
+      "status": "RECRUITING",
+      "sponsor": "National Cancer Institute (NCI)",
+      "enrollment": 36,
+      "start": "2026-10-05"
+    },
+    {
+      "condition": "Solid tumour",
+      "nctId": "NCT06771739",
+      "title": "A Pilot Unrestricted Payment Program for Early-stage Cancer Patients: the PAYMENT Trial",
+      "phase": "NA",
+      "status": "RECRUITING",
+      "sponsor": "Fred Hutchinson Cancer Center",
+      "enrollment": 20,
+      "start": "2026-10-01"
+    },
+    {
+      "condition": "Solid tumour",
+      "nctId": "NCT07489378",
+      "title": "NCI Childhood Cancer Data Initiative (CCDI) Led Pediatric, Adolescent, and Young Adult Rare Cancer Registry for Very Rare Solid Tumors",
+      "phase": "N/A",
+      "status": "RECRUITING",
+      "sponsor": "National Cancer Institute (NCI)",
+      "enrollment": 4000,
+      "start": "2026-09-22"
+    },
+    {
+      "condition": "Solid tumour",
+      "nctId": "NCT07801508",
+      "title": "A Study of [68Ga]Ga-DWJ155 in Adult Patients With Solid Tumors",
+      "phase": "PHASE1",
+      "status": "RECRUITING",
+      "sponsor": "Novartis Pharmaceuticals",
+      "enrollment": 66,
+      "start": "2026-09-22"
+    },
+    {
+      "condition": "Solid tumour",
+      "nctId": "NCT07703163",
+      "title": "Safety and Efficacy of Canagliflozin in Patients With Locally Advanced or Advanced Solid Cancer",
+      "phase": "PHASE1",
+      "status": "RECRUITING",
+      "sponsor": "West China Hospital",
+      "enrollment": 15,
+      "start": "2026-09-10"
+    },
+    {
+      "condition": "Solid tumour",
+      "nctId": "NCT07719920",
+      "title": "A Phase Ia/Ib Study of HW221043 in Participants With Advanced Solid Tumors",
+      "phase": "PHASE1",
+      "status": "RECRUITING",
+      "sponsor": "Hubei Bio-Pharmaceutical Industrial Technological Institute Inc.",
+      "enrollment": 99,
+      "start": "2026-09-10"
+    },
+    {
+      "condition": "Solid tumour",
+      "nctId": "NCT07805252",
+      "title": "Trial to Study the Safety, Pharmacokinetics and Preliminary Antitumour Activity of ODM-216 in Patients With Cancer",
+      "phase": "PHASE1, PHASE2",
+      "status": "RECRUITING",
+      "sponsor": "Orion Corporation, Orion Pharma",
+      "enrollment": 195,
+      "start": "2026-09-03"
+    }
+  ]
+}
