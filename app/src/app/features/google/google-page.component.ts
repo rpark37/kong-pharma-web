@@ -83,12 +83,11 @@ function parseCsv(text: string): Purchase[] {
     .kpis { display: flex; gap: 8px; flex: 0 1 auto; }
 
     /* Compact enough to share the row with the title. The tile is shared by 18 call sites across
-       four pages, so it is shrunk here rather than in the component. The hint line is dropped —
-       four hints plus the heading do not fit on one row at any readable size. */
+       four pages, so it is shrunk here rather than in the component. */
     :host ::ng-deep app-kpi-tile .tile { padding: 8px 12px; gap: 1px; }
     :host ::ng-deep app-kpi-tile .label { font-size: 10px; letter-spacing: 0.06em; }
     :host ::ng-deep app-kpi-tile .value { font-size: 18px; }
-    :host ::ng-deep app-kpi-tile .hint { display: none; }
+    :host ::ng-deep app-kpi-tile .hint { font-size: 10px; white-space: nowrap; }
     .small { font-size: 12px; color: var(--on-ink-faint); }
     /* Third flex item in .overlay — given its own line rather than squeezed beside the tiles. */
     .error { flex: 1 0 100%; margin-top: 12px; color: var(--rose); font-size: 13px; }
