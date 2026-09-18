@@ -20,7 +20,7 @@ export const CATEGORY_RANGE = [VEGA_COLORS.teal, VEGA_COLORS.violet, VEGA_COLORS
 export const VEGA_DARK_CONFIG: Record<string, unknown> = {
   background: 'transparent',
   padding: 8,
-  font: 'Inter, system-ui, sans-serif',
+  font: 'IBM Plex Sans, system-ui, sans-serif',
   axis: {
     domainColor: VEGA_COLORS.faint,
     gridColor: VEGA_COLORS.grid,
@@ -33,7 +33,7 @@ export const VEGA_DARK_CONFIG: Record<string, unknown> = {
     titlePadding: 8,
   },
   legend: { labelColor: VEGA_COLORS.dim, titleColor: VEGA_COLORS.dim, labelFontSize: 11, titleFontSize: 11, symbolSize: 80 },
-  title: { color: VEGA_COLORS.onInk, fontSize: 13, fontWeight: 600, anchor: 'start', font: 'Space Grotesk, Inter, sans-serif' },
+  title: { color: VEGA_COLORS.onInk, fontSize: 13, fontWeight: 600, anchor: 'start', font: 'Rajdhani, IBM Plex Sans, sans-serif' },
   view: { stroke: null },
   range: { category: CATEGORY_RANGE, ordinal: { scheme: 'tealblues' }, ramp: { scheme: 'tealblues' } },
   mark: { color: VEGA_COLORS.teal },
