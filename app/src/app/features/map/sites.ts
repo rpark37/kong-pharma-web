@@ -3,12 +3,16 @@
  * root site has no build step, so the two cannot share a module and this is a deliberate copy.
  * Keep them in step if a site moves.
  */
-export interface Site {
+/** Anything with a position. The helpers below read nothing else, so flights and quakes qualify. */
+export interface LatLon {
+  lat: number;
+  lon: number;
+}
+
+export interface Site extends LatLon {
   code: string;
   name: string;
   place: string;
-  lat: number;
-  lon: number;
   enrolled: number;
 }
 
@@ -27,18 +31,18 @@ export const SITES: Site[] = [
 ];
 
 /** Equirectangular projection into plane coordinates, x/z in [-1, 1]. */
-export function project(site: Site): { x: number; z: number } {
+export function project(site: LatLon): { x: number; z: number } {
   return { x: site.lon / 180, z: -site.lat / 90 };
 }
 
-export function bearing(a: Site, b: Site): number {
+export function bearing(a: LatLon, b: LatLon): number {
   const pa = project(a);
   const pb = project(b);
   return Math.atan2(pb.z - pa.z, pb.x - pa.x);
 }
 
 /** Great-circle distance, km. */
-export function distanceKm(a: Site, b: Site): number {
+export function distanceKm(a: LatLon, b: LatLon): number {
   const R = 6371;
   const dLat = ((b.lat - a.lat) * Math.PI) / 180;
   const dLon = ((b.lon - a.lon) * Math.PI) / 180;
@@ -48,7 +52,7 @@ export function distanceKm(a: Site, b: Site): number {
   return Math.round(2 * R * Math.asin(Math.sqrt(h)));
 }
 
-export function formatCoord(site: Site): string {
+export function formatCoord(site: LatLon): string {
   const ns = site.lat >= 0 ? 'N' : 'S';
   const ew = site.lon >= 0 ? 'E' : 'W';
   const d = (v: number) => {
