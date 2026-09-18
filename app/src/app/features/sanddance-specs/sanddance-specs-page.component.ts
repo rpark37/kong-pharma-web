@@ -205,8 +205,9 @@ export class SanddanceSpecsPageComponent {
     if (!umd) return;
     this.insightJson.set(JSON.stringify(insight, null, 2));
     try {
-      const specColumns = umd.getSpecColumns(insight, this.columns);
-      const result = umd.build({ specColumns, insight, specViewOptions: VIEW_OPTIONS }, this.rows);
+      const resolved = withVendoredImage(insight);
+      const specColumns = umd.getSpecColumns(resolved, this.columns);
+      const result = umd.build({ specColumns, insight: resolved, specViewOptions: VIEW_OPTIONS }, this.rows);
       if (result.errors?.length) {
         this.error.set(result.errors.join('\n'));
         return;
@@ -218,6 +219,28 @@ export class SanddanceSpecsPageComponent {
       this.error.set(e instanceof Error ? e.message : String(e));
     }
   }
+}
+
+/** Where the vendored copy of the insights' background image lives. */
+const IMG_DIR = 'data/sanddance/img';
+
+/**
+ * Four of the insights lay a US counties map under the plot, referenced as `img/<file>` relative to
+ * the page it was written for. Resolved here against the vendored copy, leaving the insight files
+ * byte-identical to upstream — and leaving the editor showing the original path, which is what the
+ * insight actually says.
+ *
+ * Absolute on purpose. The rendered spec goes through the shared chart component, whose Vega loader
+ * carries `baseURL` pointing at vega.github.io so gallery datasets resolve there; a relative image
+ * path would be resolved against that host instead of this app, load nothing, and take the whole
+ * canvas down with it — Vega aborts the draw on a broken image rather than skipping it.
+ */
+function withVendoredImage(insight: unknown): unknown {
+  const i = insight as { backgroundImage?: { url?: string } };
+  const url = i?.backgroundImage?.url;
+  if (!url?.startsWith('img/')) return insight;
+  const absolute = new URL(`${IMG_DIR}/${url.slice('img/'.length)}`, document.baseURI).href;
+  return { ...i, backgroundImage: { ...i.backgroundImage, url: absolute } };
 }
 
 /**
