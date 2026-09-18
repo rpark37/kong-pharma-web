@@ -372,7 +372,9 @@ export class GevScene {
 
     this.paintHeader(ctx, f);
     this.paintLeftRail(ctx, f);
-    this.paintContacts(ctx);
+    // The contacts rail is NOT painted here. It is real DOM in gev-page.component.ts, positioned
+    // over this region, so it can be reached by keyboard and read by a screen reader — a canvas
+    // cannot be either. Everything else on this overlay is decorative and stays painted.
     this.paintCallouts(ctx);
     this.paintFooter(ctx, f);
 
@@ -419,42 +421,6 @@ export class GevScene {
     P.text(ctx, 'APERTURE', 48, y + 168, P.PALETTE.dim);
     P.barMeter(ctx, 48, y + 178, 210, 6, 0.72);
     P.tickScale(ctx, 290, y, 190, ['+40', '+20', '000', '-20', '-40']);
-  }
-
-  private paintContacts(ctx: CanvasRenderingContext2D): void {
-    const x = OW - 360;
-    const y = 250;
-    P.corners(ctx, x - 14, y - 34, 326, 420, 14, P.PALETTE.tealDim);
-    P.font(ctx, 10, 500);
-    P.text(ctx, 'CONTACTS', x, y - 12, P.PALETTE.text);
-    P.font(ctx, 8, 400);
-    P.text(ctx, `${STATION.name} · 250 KM FLIGHT WINDOW`, x, y + 4, P.PALETTE.tealDim);
-    P.dashedRule(ctx, x, y + 14, 298);
-
-    if (!this.contacts.length) {
-      P.font(ctx, 9, 400);
-      P.text(ctx, 'NO CONTACTS IN WINDOW', x, y + 40, P.PALETTE.faint);
-      return;
-    }
-    P.dataTable(
-      ctx,
-      x,
-      y + 36,
-      this.contacts.map((c) => [c.craft.id.slice(0, 10), `${String(c.km).padStart(3, '0')} KM`] as [string, string]),
-      240,
-    );
-    const sel = this.contacts[this.selected];
-    if (sel) {
-      P.font(ctx, 9, 400);
-      P.text(ctx, 'SELECTED', x, y + 300, P.PALETTE.dim);
-      P.font(ctx, 22, 500, 0.06);
-      P.text(ctx, sel.craft.id, x, y + 330, P.PALETTE.text);
-      P.dataTable(ctx, x, y + 352, [
-        ['TYPE', sel.craft.type],
-        ['ALT', `${sel.craft.alt.toLocaleString('en-US')} FT`],
-        ['SPD', `${sel.craft.spd} KTS`],
-      ], 200);
-    }
   }
 
   private paintCallouts(ctx: CanvasRenderingContext2D): void {
@@ -528,9 +494,13 @@ export class GevScene {
     this.renderer.render(this.overlayScene, this.overlayCam);
   }
 
-  /** What the contacts rail needs to render itself in the DOM, if the page ever wants it there. */
+  /** The contacts rail reads these to render itself in the DOM. */
   contactList(): Contact[] {
     return this.contacts;
+  }
+
+  selectedIndex(): number {
+    return this.selected;
   }
 
   dispose(): void {

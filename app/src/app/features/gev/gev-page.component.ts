@@ -1,6 +1,8 @@
+import { LiveAnnouncer } from '@angular/cdk/a11y';
+import { CdkListbox, CdkOption } from '@angular/cdk/listbox';
 import { Component, DestroyRef, ElementRef, afterNextRender, computed, inject, signal, viewChild } from '@angular/core';
 import { GsapService } from '../../shared/animation/gsap.service';
-import { type SensorMode, SENSORS, lutTable } from './tracks';
+import { type Contact, type SensorMode, SENSORS, lutTable } from './tracks';
 import type { GevScene } from './gev-scene';
 
 /**
@@ -17,9 +19,16 @@ import type { GevScene } from './gev-scene';
  * `feComponentTransfer` carries an arbitrary lookup table — so the real multi-hue ironbow ramp
  * survives, which a chain of `hue-rotate()` could not express. The tables come from `gradeLut`,
  * which is unit-tested, so the ramps are written down exactly once.
+ *
+ * The contacts rail is the one part of this console that is NOT canvas. The rest is atmosphere and
+ * is labelled decorative, but the rail carries real data and is the page's primary control, so it
+ * is real DOM sitting over the canvas: a `cdkListbox` gives it roving tabindex, arrow and Home/End
+ * keys and type-ahead, and `LiveAnnouncer` speaks the selection. It is sized in container-query
+ * units so it tracks the canvas's own 1600x900 coordinate space at any stage width.
  */
 @Component({
   selector: 'app-gev-page',
+  imports: [CdkListbox, CdkOption],
   template: `
     <section class="head">
       <p class="eyebrow" data-reveal>three.js · vector globe · snapshot replay</p>
@@ -48,14 +57,50 @@ import type { GevScene } from './gev-scene';
         (pointerup)="onUp()"
         (pointerleave)="onUp()"
       >
-        <canvas #canvas role="img" aria-label="Decorative animation: a rotating globe showing 631 aircraft, 140 satellites and 160 recent earthquakes, replayed from a captured snapshot. Nearby aircraft are listed in the contacts panel drawn on the globe."></canvas>
+        <canvas #canvas role="img" aria-label="Decorative animation: a rotating globe showing 631 aircraft, 140 satellites and 160 recent earthquakes, replayed from a captured snapshot. The nearby aircraft it plots are listed in the contacts rail beside it."></canvas>
+
+        <div class="rail">
+          <p class="rail-title" id="gev-rail-title">Contacts</p>
+          <p class="rail-sub">Lowell · 250 km flight window</p>
+          @if (contacts().length) {
+            <ul
+              class="rail-list"
+              cdkListbox
+              aria-labelledby="gev-rail-title"
+              [cdkListboxValue]="selectedIds()"
+              (cdkListboxValueChange)="onPick($event.value)"
+            >
+              @for (c of contacts(); track c.craft.id) {
+                <li class="rail-row" [cdkOption]="c.craft.id">
+                  <span class="id">{{ c.craft.id }}</span>
+                  <span class="km">{{ c.km }} km</span>
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="rail-empty">No contacts in window</p>
+          }
+
+          @if (selected(); as sel) {
+            <div class="rail-detail">
+              <p class="rail-sub">Selected</p>
+              <p class="rail-callsign">{{ sel.craft.id }}</p>
+              <dl>
+                <dt>Type</dt><dd>{{ sel.craft.type }}</dd>
+                <dt>Alt</dt><dd>{{ sel.craft.alt.toLocaleString('en-US') }} ft</dd>
+                <dt>Speed</dt><dd>{{ sel.craft.spd }} kts</dd>
+              </dl>
+            </div>
+          }
+        </div>
+
         @if (mode() === 'crt') { <div class="scanlines"></div> }
         @if (error()) { <p class="error">{{ error() }}</p> }
       </div>
 
       <div class="tray" role="group" aria-label="Sensor mode">
         @for (s of sensors; track s.id) {
-          <button type="button" class="preset" [class.on]="mode() === s.id" [attr.aria-pressed]="mode() === s.id" (click)="mode.set(s.id)">
+          <button type="button" class="preset" [class.on]="mode() === s.id" [attr.aria-pressed]="mode() === s.id" (click)="setMode(s)">
             {{ s.label }}
           </button>
         }
@@ -94,9 +139,31 @@ import type { GevScene } from './gev-scene';
     .card { padding: 14px 16px; }
     .card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
     .card-head h3 { font-size: 18px; }
-    .stage { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--hairline); background: #05090c; touch-action: none; cursor: grab; }
+    /* container-type lets the rail size itself in cqw, so it tracks the canvas's own 1600x900
+       coordinate space at any stage width instead of drifting out of alignment with it. */
+    .stage { position: relative; container-type: size; width: 100%; aspect-ratio: 16 / 9; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--hairline); background: #05090c; touch-action: none; cursor: grab; }
     .stage:active { cursor: grabbing; }
     canvas { display: block; width: 100%; height: 100%; }
+
+    /* Sits where the canvas used to paint this panel: x 1226/1600, y 216/900 of the overlay. */
+    .rail { position: absolute; left: 76.6%; top: 24%; width: 21%; color: #e6f6f3; font-family: 'JetBrains Mono', ui-monospace, monospace; cursor: default; }
+    .rail-title { margin: 0; font-size: 1.05cqw; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; }
+    .rail-sub { margin: 0.3cqw 0 0; font-size: 0.8cqw; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(68, 224, 204, 0.75); }
+    .rail-list { list-style: none; margin: 0.9cqw 0 0; padding: 0.2cqw 0 0; border-top: 1px dashed rgba(68, 224, 204, 0.35); max-height: 24cqw; overflow-y: auto; }
+    .rail-row { display: flex; justify-content: space-between; gap: 0.8cqw; padding: 0.26cqw 0.35cqw; font-size: 0.86cqw; letter-spacing: 0.1em; cursor: pointer; }
+    .rail-row:hover { background: rgba(68, 224, 204, 0.10); }
+    /* Styled from aria-selected, which the CDK owns, so the visual state cannot disagree with
+       what a screen reader is told. */
+    .rail-row[aria-selected='true'] { background: rgba(68, 224, 204, 0.18); color: #fff; }
+    .rail-row:focus-visible { outline: 1px solid #44e0cc; outline-offset: -1px; }
+    .rail-row .km { color: rgba(230, 246, 243, 0.62); }
+    .rail-empty { margin: 1cqw 0 0; font-size: 0.85cqw; letter-spacing: 0.1em; color: rgba(230, 246, 243, 0.3); text-transform: uppercase; }
+    .rail-detail { margin-top: 1.4cqw; }
+    .rail-callsign { margin: 0.35cqw 0 0.55cqw; font-size: 1.8cqw; font-weight: 500; letter-spacing: 0.04em; }
+    .rail-detail dl { display: grid; grid-template-columns: auto 1fr; gap: 0.22cqw 0.8cqw; margin: 0; font-size: 0.8cqw; letter-spacing: 0.1em; text-transform: uppercase; }
+    .rail-detail dt { color: rgba(230, 246, 243, 0.62); }
+    .rail-detail dd { margin: 0; text-align: right; }
+
     .scanlines { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: multiply; background: repeating-linear-gradient(to bottom, rgba(255,255,255,0.96) 0 2px, rgba(120,120,120,0.72) 2px 4px); }
     .error { position: absolute; inset: auto 12px 12px; color: var(--rose); font-size: 13px; }
     .tray { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
@@ -113,6 +180,21 @@ export class GevPageComponent {
   readonly mode = signal<SensorMode>('normal');
   readonly sensors = SENSORS;
 
+  /**
+   * Sampled from the scene rather than pushed by it. The scene re-reckons every contact at 60fps;
+   * re-rendering the list that often would be work nobody can read. 4 Hz still looks live.
+   */
+  readonly contacts = signal<Contact[]>([]);
+  readonly selectedId = signal<string | null>(null);
+
+  /** cdkListbox works in values rather than indices, so selection is keyed on the callsign. */
+  readonly selectedIds = computed(() => {
+    const id = this.selectedId();
+    return id ? [id] : [];
+  });
+
+  readonly selected = computed(() => this.contacts().find((c) => c.craft.id === this.selectedId()) ?? null);
+
   /** Only the recolouring modes need a filter element; the others are plain CSS or nothing. */
   readonly filters = SENSORS.filter((s) => s.lut > 0).map((s) => {
     const [r, g, b] = lutTable(s.id);
@@ -128,9 +210,11 @@ export class GevPageComponent {
   private readonly canvas = viewChild.required<ElementRef<HTMLCanvasElement>>('canvas');
   private readonly stage = viewChild.required<ElementRef<HTMLDivElement>>('stage');
   private readonly gsap = inject(GsapService);
+  private readonly announcer = inject(LiveAnnouncer);
   private readonly el = inject<ElementRef<HTMLElement>>(ElementRef);
   private scene: GevScene | null = null;
   private resize: ResizeObserver | null = null;
+  private poll: ReturnType<typeof setInterval> | null = null;
 
   constructor() {
     afterNextRender(() => {
@@ -140,7 +224,28 @@ export class GevPageComponent {
     inject(DestroyRef).onDestroy(() => {
       this.scene?.dispose();
       this.resize?.disconnect();
+      if (this.poll) clearInterval(this.poll);
     });
+  }
+
+  onPick(ids: readonly string[]): void {
+    const id = ids[0];
+    if (!id) return;
+    this.selectedId.set(id);
+    const i = this.contacts().findIndex((c) => c.craft.id === id);
+    if (i >= 0) this.scene?.select(i);
+    const sel = this.selected();
+    if (sel) {
+      void this.announcer.announce(
+        `${sel.craft.id} selected. ${sel.craft.type}, ${sel.craft.alt.toLocaleString('en-US')} feet, ${sel.craft.spd} knots, ${sel.km} kilometres away.`,
+        'polite',
+      );
+    }
+  }
+
+  setMode(s: (typeof SENSORS)[number]): void {
+    this.mode.set(s.id);
+    void this.announcer.announce(`Sensor mode ${s.label}`, 'polite');
   }
 
   onMove(e: PointerEvent): void {
@@ -149,6 +254,8 @@ export class GevPageComponent {
   }
 
   onDown(e: PointerEvent): void {
+    // Dragging the globe must not start when the pointer went down on the rail.
+    if ((e.target as HTMLElement).closest('.rail')) return;
     (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
     this.scene?.setDragging(true);
   }
@@ -172,6 +279,15 @@ export class GevPageComponent {
       this.resize.observe(this.stage().nativeElement);
       await scene.load();
       scene.start();
+
+      const sync = () => {
+        const list = scene.contactList();
+        this.contacts.set([...list]);
+        // The scene cycles its own selection; follow it until the user picks one themselves.
+        if (!this.selectedId() && list.length) this.selectedId.set(list[scene.selectedIndex()]?.craft.id ?? null);
+      };
+      sync();
+      this.poll = setInterval(sync, 250);
     } catch (err) {
       this.error.set(`The console could not start: ${err instanceof Error ? err.message : String(err)}`);
     }
