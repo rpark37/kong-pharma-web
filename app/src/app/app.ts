@@ -36,6 +36,13 @@ export class App {
       children: [
         { path: '/bayes', label: 'Bayes' },
         { path: '/google', label: 'Google' },
+      ],
+    },
+    {
+      // The three.js FUI scenes, grouped apart because they are their own family: they kept the
+      // original dark instrument palette when the rest of the app went light.
+      label: 'HUD',
+      children: [
         { path: '/hud', label: 'Readout' },
         { path: '/site-map', label: 'Site map' },
         { path: '/controls', label: 'Controls' },
