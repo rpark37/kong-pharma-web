@@ -21,7 +21,7 @@ export class App {
     {
       label: 'Database',
       children: [
-        { path: '/ares', label: 'Ares' },
+        { path: '/ares', label: 'People' },
         { path: '/merchandise', label: 'Merchandise' },
       ],
     },

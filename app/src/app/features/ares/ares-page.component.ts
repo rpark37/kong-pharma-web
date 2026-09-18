@@ -35,7 +35,7 @@ const fmtDate = timeFormat('%b %Y');
       </aside>
       <main class="content">
         <header class="head">
-          <p class="eyebrow" data-reveal>Ares-style characterization · Vega + D3</p>
+          <p class="eyebrow" data-reveal>Data characterization · Vega + D3</p>
           <h1 data-reveal>Data source explorer</h1>
           <p class="lede" data-reveal>
             The report vocabulary of OHDSI Ares (person, observation period, data density, concepts, data quality)

@@ -64,7 +64,7 @@ export class HomeComponent {
     {
       path: '/ares',
       eyebrow: 'Reports · Vega + D3',
-      title: 'Ares data characterization',
+      title: 'People data characterization',
       blurb: 'OHDSI Ares-style reports over a synthetic OMOP dataset: persons, observation periods, density, concepts, quality.',
       tags: ['Vega', 'D3', 'DuckDB'],
     },
