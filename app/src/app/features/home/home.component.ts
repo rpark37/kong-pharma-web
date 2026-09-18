@@ -86,8 +86,8 @@ export class HomeComponent {
       path: '/bayes',
       eyebrow: 'Explainer · Vega-Lite',
       title: 'Bayes for therapeutic tests',
-      blurb: 'Prevalence, sensitivity and specificity in, predictive values out: natural frequencies, an icon array and the PPV curve.',
-      tags: ['Bayes', 'Vega-Lite', 'GSAP'],
+      blurb: 'A synthetic population of blocks morphs through four views to show what a positive test really means, with natural frequencies and the PPV curve alongside.',
+      tags: ['MorphCharts', 'Vega-Lite', 'GSAP'],
     },
   ];
 }

@@ -14,7 +14,7 @@ Two things live in this repository:
 - `/app/ares` — [OHDSI Ares](https://github.com/OHDSI/Ares)-style data characterization reports (person, observation period, density, concepts, data quality) as Vega-Lite specs over a synthetic OMOP-like dataset.
 - `/app/merchandise` — Google Merchandise Store analytics from the public GA4 sample (or a schema-faithful synthetic sample when no BigQuery credentials are available), including a MorphCharts 3D revenue cube.
 - `/app/atlas` — [human-atlas](https://github.com/ashemag/human-atlas) reinterpreted as data: 2,234 BodyParts3D structures as a spec-driven MorphCharts scene with system toggles, search, isolate and an explode slider.
-- `/app/bayes` — Bayes' theorem for therapeutic and diagnostic tests: prevalence, sensitivity and specificity in, predictive values out.
+- `/app/bayes` — the therapeutic-tests Bayes' theorem visualization (source in `docs/bayes-source/`) rebuilt on the current MorphCharts: a synthetic population of blocks that morphs between four views (everyone, disease vs healthy, the 2×2 outcome grid, positive tests only) with GSAP-staggered transitions, plus Vega-Lite companions sharing the same inputs.
 
 Every visualization is a Vega-style specification: Vega-Lite / Vega for 2D (rendered by Vega's D3-based SVG renderer), MorphCharts' Vega-derived grammar for 3D. All motion uses GreenSock Quad eases with shared delays and staggers (`app/src/app/shared/animation/motion.ts`).
 
