@@ -26,7 +26,7 @@
   "data": [
     {
       "name": "stocks",
-      "url": "data/stocks.csv",
+      "url": "assets/data/stocks.csv",
       "format": {"type": "csv", "parse": {"price":"number", "date":"date"}}
     },
     {

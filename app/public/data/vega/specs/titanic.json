@@ -68,7 +68,7 @@
                 "type": "tsv",
                 "parse": "auto"
             },
-            "url": "data/titanicmaster.tsv"
+            "url": "assets/data/titanicmaster.tsv"
         },
         {
             "name": "nested",

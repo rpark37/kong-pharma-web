@@ -20,7 +20,7 @@
   "data": [
     {
       "name": "penguins",
-      "url": "data/penguins.json",
+      "url": "assets/data/penguins.json",
       "transform": [
         {
           "type": "filter",

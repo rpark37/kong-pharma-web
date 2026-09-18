@@ -12,12 +12,12 @@
     },
     {
       "name": "url",
-      "value": "data/normal-2d.json",
+      "value": "assets/data/normal-2d.json",
       "bind": {
         "input": "select",
         "options": [
-          "data/normal-2d.json",
-          "data/uniform-2d.json"
+          "assets/data/normal-2d.json",
+          "assets/data/uniform-2d.json"
         ]
       }
     }

@@ -115,7 +115,7 @@
   "data": [
     {
       "name": "source",
-      "url": "data/udistrict.json"
+      "url": "assets/data/udistrict.json"
     },
     {
       "name": "annotation",

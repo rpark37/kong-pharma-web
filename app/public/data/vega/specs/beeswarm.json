@@ -19,7 +19,7 @@
   "data": [
     {
       "name": "people",
-      "url": "data/miserables.json",
+      "url": "assets/data/miserables.json",
       "format": {"type": "json", "property": "nodes"}
     }
   ],
