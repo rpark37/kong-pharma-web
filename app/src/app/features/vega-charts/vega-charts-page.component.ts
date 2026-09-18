@@ -4,7 +4,7 @@ import { firstValueFrom } from 'rxjs';
 import { GsapService } from '../../shared/animation/gsap.service';
 import { SpecEditorComponent } from '../../shared/ui/spec-editor.component';
 import { VegaChartComponent } from '../../shared/vega/vega-chart.component';
-import { GALLERY, type GalleryChart } from './vega-charts-specs';
+import { type GalleryChart } from './vega-charts-specs';
 import { VENDORED } from './vega-gallery-vendored';
 
 const PANEL_MIN = 320;
@@ -23,7 +23,7 @@ const PANEL_MIN = 320;
   template: `
     <div class="client">
       <div class="left">
-        <app-vega-chart [spec]="spec()" [fill]="true" />
+        @if (hasSpec()) { <app-vega-chart [spec]="spec()" [fill]="true" /> }
       </div>
       <div class="divider" (pointerdown)="startDivider($event)" role="separator" aria-orientation="vertical"></div>
       <div class="right" #right [style.width.px]="panelWidth()">
@@ -40,7 +40,7 @@ const PANEL_MIN = 320;
           </label>
           <div class="toolbar">
             <span class="spacer"></span>
-            <button type="button" class="btn small" [disabled]="!selected().spec" (click)="shuffle()" title="Rebuild this chart's randomised sample">Shuffle</button>
+            <button type="button" class="btn small" (click)="shuffle()" title="Jump to a random chart from the list">Shuffle</button>
             <button type="button" class="btn small" (click)="reset()">Reset</button>
             <button type="button" class="btn small" (click)="apply()">Apply</button>
           </div>
@@ -70,16 +70,17 @@ const PANEL_MIN = 320;
   `,
 })
 export class VegaChartsPageComponent {
-  readonly gallery: GalleryChart[] = [...GALLERY, ...VENDORED];
+  readonly gallery: GalleryChart[] = VENDORED;
   readonly groups = [
-    { name: 'Built-in', items: GALLERY },
     { name: 'Specs', items: VENDORED.filter((c) => c.group === 'Specs') },
     { name: 'Examples', items: VENDORED.filter((c) => c.group === 'Examples') },
   ];
-  readonly selectedId = signal(GALLERY[0].id);
-  readonly selected = computed(() => this.gallery.find((c) => c.id === this.selectedId()) ?? GALLERY[0]);
+  readonly selectedId = signal(VENDORED[0].id);
+  readonly selected = computed(() => this.gallery.find((c) => c.id === this.selectedId()) ?? VENDORED[0]);
   /** The spec currently rendered — replaced wholesale by select/shuffle/apply. */
-  readonly spec = signal<Record<string, unknown>>(GALLERY[0].spec());
+  readonly spec = signal<Record<string, unknown>>({});
+  /** Every entry is url-backed now, so the first spec arrives from a fetch rather than inline. */
+  readonly hasSpec = computed(() => Object.keys(this.spec()).length > 0);
   readonly error = signal('');
   readonly json = computed(() => JSON.stringify(this.spec(), null, 2));
   readonly panelWidth = signal(480);
@@ -94,6 +95,9 @@ export class VegaChartsPageComponent {
   constructor() {
     afterNextRender(() => {
       this.gsap.slideIn(this.right().nativeElement, 'right', this.gsap.MOTION.delay.medium);
+      // Every entry is url-backed, so nothing is on screen until the first fetch lands.
+      // Deferred to afterNextRender because load() writes into the spec editor view child.
+      void this.load();
     });
   }
 
@@ -102,9 +106,12 @@ export class VegaChartsPageComponent {
     void this.load();
   }
 
-  /** Rebuilds the chart, which redraws the randomised sample sets. */
+  /** Jumps to a random chart from the list, never landing on the one already shown. */
   shuffle(): void {
-    void this.load();
+    if (this.gallery.length < 2) return;
+    let id = this.selectedId();
+    while (id === this.selectedId()) id = this.gallery[Math.floor(Math.random() * this.gallery.length)].id;
+    this.select(id);
   }
 
   reset(): void {
