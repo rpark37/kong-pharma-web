@@ -1,24 +1,31 @@
-// Design tokens mirrored from the marketing site's styles.css so the labs app reads as the
-// same product. Dark surfaces only.
+// Design tokens for the labs app light theme. Values mirror
+// app/src/app/shared/theme/palette.ts, which carries the contrast tests.
+// --ink* is the base surface scale; --on-ink* is the foreground on it.
 :root {
-  --teal: #44e0cc;
-  --teal-bright: #2fb7a6;
-  --teal-deep: #063a34;
-  --teal-ink: #0f8577;
-  --violet: #8b7cff;
-  --green: #7ac585;
-  --amber: #f2c14e;
-  --rose: #ef7a8a;
-  --ink: #121c24;
-  --ink-2: #192630;
-  --ink-3: #24343f;
-  --on-ink: #e6f6f3;
-  --on-ink-dim: rgba(230, 246, 243, 0.62);
-  --on-ink-faint: rgba(230, 246, 243, 0.38);
-  --hairline: rgba(230, 246, 243, 0.12);
-  --panel: rgba(25, 38, 48, 0.78);
-  --panel-solid: #192630;
-  --glow: rgba(68, 224, 204, 0.22);
+  // Mirrors app/src/app/shared/theme/palette.ts — keep the two in step.
+  --teal: #00705D;
+  --teal-bright: #00A88A;
+  --teal-deep: #004C3F;
+  --teal-ink: #004C3F;
+  --orange: #D4740C;
+  --orange-light: #E8923B;
+  --violet: #5B4BC4;
+  --green: #1E6B3A;
+  --amber: #996600;
+  --rose: #B3261E;
+  --ink: #FAF9F7;
+  --ink-2: #F5F5F3;
+  --ink-3: #E8E8E6;
+  --on-ink: #2D2D2D;
+  --on-ink-dim: #5A5A5A;
+  --on-ink-faint: #8A8A8A;
+  --on-ink-light: #ABABAB;
+  --hairline: #D4D4D2;
+  --panel: #F5F5F3;
+  --panel-solid: #F5F5F3;
+  --glow: rgba(0, 112, 93, 0.14);
+  --shadow-sm: 0 1px 2px rgba(45, 45, 45, 0.06), 0 1px 3px rgba(45, 45, 45, 0.10);
+  --shadow-md: 0 2px 8px rgba(45, 45, 45, 0.08);
 
   --font-display: "Space Grotesk", "Inter", system-ui, sans-serif;
   --font-body: "Inter", system-ui, sans-serif;
