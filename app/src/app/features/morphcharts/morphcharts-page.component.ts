@@ -66,7 +66,10 @@ const DEFAULT_SAMPLE = 'line4'; // "Multi Series Line Chart" — generated in-sp
           <div [hidden]="activeTab() !== 'Plot'" class="plot-tab">
             <div class="chart-pane-head">
               <span class="eyebrow">Specification</span>
-              <label class="row"><input type="checkbox" [checked]="includeCamera()" (change)="includeCamera.set($any($event.target).checked)"> Set camera from specification</label>
+              <span class="row">
+                <label class="row"><input type="checkbox" [checked]="includeCamera()" (change)="includeCamera.set($any($event.target).checked)"> Set camera from specification</label>
+                <button type="button" class="btn small" [disabled]="startDisabled()" (click)="applySpec()">Apply this spec</button>
+              </span>
             </div>
             <app-spec-editor #editor [(value)]="specText" (changed)="onSpecChanged()" />
           </div>
@@ -229,6 +232,17 @@ export class MorphchartsPageComponent {
     } catch (err) {
       host.error.set(err instanceof Error ? err.message : String(err));
     }
+  }
+
+  /**
+   * Recompiles whatever is in the editor and renders it, the same way picking an example does.
+   * Without this, an edit only took effect on the next Stop/Start: the running loop holds the
+   * scene built from the previous spec, and `run()` skips recompilation while it is running.
+   */
+  async applySpec(): Promise<void> {
+    this.host()?.stop();
+    this.hasSpecChanged = true;
+    await this.run();
   }
 
   resetCamera(): void {
