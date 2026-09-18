@@ -9,19 +9,22 @@
  */
 
 export const PALETTE = {
-  ink: '#121c24',
-  ink2: '#192630',
-  ink3: '#24343f',
-  teal: '#44e0cc',
-  tealDim: 'rgba(68, 224, 204, 0.45)',
-  tealFaint: 'rgba(68, 224, 204, 0.16)',
-  tealDeep: '#063a34',
-  text: '#e6f6f3',
-  dim: 'rgba(230, 246, 243, 0.62)',
-  faint: 'rgba(230, 246, 243, 0.30)',
-  micro: 'rgba(230, 246, 243, 0.16)',
-  amber: '#f2c14e',
-  rose: '#ef7a8a',
+  // Surface fills, used as panel and well backgrounds inside the canvas artwork.
+  ink: '#FAF9F7',
+  ink2: '#F5F5F3',
+  ink3: '#E8E8E6',
+  // Accent. Alpha variants are for decorative strokes, not text.
+  teal: '#00705D',
+  tealDim: 'rgba(0, 112, 93, 0.55)',
+  tealFaint: 'rgba(0, 112, 93, 0.22)',
+  tealDeep: '#004C3F',
+  // Foreground scale.
+  text: '#2D2D2D',
+  dim: 'rgba(45, 45, 45, 0.70)',
+  faint: 'rgba(45, 45, 45, 0.45)',
+  micro: 'rgba(45, 45, 45, 0.22)',
+  amber: '#9A6700',
+  rose: '#B3261E',
 } as const;
 
 const MONO = "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
