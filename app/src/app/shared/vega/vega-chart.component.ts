@@ -62,16 +62,25 @@ export class VegaChartComponent implements OnDestroy {
 
   /**
    * Resolves the relative dataset URLs in gallery specs against Vega's own host, and rewrites the
-   * one path convention that does not live there. Specs taken from the Vega Editor reference
-   * `assets/data/<file>`, but on vega.github.io the datasets sit at `data/<file>` — the `assets/`
-   * form 404s. Patched here rather than in the vendored JSON so those files stay exactly as
-   * upstream published them.
+   * two path conventions that do not live there. All of it happens here rather than in the
+   * vendored JSON so those files stay byte-identical to what upstream published — an edit there
+   * would be silently clobbered the next time the specs are re-vendored.
    */
   private static patchLoader(loader: typeof import('vega').loader): ReturnType<typeof import('vega').loader> {
     const base = loader({ baseURL: 'https://vega.github.io/vega/' });
     const sanitize = base.sanitize.bind(base);
-    base.sanitize = (uri, options) => sanitize(String(uri).replace(/^assets\/data\//, 'data/'), options);
+    base.sanitize = (uri, options) => sanitize(VegaChartComponent.resolveDataUri(String(uri)), options);
     return base;
+  }
+
+  /** Specs from the Vega Editor say `assets/data/<file>`; on vega.github.io it is `data/<file>`. */
+  private static resolveDataUri(uri: string): string {
+    if (uri.startsWith('assets/data/')) return uri.slice('assets/'.length);
+    // scatter3D is a SandDance spec — its dataset is not on Vega's host at all.
+    if (uri.startsWith('../../sample-data/')) {
+      return `https://microsoft.github.io/SandDance/sample-data/${uri.slice('../../sample-data/'.length)}`;
+    }
+    return uri;
   }
 
   private async embed(spec: VegaSpecInput): Promise<void> {
