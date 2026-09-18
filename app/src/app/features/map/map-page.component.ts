@@ -27,7 +27,7 @@ import type { MapScene } from './map-scene';
         <h3>Tracking</h3>
       </div>
       <div class="stage" #stage (pointermove)="onMove($event)">
-        <canvas #canvas></canvas>
+        <canvas #canvas role="img" aria-label="Decorative animation: a stylised world map on a raked plane, with the ten trial sites marked by beams and labelled callouts. The same site list is given as text below."></canvas>
         @if (error()) { <p class="error">{{ error() }}</p> }
       </div>
       <p class="note">

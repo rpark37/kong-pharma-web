@@ -27,7 +27,7 @@ import type { AthenaScene } from './athena-scene';
         <h3>Tracking</h3>
       </div>
       <div class="stage" #stage (pointermove)="onMove($event)">
-        <canvas #canvas></canvas>
+        <canvas #canvas role="img" aria-label="Decorative animation: a network console, with perimeter gauges, channel panels and site readouts for the trial site network."></canvas>
         @if (error()) { <p class="error">{{ error() }}</p> }
       </div>
       <p class="note">

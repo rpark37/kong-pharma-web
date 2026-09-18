@@ -39,6 +39,9 @@ import { Component, ElementRef, afterNextRender, model, output, signal, viewChil
     .lines .current { color: var(--teal); background: rgba(0,112,93,0.08); }
     .lines .error { color: var(--rose); background: rgba(179,38,30,0.18); }
     .content { flex: 1; margin: 0; padding: 8px; border: 0; outline: none; resize: none; background: transparent; color: var(--on-ink); font: inherit; white-space: pre; overflow: auto; tab-size: 2; }
+    /* The rule above suppresses the default ring; a textarea must still show focus.
+       Inset so the ring is not clipped by the scroll container. */
+    .content:focus-visible { outline: 2px solid var(--teal); outline-offset: -2px; }
   `,
 })
 export class SpecEditorComponent {

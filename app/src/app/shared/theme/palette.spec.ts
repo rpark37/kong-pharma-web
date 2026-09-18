@@ -14,7 +14,9 @@ describe('light palette contrast', () => {
   });
 
   it('gives body text at least AA contrast on panel', () => {
-    for (const key of ['ink', 'inkDim'] as const) {
+    // inkMuted is here, not in the 3:1 group below: it dresses `.note` at 12px on every page,
+    // which is body copy. It measured 3.16:1 as #8A8A8A before this was tightened.
+    for (const key of ['ink', 'inkDim', 'inkMuted'] as const) {
       expect(contrastRatio(PALETTE_LIGHT[key], SURFACE), key).toBeGreaterThanOrEqual(4.5);
     }
   });
@@ -23,8 +25,8 @@ describe('light palette contrast', () => {
     expect(contrastRatio(PALETTE_LIGHT.teal, SURFACE)).toBeGreaterThanOrEqual(4.5);
   });
 
-  it('gives secondary accent and muted text at least 3:1 for large text and strokes', () => {
-    for (const key of ['orange', 'inkMuted'] as const) {
+  it('gives the secondary accent at least 3:1 for large text and strokes', () => {
+    for (const key of ['orange'] as const) {
       expect(contrastRatio(PALETTE_LIGHT[key], SURFACE), key).toBeGreaterThanOrEqual(3);
     }
   });

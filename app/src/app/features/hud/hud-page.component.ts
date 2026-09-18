@@ -27,7 +27,7 @@ import type { HudScene } from './hud-scene';
         <h3>Synthesis monitor</h3>
       </div>
       <div class="stage" #stage (pointermove)="onMove($event)">
-        <canvas #canvas></canvas>
+        <canvas #canvas role="img" aria-label="Decorative animation: a layered holographic instrument readout, with counters, a timecode and tracking brackets drifting across three depth planes."></canvas>
         @if (error()) { <p class="error">{{ error() }}</p> }
       </div>
       <p class="note">

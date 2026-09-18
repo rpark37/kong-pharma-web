@@ -48,7 +48,7 @@ import type { GevScene } from './gev-scene';
         (pointerup)="onUp()"
         (pointerleave)="onUp()"
       >
-        <canvas #canvas></canvas>
+        <canvas #canvas role="img" aria-label="Decorative animation: a rotating globe showing 631 aircraft, 140 satellites and 160 recent earthquakes, replayed from a captured snapshot. Nearby aircraft are listed in the contacts panel drawn on the globe."></canvas>
         @if (mode() === 'crt') { <div class="scanlines"></div> }
         @if (error()) { <p class="error">{{ error() }}</p> }
       </div>

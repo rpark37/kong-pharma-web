@@ -10,11 +10,11 @@ export const PALETTE_LIGHT = {
   chrome: '#E8E8E6',
   border: '#D4D4D2',
 
-  // Foreground, darkest to lightest.
+  // Foreground, darkest to lightest. `inkMuted` carries 12px body copy (every page's `.note`),
+  // so it is held to 4.5:1 rather than the 3:1 a large-text-only token would need.
   ink: '#2D2D2D',
   inkDim: '#5A5A5A',
-  inkMuted: '#8A8A8A',
-  inkLight: '#ABABAB',
+  inkMuted: '#707070',
 
   // Accents. teal leads; orange is secondary and large-text-only.
   teal: '#00705D',

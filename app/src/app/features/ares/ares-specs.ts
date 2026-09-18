@@ -96,7 +96,7 @@ export const REPORTS: Report[] = [
       $schema: VL, title: 'Checks by table and category', width: 'container', height: 260, data: { name: 'quality' },
       transform: [{ fold: ['passed', 'failed'], as: ['result', 'count'] }],
       mark: { type: 'bar', cornerRadiusEnd: 2 },
-      encoding: { y: { field: 'cdm_table', type: 'nominal', title: null }, x: { field: 'count', type: 'quantitative', title: 'Checks', aggregate: 'sum' }, yOffset: { field: 'category' }, color: { field: 'result', type: 'nominal', title: null, scale: { domain: ['passed', 'failed'], range: [VEGA_COLORS.green, VEGA_COLORS.rose] } }, opacity: { field: 'category', type: 'nominal', scale: { range: [1, 0.75, 0.5] }, title: 'Category' }, tooltip: [{ field: 'category' }, { field: 'cdm_table' }, { field: 'result' }, { field: 'count', aggregate: 'sum' }] },
+      encoding: { y: { field: 'cdm_table', type: 'nominal', title: null }, x: { field: 'count', type: 'quantitative', title: 'Checks', aggregate: 'sum' }, yOffset: { field: 'category' }, color: { field: 'result', type: 'nominal', title: null, scale: { domain: ['passed', 'failed'], range: [VEGA_COLORS.good, VEGA_COLORS.bad] } }, opacity: { field: 'category', type: 'nominal', scale: { range: [1, 0.75, 0.5] }, title: 'Category' }, tooltip: [{ field: 'category' }, { field: 'cdm_table' }, { field: 'result' }, { field: 'count', aggregate: 'sum' }] },
     },
   },
   {

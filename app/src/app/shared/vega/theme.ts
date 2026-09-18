@@ -2,13 +2,23 @@ import { PALETTE_LIGHT } from '../theme/palette';
 
 /** Vega config for the labs app light theme. Colours come from shared/theme/palette.ts. */
 export const VEGA_COLORS = {
-  teal: PALETTE_LIGHT.teal,
+  /** Series hues. Independent of the UI accent and of the status colours below — see CATEGORY_RANGE. */
+  teal: '#01806A',
   violet: '#5B4BC4',
-  green: PALETTE_LIGHT.success,
-  amber: PALETTE_LIGHT.warning,
-  rose: PALETTE_LIGHT.error,
+  ember: '#C2570A',
+  magenta: '#A8235C',
   sky: '#1F6FB2',
-  sand: '#8A6A3D',
+  green: '#2F7D2F',
+
+  /**
+   * Status. Reserved: a reader must never have to wonder whether red means "series 5" or "failed".
+   * Legitimate use is an explicit two- or three-value scale, as the data-quality chart does for
+   * passed/failed, and it always ships with a label rather than relying on colour alone.
+   */
+  good: PALETTE_LIGHT.success,
+  warn: PALETTE_LIGHT.warning,
+  bad: PALETTE_LIGHT.error,
+
   onInk: PALETTE_LIGHT.ink,
   dim: PALETTE_LIGHT.inkDim,
   faint: PALETTE_LIGHT.inkMuted,
@@ -16,20 +26,28 @@ export const VEGA_COLORS = {
 };
 
 /**
- * Re-derived for paper rather than darkened from the dark set. Two constraints fight here:
- * every hue must clear 3:1 on #F5F5F3 and stay distinguishable from its neighbours. Naive
- * darkening collapses the greens and blues toward each other, which is why these are picked
- * rather than computed.
+ * Six slots, computed rather than picked. The previous eight were chosen by eye and failed three
+ * of the six standard checks: rose/amber sat at deltaE 4.6 for deuteranopia (adjacent slots, so
+ * series 4 and 5 of any chart were the same colour to a red-green colourblind reader), slate/sand
+ * at 12.9 for *normal* vision, and three hues fell under the chroma floor and read grey on paper.
+ *
+ * This set passes all six against #F5F5F3, and clears the assertions in palette.spec.ts with room:
+ * every hue 4.13-6.29:1 (floor 3), worst all-pairs Lab deltaE76 31.7 (floor 15).
+ *
+ * Six is enough, measured rather than assumed: the widest categorical field in the data is
+ * `domain` at 5 distinct values, then `category` at 3. A seventh series never gets a generated
+ * hue — fold it into "Other", facet it, or encode it twice.
+ *
+ * Order is fixed. Colour follows the entity, not its rank, so filtering a series out must not
+ * repaint the survivors.
  */
 export const CATEGORY_RANGE = [
   VEGA_COLORS.teal,
   VEGA_COLORS.violet,
-  VEGA_COLORS.green,
-  VEGA_COLORS.amber,
-  VEGA_COLORS.rose,
+  VEGA_COLORS.ember,
+  VEGA_COLORS.magenta,
   VEGA_COLORS.sky,
-  VEGA_COLORS.sand,
-  '#4A5A5F',
+  VEGA_COLORS.green,
 ];
 
 export const VEGA_CONFIG: Record<string, unknown> = {

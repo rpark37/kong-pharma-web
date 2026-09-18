@@ -14,7 +14,7 @@ export function outcomeSpec(): Record<string, unknown> {
     encoding: {
       y: { field: 'result', type: 'nominal', title: null, sort: ['Test positive', 'Test negative'] },
       x: { field: 'people', type: 'quantitative', title: 'People', stack: 'zero' },
-      color: { field: 'truth', type: 'nominal', title: null, scale: { domain: ['Diseased', 'Healthy'], range: [VEGA_COLORS.rose, VEGA_COLORS.teal] } },
+      color: { field: 'truth', type: 'nominal', title: null, scale: { domain: ['Diseased', 'Healthy'], range: [VEGA_COLORS.bad, VEGA_COLORS.teal] } },
       order: { field: 'order' },
       tooltip: [{ field: 'result' }, { field: 'truth' }, { field: 'people', format: ',.0f' }, { field: 'label' }],
     },
@@ -36,11 +36,11 @@ export function curveSpec(): Record<string, unknown> {
         encoding: {
           x: { field: 'prevalence', type: 'quantitative', title: 'Prevalence (pre-test probability)', axis: { format: '.0%' } },
           y: { field: 'value', type: 'quantitative', title: 'Probability', axis: { format: '.0%' } },
-          color: { field: 'measure', type: 'nominal', title: null, scale: { domain: ['ppv', 'npv'], range: [VEGA_COLORS.rose, VEGA_COLORS.teal] } },
+          color: { field: 'measure', type: 'nominal', title: null, scale: { domain: ['ppv', 'npv'], range: [VEGA_COLORS.magenta, VEGA_COLORS.teal] } },
         },
       },
-      { data: { name: 'marker' }, mark: { type: 'rule', color: VEGA_COLORS.amber, strokeDash: [4, 4] }, encoding: { x: { field: 'prevalence', type: 'quantitative' } } },
-      { data: { name: 'marker' }, mark: { type: 'point', filled: true, size: 90, color: VEGA_COLORS.amber }, encoding: { x: { field: 'prevalence', type: 'quantitative' }, y: { field: 'ppv', type: 'quantitative' }, tooltip: [{ field: 'ppv', format: '.1%' }] } },
+      { data: { name: 'marker' }, mark: { type: 'rule', color: VEGA_COLORS.warn, strokeDash: [4, 4] }, encoding: { x: { field: 'prevalence', type: 'quantitative' } } },
+      { data: { name: 'marker' }, mark: { type: 'point', filled: true, size: 90, color: VEGA_COLORS.warn }, encoding: { x: { field: 'prevalence', type: 'quantitative' }, y: { field: 'ppv', type: 'quantitative' }, tooltip: [{ field: 'ppv', format: '.1%' }] } },
     ],
   };
 }
@@ -57,7 +57,7 @@ export function iconArraySpec(): Record<string, unknown> {
     encoding: {
       x: { field: 'col', type: 'ordinal', axis: null },
       y: { field: 'row', type: 'ordinal', axis: null },
-      color: { field: 'outcome', type: 'nominal', title: null, scale: { domain: ['True positive', 'False negative', 'False positive', 'True negative'], range: [VEGA_COLORS.rose, '#b85f6b', VEGA_COLORS.amber, VEGA_COLORS.teal] } },
+      color: { field: 'outcome', type: 'nominal', title: null, scale: { domain: ['True positive', 'False negative', 'False positive', 'True negative'], range: [VEGA_COLORS.bad, '#b85f6b', VEGA_COLORS.warn, VEGA_COLORS.teal] } },
       tooltip: [{ field: 'outcome' }],
     },
   };
