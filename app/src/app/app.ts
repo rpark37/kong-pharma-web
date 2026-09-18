@@ -36,6 +36,7 @@ export class App {
       children: [
         { path: '/bayes', label: 'Bayes' },
         { path: '/google', label: 'Google' },
+        { path: '/hud', label: 'Readout' },
       ],
     },
     { path: '/atlas', label: 'Human Atlas' },
