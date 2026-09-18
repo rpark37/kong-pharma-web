@@ -13,9 +13,9 @@ export const PALETTE = {
   ink: '#FAF9F7',
   ink2: '#F5F5F3',
   ink3: '#E8E8E6',
-  // Accent. Alpha variants are for decorative strokes, not text.
+  // Accent. Alpha variants are for strokes and washes; they don't carry enough contrast for text — use solid `teal` for text.
   teal: '#00705D',
-  tealDim: 'rgba(0, 112, 93, 0.55)',
+  tealDim: 'rgba(0, 112, 93, 0.78)',
   tealFaint: 'rgba(0, 112, 93, 0.22)',
   tealDeep: '#004C3F',
   // Foreground scale.
