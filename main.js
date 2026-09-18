@@ -503,7 +503,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // ---- Active nav link highlighting ----
     gsap.utils.toArray("[data-nav-link]").forEach((link) => {
-      const section = document.querySelector(link.getAttribute("href"));
+      // Not every nav link points at a section on this page — the Labs link is href="/app/",
+      // which querySelector throws on rather than returning null, so the `!section` guard below
+      // never got the chance to run and the throw took the rest of the loop with it.
+      const href = link.getAttribute("href");
+      if (!href || !href.startsWith("#")) return;
+      const section = document.querySelector(href);
       if (!section) return;
       ScrollTrigger.create({
         trigger: section,
