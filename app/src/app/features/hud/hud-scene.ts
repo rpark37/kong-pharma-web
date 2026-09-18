@@ -7,6 +7,9 @@
  * Motion rule: the periphery never stops moving (counters, timecode, matrices, bracket re-acquire)
  * while the status bar holds perfectly still. The contrast is what makes the anchor read as
  * important — take the jitter away and the composition goes flat.
+ *
+ * Blending is normal rather than additive: on paper, ink darkens the surface instead of adding
+ * light to it. The baked blur is colour-agnostic and unaffected.
  */
 import * as T from 'three';
 import * as P from '../../shared/fui/fui-panels';
@@ -60,7 +63,7 @@ function paintMid(ctx: CanvasRenderingContext2D, s: HudState): void {
   P.font(ctx, 11, 500);
   P.text(ctx, 'CR067.LOT-04:-/ASSAY', 56, 46, P.PALETTE.text);
   P.font(ctx, 9, 400);
-  P.text(ctx, 'QUANTUM YIELD: 21.00X 13.06', 56, 66, P.PALETTE.tealDim);
+  P.text(ctx, 'QUANTUM YIELD: 21.00X 13.06', 56, 66, P.PALETTE.teal);
   P.dashedRule(ctx, 56, 80, 420);
 
   P.font(ctx, 10, 400);
@@ -97,7 +100,7 @@ function paintMid(ctx: CanvasRenderingContext2D, s: HudState): void {
   P.font(ctx, 30, 400);
   P.text(ctx, '%', W / 2 + 76, 340, P.PALETTE.teal);
   P.font(ctx, 9, 400);
-  P.text(ctx, 'STRUCTURAL PROGRESS', W / 2, 262, P.PALETTE.tealDim);
+  P.text(ctx, 'STRUCTURAL PROGRESS', W / 2, 262, P.PALETTE.teal);
   ctx.textAlign = 'left';
   P.corners(ctx, W / 2 - 230, 230, 460, 190, 16);
 
@@ -186,7 +189,9 @@ export class HudScene {
       const ctx = c.getContext('2d')!;
       const tex = new T.CanvasTexture(c);
       tex.colorSpace = T.SRGBColorSpace;
-      const mat = new T.MeshBasicMaterial({ map: tex, transparent: true, blending: T.AdditiveBlending, depthWrite: false });
+      // Normal, not additive: the canvas runs alpha:true over a transparent clear, so dark ink
+      // composites correctly against the light CSS background with no opaque destination needed.
+      const mat = new T.MeshBasicMaterial({ map: tex, transparent: true, blending: T.NormalBlending, depthWrite: false });
       const mesh = new T.Mesh(new T.PlaneGeometry(3.55 * scale, 2 * scale), mat);
       mesh.position.z = z;
       this.group.add(mesh);

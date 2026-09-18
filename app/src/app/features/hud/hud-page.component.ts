@@ -44,7 +44,7 @@ import type { HudScene } from './hud-scene';
     .card { padding: 14px 16px; }
     .card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
     .card-head h3 { font-size: 18px; }
-    .stage { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--hairline); background: #0b1318; }
+    .stage { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--hairline); background: var(--ink-2); }
     canvas { display: block; width: 100%; height: 100%; }
     .error { position: absolute; inset: auto 12px 12px; color: var(--rose); font-size: 13px; }
     .note { margin-top: 12px; font-size: 12px; color: var(--on-ink-faint); max-width: 820px; }
