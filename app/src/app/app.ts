@@ -29,6 +29,7 @@ export class App {
       children: [
         { path: '/morphcharts', label: 'MorphCharts' },
         { path: '/vega-charts', label: 'Vega Charts' },
+        { path: '/transition', label: 'Transition - Deck.gl' },
       ],
     },
     {

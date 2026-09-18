@@ -14,6 +14,7 @@ export const routes: Routes = [
   { path: 'google', loadComponent: () => import('./features/google/google-page.component').then((m) => m.GooglePageComponent), title: 'Google Merchandise Sales' },
   { path: 'hud', loadComponent: () => import('./features/hud/hud-page.component').then((m) => m.HudPageComponent), title: 'Holographic readout' },
   { path: 'site-map', loadComponent: () => import('./features/map/map-page.component').then((m) => m.MapPageComponent), title: 'Site network map' },
+  { path: 'transition', loadComponent: () => import('./features/transition/transition-page.component').then((m) => m.TransitionPageComponent), title: 'Transition - Deck.gl' },
   { path: 'science-rac1', loadComponent: () => import('./features/science/rac1-page.component').then((m) => m.Rac1PageComponent), title: 'RAC1 target dossier' },
   { path: 'science-trials', loadComponent: () => import('./features/science/trials-page.component').then((m) => m.TrialsPageComponent), title: 'Trial landscape' },
   { path: 'science-bladder', loadComponent: () => import('./features/science/bladder-page.component').then((m) => m.BladderPageComponent), title: 'Bladder carcinoma targets' },

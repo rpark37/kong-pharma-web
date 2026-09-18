@@ -1,5 +1,6 @@
 import { Component, ElementRef, OnDestroy, afterNextRender, effect, inject, input, output, signal, untracked } from '@angular/core';
 import type { View } from 'vega';
+import { VEGA_DATA_BASE, patchLoader } from './data-uri';
 import { VEGA_CONFIG } from './theme';
 
 export type VegaSpecInput = Record<string, unknown>;
@@ -60,36 +61,6 @@ export class VegaChartComponent implements OnDestroy {
     });
   }
 
-  /**
-   * Resolves the relative dataset URLs in gallery specs against Vega's own host, and rewrites the
-   * two path conventions that do not live there. All of it happens here rather than in the
-   * vendored JSON so those files stay byte-identical to what upstream published — an edit there
-   * would be silently clobbered the next time the specs are re-vendored.
-   */
-  private static patchLoader(loader: typeof import('vega').loader): ReturnType<typeof import('vega').loader> {
-    const base = loader({ baseURL: 'https://vega.github.io/vega/' });
-    const sanitize = base.sanitize.bind(base);
-    base.sanitize = (uri, options) => sanitize(VegaChartComponent.resolveDataUri(String(uri)), options);
-    return base;
-  }
-
-  /**
-   * The two SandDance specs in the gallery. Their datasets are not on Vega's host under any path,
-   * and the specs disagree about how to ask for them — scatter3D says `../../sample-data/`,
-   * titanic says `assets/data/` — so they are matched on filename rather than prefix.
-   */
-  private static readonly SANDDANCE_DATA = new Set(['demovote.tsv', 'titanicmaster.tsv']);
-
-  private static resolveDataUri(uri: string): string {
-    const file = uri.slice(uri.lastIndexOf('/') + 1);
-    if (VegaChartComponent.SANDDANCE_DATA.has(file)) {
-      return `https://microsoft.github.io/SandDance/sample-data/${file}`;
-    }
-    // Specs from the Vega Editor say `assets/data/<file>`; on vega.github.io it is `data/<file>`.
-    if (uri.startsWith('assets/data/')) return uri.slice('assets/'.length);
-    return uri;
-  }
-
   private async embed(spec: VegaSpecInput): Promise<void> {
     const token = ++this.embedToken;
     const container = this.el.nativeElement.querySelector<HTMLElement>('.chart');
@@ -107,7 +78,7 @@ export class VegaChartComponent implements OnDestroy {
         renderer: this.renderer(),
         config: VEGA_CONFIG as never,
         tooltip: { theme: 'light' },
-        loader: VegaChartComponent.patchLoader(loader),
+        loader: patchLoader(loader({ baseURL: VEGA_DATA_BASE })),
       });
       if (token !== this.embedToken) { result.finalize(); return; }
       this.view = result.view;

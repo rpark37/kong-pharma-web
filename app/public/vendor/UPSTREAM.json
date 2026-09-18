@@ -1,0 +1,11 @@
+{
+  "vega-morphcharts.js": {
+    "package": "@msrvida/vega-morphcharts",
+    "version": "1.0.6",
+    "url": "https://unpkg.com/@msrvida/vega-morphcharts@1.0.6/dist/umd/vega-morphcharts.js",
+    "vendoredAt": "2026-09-18T11:13:27Z",
+    "license": "MIT",
+    "global": "VegaMorphCharts",
+    "why": "Provides ViewGl, the Vega-scenegraph-to-MorphCharts adapter behind /transition. Vendored rather than loaded from a CDN so the page cannot break when upstream reorganises. Bundles morphcharts@1.x internally; that is a separate, older lineage from the WebGPU @microsoft/morphcharts-* in app/vendor/morphcharts, and the two are not interchangeable - no Vega adapter exists for the newer one."
+  }
+}
