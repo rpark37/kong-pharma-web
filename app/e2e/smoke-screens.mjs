@@ -7,7 +7,7 @@ const browser = await chromium.launch({ executablePath: exe, args: ['--enable-un
 const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
 page.on('pageerror', (e) => console.log('pageerror:', e.message));
 page.on('console', (m) => { if (m.type() === 'error' && !m.text().includes('CERT')) console.log('console.error:', m.text()); });
-const routes = ['/app/', '/app/morphcharts?plot=bar2', '/app/ares', '/app/merchandise', '/app/atlas', '/app/bayes', '/app/vega-charts'];
+const routes = ['/app/', '/app/morphcharts?plot=bar2', '/app/ares', '/app/merchandise', '/app/atlas', '/app/bayes', '/app/vega-charts', '/app/google'];
 for (const path of routes) {
   await page.goto(base + path, { waitUntil: 'networkidle' });
   await page.waitForTimeout(1500);

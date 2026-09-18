@@ -31,8 +31,14 @@ export class App {
         { path: '/vega-charts', label: 'Vega Charts' },
       ],
     },
+    {
+      label: 'Examples',
+      children: [
+        { path: '/bayes', label: 'Bayes' },
+        { path: '/google', label: 'Google' },
+      ],
+    },
     { path: '/atlas', label: 'Human Atlas' },
-    { path: '/bayes', label: 'Bayes' },
   ];
 
   private readonly el = inject<ElementRef<HTMLElement>>(ElementRef);
