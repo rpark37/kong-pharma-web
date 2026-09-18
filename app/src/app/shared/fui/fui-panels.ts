@@ -23,7 +23,7 @@ export const PALETTE = {
   dim: 'rgba(45, 45, 45, 0.70)',
   faint: 'rgba(45, 45, 45, 0.45)',
   micro: 'rgba(45, 45, 45, 0.22)',
-  amber: '#9A6700',
+  amber: '#996600',
   rose: '#B3261E',
 } as const;
 
