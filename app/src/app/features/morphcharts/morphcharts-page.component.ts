@@ -13,8 +13,6 @@ import { SignalsTabComponent } from './signals-tab.component';
 import { SpecEditorComponent } from '../../shared/ui/spec-editor.component';
 import { TileSettings, TilesTabComponent } from './tiles-tab.component';
 
-const LOADING_SHOW_DELAY = 200;
-const LOADING_MIN_DISPLAY = 500;
 const PANEL_MIN = 320;
 const DEFAULT_SAMPLE = 'line4'; // "Multi Series Line Chart" — generated in-spec, so it needs no data file
 
@@ -37,7 +35,6 @@ const DEFAULT_SAMPLE = 'line4'; // "Multi Series Line Chart" — generated in-sp
             </app-webgpu-fallback>
           </div>
         }
-        <div class="loading glass" [class.show]="loadingVisible()" role="status">Rendering…</div>
         @if (error()) { <div class="error" role="alert">{{ error() }}</div> }
       </div>
       <div class="divider" (pointerdown)="startDivider($event)" role="separator" aria-orientation="vertical"></div>
@@ -88,8 +85,6 @@ const DEFAULT_SAMPLE = 'line4'; // "Multi Series Line Chart" — generated in-sp
     .spacer { flex: 1; }
     .row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--on-ink-dim); }
     app-spec-editor { flex: 1; min-height: 300px; }
-    .loading { position: absolute; left: 50%; bottom: 16px; transform: translate(-50%, 12px); padding: 6px 14px; font-size: 13px; opacity: 0; pointer-events: none; transition: opacity 0.2s var(--ease-out) ${LOADING_SHOW_DELAY}ms, transform 0.2s var(--ease-out) ${LOADING_SHOW_DELAY}ms; }
-    .loading.show { opacity: 1; transform: translate(-50%, 0); }
     .error { position: absolute; left: 12px; right: 12px; bottom: 12px; padding: 10px 14px; border-radius: var(--radius-sm); background: rgba(239,122,138,0.16); border: 1px solid rgba(239,122,138,0.5); color: var(--on-ink); font-size: 13px; }
     @media (max-width: 860px) {
       .client { flex-direction: column; }
@@ -110,7 +105,6 @@ export class MorphchartsPageComponent {
   readonly signals = signal<SignalInfo[]>([]);
   readonly panelWidth = signal(480);
   readonly tiles = signal<TileSettings>({ tilesX: 1, tilesY: 1, tileOffsetX: 0, tileOffsetY: 0, autoTile: true });
-  readonly loadingVisible = signal(false);
   readonly hasScene = signal(false);
 
   readonly running = computed(() => this.host()?.running() ?? false);
@@ -128,9 +122,7 @@ export class MorphchartsPageComponent {
   private readonly gsap = inject(GsapService);
   private readonly destroyRef = inject(DestroyRef);
   private hasSpecChanged = true;
-  private loadingShownAt = 0;
-  private loadingTimeout: ReturnType<typeof setTimeout> | null = null;
-  private sizeType: ResizeRequest['type'] = 'hd';
+  private sizeType: ResizeRequest['type'] = 'fit';
   private pendingSample: string | null = null;
   private autoStart = true;
   private specReady = false;
@@ -142,15 +134,29 @@ export class MorphchartsPageComponent {
       this.gsap.slideIn(this.right().nativeElement, 'right', this.gsap.MOTION.delay.medium);
       void this.loadSampleFile(this.pendingSample!).then((ok) => { if (ok) { this.specReady = true; this.maybeAutoStart(); } });
     });
-    this.destroyRef.onDestroy(() => this.host()?.dispose());
+    // 'fit' sizes the renderer to the pane, so it has to follow the window too — the divider's
+    // pointerup only covers the panel being dragged. Debounced because resizing a path-traced
+    // canvas restarts its convergence.
+    let refit: ReturnType<typeof setTimeout> | null = null;
+    const onWindowResize = () => {
+      if (this.sizeType !== 'fit') return;
+      if (refit) clearTimeout(refit);
+      refit = setTimeout(() => this.applySize('fit'), 150);
+    };
+    window.addEventListener('resize', onWindowResize);
+
+    this.destroyRef.onDestroy(() => {
+      window.removeEventListener('resize', onWindowResize);
+      if (refit) clearTimeout(refit);
+      this.host()?.dispose();
+    });
   }
 
   onHostReady(host: MorphChartsHost): void {
     host.onFrame = () => { if (this.debug()) this.debugSnapshot.set(host.debugSnapshot()); };
-    host.onStop = () => this.hideLoading();
     host.onCapture = (blob, filename) => this.download(blob, filename);
     this.host.set(host);
-    this.applySize('hd');
+    this.applySize('fit');
     this.renderTab().syncFromHost();
     this.maybeAutoStart();
   }
@@ -181,7 +187,6 @@ export class MorphchartsPageComponent {
   private async run(): Promise<void> {
     const host = this.host();
     if (!host) return;
-    this.showLoading();
     await new Promise((r) => setTimeout(r, 0));
     try {
       if (this.hasSpecChanged) {
@@ -198,11 +203,9 @@ export class MorphchartsPageComponent {
         host.start();
       } else {
         host.error.set('no marks to render');
-        this.hideLoading();
       }
     } catch (err) {
       host.error.set(err instanceof Error ? err.message : String(err));
-      this.hideLoading();
     }
   }
 
@@ -282,21 +285,6 @@ export class MorphchartsPageComponent {
       if (preset) [width, height] = preset;
     }
     if (width > 0 && height > 0) host.resize(width, height);
-  }
-
-  private showLoading(): void {
-    this.loadingShownAt = performance.now();
-    this.loadingVisible.set(true);
-  }
-
-  private hideLoading(): void {
-    if (this.loadingTimeout) { clearTimeout(this.loadingTimeout); this.loadingTimeout = null; }
-    if (!this.loadingVisible()) return;
-    const elapsed = performance.now() - this.loadingShownAt;
-    if (elapsed < LOADING_SHOW_DELAY) { this.loadingVisible.set(false); return; }
-    const remaining = LOADING_MIN_DISPLAY - (elapsed - LOADING_SHOW_DELAY);
-    if (remaining > 0) this.loadingTimeout = setTimeout(() => this.loadingVisible.set(false), remaining);
-    else this.loadingVisible.set(false);
   }
 
   private download(blob: Blob, filename: string): void {
