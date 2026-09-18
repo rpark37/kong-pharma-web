@@ -22,11 +22,6 @@ import { curveSpec, iconArraySpec, outcomeSpec } from './bayes-specs';
   template: `
     <section class="head">
       <p class="eyebrow" data-reveal>Therapeutic tests · Bayes' theorem</p>
-      <h1 data-reveal>If a person gets a positive result from a therapeutic test, how likely are they to have the disease?</h1>
-      <div class="lede" data-reveal>
-        <p>This visualization shows several views of a synthetic dataset to illustrate sensitivity and specificity in a therapeutic test.
-          The data is generated using values for people count, test specificity &amp; sensitivity, and a prior (occurrence of the disease in the sample population).</p>
-      </div>
     </section>
 
     <section class="layout">
@@ -137,8 +132,6 @@ import { curveSpec, iconArraySpec, outcomeSpec } from './bayes-specs';
   `,
   styles: `
     :host { display: block; padding: clamp(1.5rem, 4vh, 3rem) var(--pad-x) 4rem; max-width: 1400px; margin: 0 auto; width: 100%; }
-    h1 { font-size: clamp(1.5rem, 3.2vw, 2.3rem); margin: 6px 0 10px; max-width: 900px; }
-    .lede { color: var(--on-ink-dim); max-width: 860px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px; }
     .viz { padding: 16px; }
     .viz-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
     .viz-head h2 { font-size: 20px; margin-top: 2px; }
