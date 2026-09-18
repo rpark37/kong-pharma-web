@@ -99,10 +99,10 @@ import { curveSpec, iconArraySpec, outcomeSpec } from './bayes-specs';
 
       <div class="results">
         <div class="kpis">
-          <app-kpi-tile label="Positive predictive value" [value]="out().ppv * 100" suffix="%" [decimals]="1" [delay]="0" hint="P(disease | positive)" data-reveal />
-          <app-kpi-tile label="Negative predictive value" [value]="out().npv * 100" suffix="%" [decimals]="1" [delay]="0.08" hint="P(no disease | negative)" data-reveal />
-          <app-kpi-tile label="LR+" [value]="lrPlus()" [decimals]="1" [delay]="0.16" hint="sensitivity / (1 − specificity)" data-reveal />
-          <app-kpi-tile label="LR−" [value]="out().lrNegative" [decimals]="2" [delay]="0.24" hint="(1 − sensitivity) / specificity" data-reveal />
+          <app-kpi-tile label="Positive predictive value" [value]="out().ppv * 100" suffix="%" [decimals]="1" [index]="0" hint="P(disease | positive)" data-reveal />
+          <app-kpi-tile label="Negative predictive value" [value]="out().npv * 100" suffix="%" [decimals]="1" [index]="1" hint="P(no disease | negative)" data-reveal />
+          <app-kpi-tile label="LR+" [value]="lrPlus()" [decimals]="1" [index]="2" hint="sensitivity / (1 − specificity)" data-reveal />
+          <app-kpi-tile label="LR−" [value]="out().lrNegative" [decimals]="2" [index]="3" hint="(1 − sensitivity) / specificity" data-reveal />
         </div>
 
         <div class="tree glass" data-reveal>

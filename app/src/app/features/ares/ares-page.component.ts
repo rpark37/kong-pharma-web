@@ -45,10 +45,10 @@ const fmtDate = timeFormat('%b %Y');
           </p>
         </header>
         <section class="kpis">
-          <app-kpi-tile label="Persons" [value]="summary()?.persons ?? 0" [delay]="0" data-reveal />
-          <app-kpi-tile label="Records" [value]="summary()?.records ?? 0" [delay]="0.08" data-reveal />
-          <app-kpi-tile label="Quality checks" [value]="summary()?.checks ?? 0" [delay]="0.16" [hint]="failedLabel()" data-reveal />
-          <app-kpi-tile label="Checks passing" [value]="summary()?.quality_pct ?? 0" suffix="%" [decimals]="1" [delay]="0.24" data-reveal />
+          <app-kpi-tile label="Persons" [value]="summary()?.persons ?? 0" [index]="0" data-reveal />
+          <app-kpi-tile label="Records" [value]="summary()?.records ?? 0" [index]="1" data-reveal />
+          <app-kpi-tile label="Quality checks" [value]="summary()?.checks ?? 0" [index]="2" [hint]="failedLabel()" data-reveal />
+          <app-kpi-tile label="Checks passing" [value]="summary()?.quality_pct ?? 0" suffix="%" [decimals]="1" [index]="3" data-reveal />
         </section>
         <section class="grid">
           @for (r of reports; track r.id) {

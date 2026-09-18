@@ -25,4 +25,6 @@ export const MOTION = {
   },
   stagger: 0.06,
   distance: 18,
+  /** KPI count-ups: linear, short, and offset by position in the row. */
+  counter: { duration: 0.3, stagger: 0.1 },
 } as const;

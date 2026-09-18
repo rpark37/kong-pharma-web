@@ -31,12 +31,12 @@ import { countrySpec, dailySpec, deviceSpec, funnelSpec, itemsSpec, revenueCubeS
     </section>
 
     <section class="kpis">
-      <app-kpi-tile label="Sessions" [value]="kpis()?.sessions ?? 0" [delay]="0" data-reveal />
-      <app-kpi-tile label="Users" [value]="kpis()?.users ?? 0" [delay]="0.08" data-reveal />
-      <app-kpi-tile label="Purchases" [value]="kpis()?.purchases ?? 0" [delay]="0.16" data-reveal />
-      <app-kpi-tile label="Revenue" [value]="kpis()?.revenue ?? 0" prefix="$" [delay]="0.24" data-reveal />
-      <app-kpi-tile label="Conversion" [value]="(kpis()?.conversion_rate ?? 0) * 100" suffix="%" [decimals]="2" [delay]="0.32" data-reveal />
-      <app-kpi-tile label="Avg order" [value]="kpis()?.avg_order_value ?? 0" prefix="$" [decimals]="2" [delay]="0.4" data-reveal />
+      <app-kpi-tile label="Sessions" [value]="kpis()?.sessions ?? 0" [index]="0" data-reveal />
+      <app-kpi-tile label="Users" [value]="kpis()?.users ?? 0" [index]="1" data-reveal />
+      <app-kpi-tile label="Purchases" [value]="kpis()?.purchases ?? 0" [index]="2" data-reveal />
+      <app-kpi-tile label="Revenue" [value]="kpis()?.revenue ?? 0" prefix="$" [index]="3" data-reveal />
+      <app-kpi-tile label="Conversion" [value]="(kpis()?.conversion_rate ?? 0) * 100" suffix="%" [decimals]="2" [index]="4" data-reveal />
+      <app-kpi-tile label="Avg order" [value]="kpis()?.avg_order_value ?? 0" prefix="$" [decimals]="2" [index]="5" data-reveal />
     </section>
 
     <section class="grid">
