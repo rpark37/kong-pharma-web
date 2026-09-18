@@ -24,7 +24,7 @@ import { WebGpuFallbackComponent } from '../webgpu/webgpu-fallback.component';
   `,
   styles: `
     :host { display: block; width: 100%; height: 100%; }
-    .scene { position: relative; width: 100%; height: 100%; min-height: 320px; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--hairline); background: #0d151b; }
+    .scene { position: relative; width: 100%; height: 100%; min-height: 320px; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--hairline); background: var(--ink-2); }
     app-morphcharts-canvas { position: absolute; inset: 0; }
     .status { position: absolute; top: 10px; right: 12px; font-size: 11px; color: var(--on-ink-faint); }
     .hint { position: absolute; bottom: 8px; left: 12px; font-size: 11px; color: var(--on-ink-faint); pointer-events: none; }

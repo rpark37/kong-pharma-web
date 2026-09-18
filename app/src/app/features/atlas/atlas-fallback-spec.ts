@@ -20,7 +20,7 @@ export function atlasTreemapSpec(parts: Part[]): Record<string, unknown> {
     scales: [{ name: 'color', type: 'ordinal', domain: SYSTEMS.map((s) => s.id), range: SYSTEMS.map((s) => s.color) }],
     marks: [
       { type: 'rect', from: { data: 'leaves' }, encode: { enter: { fill: { scale: 'color', field: 'system' }, tooltip: { signal: "datum.name + ' · ' + datum.system" } }, update: { x: { field: 'x0' }, y: { field: 'y0' }, x2: { field: 'x1' }, y2: { field: 'y1' }, fillOpacity: { value: 0.85 } }, hover: { fillOpacity: { value: 1 } } } },
-      { type: 'text', from: { data: 'groups' }, interactive: false, encode: { enter: { font: { value: 'Inter' }, fontSize: { value: 12 }, fontWeight: { value: 600 }, fill: { value: '#121c24' }, align: { value: 'center' }, baseline: { value: 'middle' } }, update: { x: { signal: '(datum.x0 + datum.x1) / 2' }, y: { signal: '(datum.y0 + datum.y1) / 2' }, text: { field: 'name' }, opacity: { signal: '(datum.x1 - datum.x0) > 60 ? 1 : 0' } } } },
+      { type: 'text', from: { data: 'groups' }, interactive: false, encode: { enter: { font: { value: 'Inter' }, fontSize: { value: 12 }, fontWeight: { value: 600 }, fill: { value: '#2D2D2D' }, align: { value: 'center' }, baseline: { value: 'middle' } }, update: { x: { signal: '(datum.x0 + datum.x1) / 2' }, y: { signal: '(datum.y0 + datum.y1) / 2' }, text: { field: 'name' }, opacity: { signal: '(datum.x1 - datum.x0) > 60 ? 1 : 0' } } } },
     ],
   };
 }

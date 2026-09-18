@@ -15,7 +15,7 @@ import { isWebGpuAvailable } from '../webgpu/webgpu-support';
   `,
   styles: `
     :host { display: block; position: relative; width: 100%; height: 100%; min-height: 240px; }
-    .container { width: 100%; height: 100%; overflow: auto; outline: none; background: #0d151b; }
+    .container { width: 100%; height: 100%; overflow: auto; outline: none; background: var(--ink-2); }
     canvas { display: block; touch-action: none; }
     canvas.hidden { display: none; }
   `,

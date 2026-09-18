@@ -121,7 +121,7 @@ export function buildAtlasSpec(o: AtlasSpecOptions): Record<string, unknown> {
     width: PLOT.width,
     height: PLOT.height,
     depth: PLOT.depth,
-    background: '#121c24',
+    background: '#F5F5F3',
     ambient: '#1c2a33',
     camera: { worldPosition: pose.worldPosition, worldTarget: pose.worldTarget, fov: 45 },
     lights: [
@@ -151,7 +151,7 @@ export function buildAtlasSpec(o: AtlasSpecOptions): Record<string, unknown> {
         type: 'rect',
         geometry: 'xzrect',
         material: 'diffuse',
-        encode: { enter: { xc: { value: PLOT.width / 2 }, yc: { value: PLOT.floorY - 4 }, zc: { value: PLOT.depth / 2 }, width: { value: PLOT.width * 3 }, depth: { value: PLOT.width * 3 }, fill: { value: '#0d151b' } } },
+        encode: { enter: { xc: { value: PLOT.width / 2 }, yc: { value: PLOT.floorY - 4 }, zc: { value: PLOT.depth / 2 }, width: { value: PLOT.width * 3 }, depth: { value: PLOT.width * 3 }, fill: { value: '#E8E8E6' } } },
       },
     ],
   };

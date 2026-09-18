@@ -143,7 +143,7 @@ import { curveSpec, iconArraySpec, outcomeSpec } from './bayes-specs';
     .viz-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
     .viz-head h2 { font-size: 20px; margin-top: 2px; }
     .button-group { display: flex; gap: 8px; }
-    .morphcharts-container { position: relative; width: 100%; height: 620px; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--hairline); background: #121c24; }
+    .morphcharts-container { position: relative; width: 100%; height: 620px; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--hairline); background: var(--ink-2); }
     .morphcharts-container app-morphcharts-canvas { position: absolute; inset: 0; }
     .hint { position: absolute; left: 12px; bottom: 8px; font-size: 11px; color: var(--on-ink-faint); pointer-events: none; }
     .fallback-wrap { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 24px; }

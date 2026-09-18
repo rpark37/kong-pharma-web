@@ -276,7 +276,7 @@ export function buildSpec(layout: LayoutResult, count: number): Record<string, u
   return {
     title: LAYOUT_NAMES[0],
     width: W, height: H, depth: D,
-    background: '#121c24',
+    background: '#F5F5F3',
     ambient: '#1a2731',
     camera: { worldPosition: [W / 2, H / 2, D / 2 + distance], worldTarget: [W / 2, H / 2, D / 2], fov },
     lights: [
@@ -290,9 +290,9 @@ export function buildSpec(layout: LayoutResult, count: number): Record<string, u
     ],
     marks: [
       { name: 'units', type: 'rect', geometry: 'box', material: 'glossy', from: { data: 'units' }, encode: { enter: { xc: { field: 'xc' }, yc: { field: 'yc' }, zc: { field: 'zc' }, width: { field: 'size' }, height: { field: 'size' }, depth: { value: depth }, fuzz: { value: 0.25 }, fill: { color: { r: { field: 'r' }, g: { field: 'g' }, b: { field: 'b' } } } } } },
-      { type: 'rect', geometry: 'xyrect', material: 'diffuse', from: { data: 'plates' }, encode: { enter: { xc: { field: 'xc' }, yc: { field: 'yc' }, zc: { value: D / 2 - depth }, width: { field: 'width' }, height: { field: 'height' }, fill: { value: '#192630' } } } },
-      { type: 'text', from: { data: 'texts' }, encode: { enter: { x: { field: 'x' }, y: { field: 'y' }, z: { value: D / 2 + 2 }, text: { field: 'text' }, fontSize: { field: 'size' }, align: { value: 'center' }, baseline: { value: 'middle' }, fill: { value: '#e6f6f3' } } } },
-      { type: 'rect', geometry: 'xyrect', material: 'diffuse', encode: { enter: { xc: { value: W / 2 }, yc: { value: H / 2 }, zc: { value: -D }, width: { value: W * 4 }, height: { value: H * 4 }, fill: { value: '#0d151b' } } } },
+      { type: 'rect', geometry: 'xyrect', material: 'diffuse', from: { data: 'plates' }, encode: { enter: { xc: { field: 'xc' }, yc: { field: 'yc' }, zc: { value: D / 2 - depth }, width: { field: 'width' }, height: { field: 'height' }, fill: { value: '#E8E8E6' } } } },
+      { type: 'text', from: { data: 'texts' }, encode: { enter: { x: { field: 'x' }, y: { field: 'y' }, z: { value: D / 2 + 2 }, text: { field: 'text' }, fontSize: { field: 'size' }, align: { value: 'center' }, baseline: { value: 'middle' }, fill: { value: '#2D2D2D' } } } },
+      { type: 'rect', geometry: 'xyrect', material: 'diffuse', encode: { enter: { xc: { value: W / 2 }, yc: { value: H / 2 }, zc: { value: -D }, width: { value: W * 4 }, height: { value: H * 4 }, fill: { value: '#E8E8E6' } } } },
     ],
   };
 }
