@@ -43,7 +43,10 @@ export class App {
     },
     {
       // The three.js FUI scenes, grouped apart because they are their own family: they kept the
-      // original dark instrument palette when the rest of the app went light.
+      // original dark instrument palette when the rest of the app went light. That split is
+      // deliberate and settled — consoles are dark, reading surfaces are light. See the "Theme"
+      // section of /.impeccable.md before proposing to unify them; the cost is concentrated in
+      // the 19 hardcoded teal literals inside shared/fui/fui-panels.ts.
       label: 'HUD',
       children: [
         { path: '/hud', label: 'Readout' },
