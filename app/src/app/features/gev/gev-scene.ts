@@ -8,9 +8,13 @@
  * defining element of this layout and additive blending can only ever brighten, so a vignette
  * painted into an additive overlay would silently do nothing.
  *
- * The globe is vector, not a texture or a dot field: `world-110m.json` was already committed for
- * the Vega gallery, and drawing its arcs as lines (rather than stitching them into polygons) needs
- * no TopoJSON decoder and yields coastlines and country borders in a single draw call.
+ * The globe is vector, not a texture or a dot field: drawing `world-110m.json`'s arcs as lines,
+ * rather than stitching them into polygons, needs no TopoJSON decoder and yields coastlines and
+ * country borders in a single draw call.
+ *
+ * The world file is this page's own copy under `data/gev/`, not the Vega gallery's. It is the same
+ * 119 kB either way, and a page reaching into another feature's data folder would break silently
+ * the day that folder is tidied.
  */
 import * as T from 'three';
 import * as P from '../../shared/fui/fui-panels';
@@ -218,7 +222,7 @@ export class GevScene {
   /** Fetches the committed world file and the captured tracks. Both are local; neither needs a key. */
   async load(): Promise<void> {
     const [topo, snap] = await Promise.all([
-      fetch('data/vega/data/world-110m.json').then((r) => r.json() as Promise<Topology>),
+      fetch('data/gev/world-110m.json').then((r) => r.json() as Promise<Topology>),
       fetch('data/gev/tracks.json').then((r) => r.json() as Promise<Snapshot>),
     ]);
     if (this.disposed) return;

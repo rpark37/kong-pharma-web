@@ -26,10 +26,10 @@ import type { GevScene } from './gev-scene';
       <h1 data-reveal>God's eye view</h1>
       <p class="lede" data-reveal>
         A spy-satellite console built on the FUI vocabulary the other three.js pages share. The
-        globe is drawn from the TopoJSON world file already vendored for the Vega gallery — arcs as
-        line segments, so coastlines and borders cost one draw call and no decoder. Aircraft are
-        dead-reckoned from a captured frame, satellites propagated from their orbital elements.
-        Drag to spin it; switch sensors below.
+        globe is drawn straight from a TopoJSON world file — arcs as line segments, so coastlines
+        and borders cost one draw call and no decoder. Aircraft are dead-reckoned from a captured
+        frame, satellites propagated from their orbital elements. Drag to spin it; switch sensors
+        below.
       </p>
     </section>
 

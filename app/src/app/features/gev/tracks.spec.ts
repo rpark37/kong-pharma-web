@@ -1,4 +1,4 @@
-import worldJson from '../../../../public/data/vega/data/world-110m.json';
+import worldJson from '../../../../public/data/gev/world-110m.json';
 import { distanceKm } from '../map/sites';
 import {
   type Flight,
