@@ -51,3 +51,30 @@ export function contrastRatio(a: string, b: string): number {
   const darker = Math.min(la, lb);
   return (lighter + 0.05) / (darker + 0.05);
 }
+
+function labF(t: number): number {
+  return t > Math.pow(6 / 29, 3) ? Math.cbrt(t) : t / (3 * Math.pow(6 / 29, 2)) + 4 / 29;
+}
+
+function hexToLab(hex: string): [number, number, number] {
+  const h = hex.replace('#', '');
+  const full = h.length === 3 ? h.split('').map((c) => c + c).join('') : h;
+  const r = channelToLinear(parseInt(full.slice(0, 2), 16));
+  const g = channelToLinear(parseInt(full.slice(2, 4), 16));
+  const b = channelToLinear(parseInt(full.slice(4, 6), 16));
+  // sRGB -> XYZ (D65), then XYZ -> CIE Lab.
+  const x = 0.4124564 * r + 0.3575761 * g + 0.1804375 * b;
+  const y = 0.2126729 * r + 0.7151522 * g + 0.072175 * b;
+  const z = 0.0193339 * r + 0.119192 * g + 0.9503041 * b;
+  const fx = labF(x / 0.95047);
+  const fy = labF(y / 1.0);
+  const fz = labF(z / 1.08883);
+  return [116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz)];
+}
+
+/** CIE76 colour difference (ΔE*ab) in Lab space, hue- and lightness-sensitive unlike contrastRatio. */
+export function deltaE76(a: string, b: string): number {
+  const [l1, a1, b1] = hexToLab(a);
+  const [l2, a2, b2] = hexToLab(b);
+  return Math.sqrt((l1 - l2) ** 2 + (a1 - a2) ** 2 + (b1 - b2) ** 2);
+}

@@ -1,4 +1,5 @@
-import { PALETTE_LIGHT, contrastRatio } from './palette';
+import { PALETTE_LIGHT, contrastRatio, deltaE76 } from './palette';
+import { CATEGORY_RANGE } from '../vega/theme';
 
 const SURFACE = PALETTE_LIGHT.panel;
 
@@ -36,5 +37,25 @@ describe('light palette contrast', () => {
 
   it('keeps fill-only colours out of text use by documenting them below 4.5', () => {
     expect(contrastRatio(PALETTE_LIGHT.tealBright, SURFACE)).toBeLessThan(4.5);
+  });
+});
+
+describe('categorical chart palette', () => {
+  it('clears 3:1 on panel for every hue', () => {
+    for (const hue of CATEGORY_RANGE) {
+      expect(contrastRatio(hue, PALETTE_LIGHT.panel), hue).toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  // contrastRatio is luminance-only and blind to hue, so it can't tell two different-hued
+  // colours of similar luminance apart (verified: 4 of 28 pairs in this palette read ~1.0
+  // there despite being visually distinct). ΔE76 in Lab space is the perceptual measure.
+  it('keeps every hue perceptually distinguishable from its neighbours', () => {
+    for (let i = 0; i < CATEGORY_RANGE.length; i++) {
+      for (let j = i + 1; j < CATEGORY_RANGE.length; j++) {
+        expect(deltaE76(CATEGORY_RANGE[i], CATEGORY_RANGE[j]), `${CATEGORY_RANGE[i]} vs ${CATEGORY_RANGE[j]}`)
+          .toBeGreaterThanOrEqual(15);
+      }
+    }
   });
 });

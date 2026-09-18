@@ -15,7 +15,7 @@ const PANEL_MIN = 320;
  *
  * The port drops the original's Angular Material shell, its own vega.View embedding and its
  * light/dark toggle: rendering goes through the shared <app-vega-chart> (vega-embed + resize
- * observer) and the app is dark-only, so VEGA_DARK_CONFIG styles every chart.
+ * observer) and the app is single-theme, so VEGA_CONFIG styles every chart.
  */
 @Component({
   selector: 'app-vega-charts-page',

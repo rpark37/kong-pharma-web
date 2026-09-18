@@ -3,7 +3,7 @@
  *
  * Each entry is self-contained: data is inlined as `data.values` rather than pushed as a named
  * dataset, because these are demonstrations of the grammar rather than views onto the API. Chart
- * styling (axes, legends, fonts, categorical colours) is deliberately omitted so VEGA_DARK_CONFIG
+ * styling (axes, legends, fonts, categorical colours) is deliberately omitted so VEGA_CONFIG
  * in shared/vega/theme.ts supplies it and the gallery matches the rest of the app.
  */
 import { VEGA_COLORS } from '../../shared/vega/theme';

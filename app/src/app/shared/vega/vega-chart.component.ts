@@ -1,6 +1,6 @@
 import { Component, ElementRef, OnDestroy, afterNextRender, effect, inject, input, output, signal, untracked } from '@angular/core';
 import type { View } from 'vega';
-import { VEGA_DARK_CONFIG } from './theme';
+import { VEGA_CONFIG } from './theme';
 
 export type VegaSpecInput = Record<string, unknown>;
 
@@ -75,8 +75,8 @@ export class VegaChartComponent implements OnDestroy {
       const result = await vegaEmbed(container, spec as never, {
         actions: false,
         renderer: this.renderer(),
-        config: VEGA_DARK_CONFIG as never,
-        tooltip: { theme: 'dark' },
+        config: VEGA_CONFIG as never,
+        tooltip: { theme: 'light' },
         loader: loader({ baseURL: 'https://vega.github.io/vega/' }),
       });
       if (token !== this.embedToken) { result.finalize(); return; }
