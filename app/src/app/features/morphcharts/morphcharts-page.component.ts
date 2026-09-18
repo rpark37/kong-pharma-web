@@ -134,12 +134,13 @@ export class MorphchartsPageComponent {
   private pendingSample: string | null = null;
   private autoStart = true;
   private specReady = false;
+  private pickToken = 0;
 
   constructor() {
     this.pendingSample = this.route.snapshot.queryParamMap.get('plot') ?? this.route.snapshot.queryParamMap.get('spec') ?? DEFAULT_SAMPLE;
     afterNextRender(() => {
       this.gsap.slideIn(this.right().nativeElement, 'right', this.gsap.MOTION.delay.medium);
-      void this.loadSampleFile(this.pendingSample!).then(() => { this.specReady = true; this.maybeAutoStart(); });
+      void this.loadSampleFile(this.pendingSample!).then((ok) => { if (ok) { this.specReady = true; this.maybeAutoStart(); } });
     });
     this.destroyRef.onDestroy(() => this.host()?.dispose());
   }
@@ -158,7 +159,7 @@ export class MorphchartsPageComponent {
   private maybeAutoStart(): void {
     if (!this.autoStart || !this.specReady || !this.host()) return;
     this.autoStart = false;
-    void this.toggleRun();
+    void this.run();
   }
 
   onFailed(message: string): void {
@@ -173,6 +174,13 @@ export class MorphchartsPageComponent {
     const host = this.host();
     if (!host) return;
     if (host.running()) { host.stop(); return; }
+    await this.run();
+  }
+
+  /** Compiles the current spec if it changed, then starts the render loop. */
+  private async run(): Promise<void> {
+    const host = this.host();
+    if (!host) return;
     this.showLoading();
     await new Promise((r) => setTimeout(r, 0));
     try {
@@ -223,7 +231,20 @@ export class MorphchartsPageComponent {
 
   loadSample(plot: SamplePlot): void {
     this.showSamples.set(false);
-    void this.loadSampleFile(plot.plot);
+    void this.pickSample(plot.plot);
+  }
+
+  /**
+   * Picking an example always leaves it running. The previous scene's loop is stopped first,
+   * and `loadSpec()` resets the camera on our behalf when "Set camera from specification" is on.
+   * `pickToken` drops a load whose example was superseded mid-flight, so the newest pick wins.
+   */
+  private async pickSample(name: string): Promise<void> {
+    const token = ++this.pickToken;
+    this.host()?.stop();
+    const ok = await this.loadSampleFile(name);
+    if (!ok || token !== this.pickToken) return;
+    await this.run();
   }
 
   startDivider(e: PointerEvent): void {
@@ -235,14 +256,17 @@ export class MorphchartsPageComponent {
     document.addEventListener('pointerup', up);
   }
 
-  private async loadSampleFile(name: string): Promise<void> {
+  /** Returns false if the fetch failed, so callers do not start the spec still in the editor. */
+  private async loadSampleFile(name: string): Promise<boolean> {
     const file = name.toLowerCase().endsWith('.json') ? name : `${name}.json`;
     try {
       const text = await new Promise<string>((resolve, reject) => this.http.get(`${SAMPLE_SPEC_FOLDER}/${file}`, { responseType: 'text' }).subscribe({ next: resolve, error: reject }));
       this.editor().setContent(text);
       this.hasSpecChanged = true;
+      return true;
     } catch {
       this.host()?.error.set(`could not load sample ${file}`);
+      return false;
     }
   }
 
