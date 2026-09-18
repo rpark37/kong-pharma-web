@@ -34,8 +34,8 @@ export class App {
     {
       label: 'Examples',
       children: [
-        { path: '/bayes', label: 'Bayes' },
-        { path: '/google', label: 'Google' },
+        { path: '/bayes', label: 'Disease' },
+        { path: '/google', label: 'Google Merchandise' },
       ],
     },
     {
