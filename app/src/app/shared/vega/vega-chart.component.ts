@@ -60,6 +60,20 @@ export class VegaChartComponent implements OnDestroy {
     });
   }
 
+  /**
+   * Resolves the relative dataset URLs in gallery specs against Vega's own host, and rewrites the
+   * one path convention that does not live there. Specs taken from the Vega Editor reference
+   * `assets/data/<file>`, but on vega.github.io the datasets sit at `data/<file>` — the `assets/`
+   * form 404s. Patched here rather than in the vendored JSON so those files stay exactly as
+   * upstream published them.
+   */
+  private static patchLoader(loader: typeof import('vega').loader): ReturnType<typeof import('vega').loader> {
+    const base = loader({ baseURL: 'https://vega.github.io/vega/' });
+    const sanitize = base.sanitize.bind(base);
+    base.sanitize = (uri, options) => sanitize(String(uri).replace(/^assets\/data\//, 'data/'), options);
+    return base;
+  }
+
   private async embed(spec: VegaSpecInput): Promise<void> {
     const token = ++this.embedToken;
     const container = this.el.nativeElement.querySelector<HTMLElement>('.chart');
@@ -77,7 +91,7 @@ export class VegaChartComponent implements OnDestroy {
         renderer: this.renderer(),
         config: VEGA_CONFIG as never,
         tooltip: { theme: 'light' },
-        loader: loader({ baseURL: 'https://vega.github.io/vega/' }),
+        loader: VegaChartComponent.patchLoader(loader),
       });
       if (token !== this.embedToken) { result.finalize(); return; }
       this.view = result.view;
