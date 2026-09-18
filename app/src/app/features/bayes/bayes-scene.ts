@@ -7,8 +7,8 @@
  * Analogy: the spec describes the stage and the props; this class is the choreographer telling
  * each block where to stand for the next scene, and when to start walking.
  */
-import { gsap } from 'gsap';
-import { Core, type MorphChartsHost } from '../../shared/morphcharts/morphcharts-host';
+import { type MorphChartsHost } from '../../shared/morphcharts/morphcharts-host';
+import { MorphController } from '../../shared/morphcharts/morph-controller';
 import { LAYOUT_NAMES, type BayesData, type FormConfig } from './bayes-data.model';
 
 export const BAYES_PLOT = { width: 1600, height: 1000, depth: 80 } as const;
@@ -36,128 +36,40 @@ export interface LayoutResult {
   plates: Plate[];
 }
 
-const quadInOut = (t: number): number => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
-
 export class BayesScene {
-  private buffer: Core.Buffer | null = null;
-  private base = new Float32Array(0);
-  private scaling = 1;
-  private current: LayoutResult | null = null;
-  private progress = { t: 0 };
-  private settleTimer: ReturnType<typeof setTimeout> | null = null;
+  private readonly morph: MorphController;
   layoutIndex = 0;
   reducedMotion = false;
-  onTransitionEnd: (() => void) | null = null;
-  get isTransitioning(): boolean { return gsap.isTweening(this.progress); }
+  set onTransitionEnd(fn: (() => void) | null) { this.morph.onTransitionEnd = fn; }
+  get isTransitioning(): boolean { return this.morph.isTransitioning; }
 
-  constructor(readonly host: MorphChartsHost) {}
+  constructor(readonly host: MorphChartsHost) {
+    this.morph = new MorphController(host);
+  }
 
   /** Lay out a view. With `transition`, morph from the current view using config's duration and staggering. */
   async layout(index: number, data: BayesData, config: FormConfig, transition: boolean): Promise<void> {
     const target = computeLayout(index, data, config);
-    const start = transition && this.current && this.current.positions.length === target.positions.length ? this.current : null;
-    gsap.killTweensOf(this.progress);
-    await this.host.loadSpec(buildSpec(target, data.ids.length), { includeCamera: !this.current });
+    if (!transition) this.morph.reset();
     this.layoutIndex = index;
-    this.current = target;
-    this.buffer = (this.host.scene?.buffers ?? []).find((b) => b.length === data.ids.length) as Core.Buffer | undefined ?? null;
-    const plot = this.host.plot!;
-    this.scaling = plot.size / Math.max(plot.width, plot.height, plot.depth);
-    const n = data.ids.length;
-    this.base = new Float32Array(n * 3);
-    if (this.buffer) {
-      const v: Core.Vector3 = [0, 0, 0];
-      for (let i = 0; i < n; i++) { Core.UnitVertex.getTranslation(this.buffer.dataView, i, v); this.base.set(v, i * 3); }
-    }
-    this.host.renderer.frameCount = 0;
+    // Convergence budget for the still frame the morph settles into.
     this.host.maxSamplesPerPixel = 600;
-    if (!start || this.reducedMotion || config.transitionDuration + config.transitionStaggering <= 0) {
-      this.write(target, target, 1, data, config);
-      this.settle();
-      this.onTransitionEnd?.();
-      return;
-    }
-    this.startMotion();
-    this.progress.t = 0;
-    this.write(start, target, 0, data, config);
-    gsap.to(this.progress, {
-      t: 1,
-      duration: (config.transitionDuration + config.transitionStaggering) / 1000,
-      ease: 'none', // each block applies its own quad.inOut inside its staggered window
-      onUpdate: () => this.write(start, target, this.progress.t, data, config),
-      onComplete: () => { this.settle(); this.onTransitionEnd?.(); },
+    await this.morph.to(buildSpec(target, data.ids.length), target, data.ids.length, {
+      durationMs: config.transitionDuration,
+      staggerMs: config.transitionStaggering,
+      stagger: data.random,
+      reducedMotion: this.reducedMotion,
     });
   }
 
   resetCamera(): void {
     this.host.resetCamera();
     this.host.renderer.frameCount = 0;
-    this.ensureRunning();
+    if (!this.host.running() && this.host.hasMarks()) this.host.start();
   }
 
   dispose(): void {
-    gsap.killTweensOf(this.progress);
-    if (this.settleTimer) clearTimeout(this.settleTimer);
-  }
-
-  /** Write interpolated translations, scales and colours for global progress t in [0,1]. */
-  private write(start: LayoutResult, target: LayoutResult, t: number, data: BayesData, config: FormConfig): void {
-    if (!this.buffer) return;
-    const dv = this.buffer.dataView;
-    const total = config.transitionDuration + config.transitionStaggering;
-    const window = total > 0 ? config.transitionDuration / total : 1;
-    const staggerSpan = total > 0 ? config.transitionStaggering / total : 0;
-    const n = data.ids.length;
-    const v: Core.Vector3 = [0, 0, 0];
-    const s = this.scaling;
-    const startSize = start.size * s;
-    const targetSize = target.size * s;
-    const depth = Math.max(2, target.size * 0.35) * s;
-    for (let i = 0; i < n; i++) {
-      const delay = data.random[i] * staggerSpan;
-      const p = t >= 1 ? 1 : window > 0 ? quadInOut(Math.min(1, Math.max(0, (t - delay) / window))) : 1;
-      const sv = start.visible[i], tv = target.visible[i];
-      const sx = start.positions[i * 3], sy = start.positions[i * 3 + 1], sz = start.positions[i * 3 + 2];
-      const tx = target.positions[i * 3], ty = target.positions[i * 3 + 1], tz = target.positions[i * 3 + 2];
-      let px: number, py: number, pz: number, size: number;
-      if (sv && tv) {
-        px = sx + (tx - sx) * p; py = sy + (ty - sy) * p; pz = sz + (tz - sz) * p;
-        size = startSize + (targetSize - startSize) * p;
-      } else if (tv) { // appearing: grow in place
-        px = tx; py = ty; pz = tz; size = targetSize * p;
-      } else if (sv) { // disappearing: shrink in place
-        px = sx; py = sy; pz = sz; size = startSize * (1 - p);
-      } else {
-        px = tx; py = ty; pz = tz; size = 0;
-      }
-      v[0] = this.base[i * 3] + (px - tx) * s;
-      v[1] = this.base[i * 3 + 1] + (py - ty) * s;
-      v[2] = this.base[i * 3 + 2] + (pz - tz) * s;
-      Core.UnitVertex.setTranslation(dv, i, v);
-      const sz3 = Math.max(1e-6, size);
-      Core.UnitVertex.setScale(dv, i, [sz3, sz3, size > 0 ? depth : 1e-6]);
-      v[0] = start.colors[i * 3] + (target.colors[i * 3] - start.colors[i * 3]) * p;
-      v[1] = start.colors[i * 3 + 1] + (target.colors[i * 3 + 1] - start.colors[i * 3 + 1]) * p;
-      v[2] = start.colors[i * 3 + 2] + (target.colors[i * 3 + 2] - start.colors[i * 3 + 2]) * p;
-      Core.UnitVertex.setFill(dv, i, v);
-    }
-    this.buffer.hasChangedCallback?.();
-    this.host.renderer.frameCount = 0;
-    this.ensureRunning();
-  }
-
-  private startMotion(): void {
-    if (this.settleTimer) { clearTimeout(this.settleTimer); this.settleTimer = null; }
-    this.host.renderer.renderMode = 'color';
-  }
-
-  private settle(): void {
-    if (this.settleTimer) clearTimeout(this.settleTimer);
-    this.settleTimer = setTimeout(() => { this.host.renderer.renderMode = 'raytrace'; this.host.renderer.frameCount = 0; this.ensureRunning(); }, 250);
-  }
-
-  private ensureRunning(): void {
-    if (!this.host.running() && this.host.hasMarks()) this.host.start();
+    this.morph.dispose();
   }
 }
 
