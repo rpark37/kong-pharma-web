@@ -38,6 +38,7 @@ export class App {
       children: [
         { path: '/bayes', label: 'Clinical (Bayes Theorem)' },
         { path: '/google', label: 'Google Merchandise' },
+        { path: '/gev', label: "God's Eye" },
       ],
     },
     {
@@ -48,7 +49,6 @@ export class App {
         { path: '/hud', label: 'Readout' },
         { path: '/site-map', label: 'Site map' },
         { path: '/controls', label: 'Controls' },
-        { path: '/gev', label: "God's eye" },
       ],
     },
     {
