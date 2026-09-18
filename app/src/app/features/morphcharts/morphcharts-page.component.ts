@@ -4,7 +4,6 @@ import { ActivatedRoute } from '@angular/router';
 import { GsapService } from '../../shared/animation/gsap.service';
 import type { DebugSnapshot, MorphChartsHost, SignalInfo } from '../../shared/morphcharts/morphcharts-host';
 import { MorphchartsCanvasComponent } from '../../shared/morphcharts/morphcharts-canvas.component';
-import { TabsComponent } from '../../shared/ui/tabs.component';
 import { WebGpuFallbackComponent } from '../../shared/webgpu/webgpu-fallback.component';
 import { DataTabComponent } from './data-tab.component';
 import { DebugOverlayComponent } from './debug-overlay.component';
@@ -14,7 +13,6 @@ import { SignalsTabComponent } from './signals-tab.component';
 import { SpecEditorComponent } from '../../shared/ui/spec-editor.component';
 import { TileSettings, TilesTabComponent } from './tiles-tab.component';
 
-const TABS = ['Plot', 'Render', 'Data', 'Signals', 'Tiles'] as const;
 const LOADING_SHOW_DELAY = 200;
 const LOADING_MIN_DISPLAY = 500;
 const PANEL_MIN = 320;
@@ -25,7 +23,7 @@ const PANEL_MIN = 320;
  */
 @Component({
   selector: 'app-morphcharts-page',
-  imports: [MorphchartsCanvasComponent, TabsComponent, WebGpuFallbackComponent, DataTabComponent, DebugOverlayComponent, RenderTabComponent, SamplesDialogComponent, SignalsTabComponent, SpecEditorComponent, TilesTabComponent],
+  imports: [MorphchartsCanvasComponent, WebGpuFallbackComponent, DataTabComponent, DebugOverlayComponent, RenderTabComponent, SamplesDialogComponent, SignalsTabComponent, SpecEditorComponent, TilesTabComponent],
   template: `
     <div class="client">
       <div class="left" #left>
@@ -43,7 +41,6 @@ const PANEL_MIN = 320;
       </div>
       <div class="divider" (pointerdown)="startDivider($event)" role="separator" aria-orientation="vertical"></div>
       <div class="right" #right [style.width.px]="panelWidth()">
-        <app-tabs [tabs]="tabs" [(active)]="activeTab" />
         <div class="tab-body" #tabBody>
           <div [hidden]="activeTab() !== 'Plot'" class="plot-tab">
             <div class="toolbar">
@@ -101,7 +98,6 @@ const PANEL_MIN = 320;
   `,
 })
 export class MorphchartsPageComponent {
-  readonly tabs = TABS;
   readonly activeTab = signal<string>('Plot');
   readonly host = signal<MorphChartsHost | null>(null);
   readonly fallback = signal<string | null>(null);
