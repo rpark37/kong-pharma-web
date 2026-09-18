@@ -9,7 +9,7 @@
  * important — take the jitter away and the composition goes flat.
  */
 import * as T from 'three';
-import * as P from './hud-panels';
+import * as P from '../../shared/fui/fui-panels';
 
 const W = 1600;
 const H = 900;

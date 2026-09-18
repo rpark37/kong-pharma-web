@@ -10,5 +10,6 @@ export const routes: Routes = [
   { path: 'vega-charts', loadComponent: () => import('./features/vega-charts/vega-charts-page.component').then((m) => m.VegaChartsPageComponent), title: 'Vega chart gallery' },
   { path: 'google', loadComponent: () => import('./features/google/google-page.component').then((m) => m.GooglePageComponent), title: 'Google Merchandise Sales' },
   { path: 'hud', loadComponent: () => import('./features/hud/hud-page.component').then((m) => m.HudPageComponent), title: 'Holographic readout' },
+  { path: 'site-map', loadComponent: () => import('./features/map/map-page.component').then((m) => m.MapPageComponent), title: 'Site network map' },
   { path: '**', redirectTo: '' },
 ];

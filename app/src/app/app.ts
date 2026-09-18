@@ -37,6 +37,7 @@ export class App {
         { path: '/bayes', label: 'Bayes' },
         { path: '/google', label: 'Google' },
         { path: '/hud', label: 'Readout' },
+        { path: '/site-map', label: 'Site map' },
       ],
     },
     { path: '/atlas', label: 'Human Atlas' },

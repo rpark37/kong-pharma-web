@@ -211,3 +211,144 @@ export function dashedRule(ctx: CanvasRenderingContext2D, x: number, y: number, 
   ctx.stroke();
   ctx.setLineDash([]);
 }
+
+/** Tab strip with a routed underline — the active tab owns the rule beneath it. */
+export function tabBar(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, tabs: string[], active: number): void {
+  const step = w / tabs.length;
+  ctx.strokeStyle = PALETTE.tealFaint;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(x, y + 14);
+  ctx.lineTo(x + w, y + 14);
+  ctx.stroke();
+  ctx.textAlign = 'center';
+  tabs.forEach((t, i) => {
+    const cx = x + step * i + step / 2;
+    font(ctx, 10, 500);
+    text(ctx, t, cx, y, i === active ? PALETTE.teal : PALETTE.faint);
+    if (i === active) {
+      ctx.strokeStyle = PALETTE.teal;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(cx - 34, y + 14);
+      ctx.lineTo(cx + 34, y + 14);
+      ctx.stroke();
+    }
+  });
+  ctx.textAlign = 'left';
+}
+
+/**
+ * One redundant channel: a checklist where every row carries a trailing state mark. Drawn three
+ * times side by side, identical panels read as parallel units rather than three different things.
+ */
+export function channelPanel(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, rows: Array<[string, boolean]>, id: string): void {
+  const h = rows.length * 18 + 16;
+  ctx.strokeStyle = PALETTE.tealFaint;
+  ctx.lineWidth = 1;
+  ctx.strokeRect(x, y, w, h);
+  font(ctx, 8, 400);
+  rows.forEach(([label, ok], i) => {
+    const ly = y + 18 + i * 18;
+    text(ctx, label, x + 8, ly, ok ? PALETTE.dim : PALETTE.amber);
+    ctx.fillStyle = ok ? PALETTE.teal : PALETTE.amber;
+    ctx.fillRect(x + w - 14, ly - 6, 6, 6);
+  });
+  font(ctx, 8, 400);
+  ctx.textAlign = 'right';
+  text(ctx, id, x + w, y + h + 12, PALETTE.faint);
+  ctx.textAlign = 'left';
+}
+
+/** Right-angle trace with a junction dot at each corner — modules wired together, not floating. */
+export function circuitTrace(ctx: CanvasRenderingContext2D, pts: Array<[number, number]>): void {
+  ctx.strokeStyle = PALETTE.tealDim;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(pts[0][0], pts[0][1]);
+  for (const [px, py] of pts.slice(1)) ctx.lineTo(px, py);
+  ctx.stroke();
+  ctx.fillStyle = PALETTE.teal;
+  for (const [px, py] of pts.slice(1, -1)) ctx.fillRect(px - 2, py - 2, 4, 4);
+}
+
+/** Polar plot: concentric rings, cross axes, and blips at bearing/range. */
+export function polarPlot(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, blips: Array<[number, number]>, sweep: number): void {
+  ctx.strokeStyle = PALETTE.tealFaint;
+  ctx.lineWidth = 1;
+  for (const f of [0.35, 0.7, 1]) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, r * f, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  ctx.beginPath();
+  ctx.moveTo(cx - r, cy); ctx.lineTo(cx + r, cy);
+  ctx.moveTo(cx, cy - r); ctx.lineTo(cx, cy + r);
+  ctx.stroke();
+
+  const grad = ctx.createLinearGradient(cx, cy, cx + Math.cos(sweep) * r, cy + Math.sin(sweep) * r);
+  grad.addColorStop(0, 'rgba(68, 224, 204, 0.5)');
+  grad.addColorStop(1, 'rgba(68, 224, 204, 0)');
+  ctx.strokeStyle = grad;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.lineTo(cx + Math.cos(sweep) * r, cy + Math.sin(sweep) * r);
+  ctx.stroke();
+
+  for (const [bearing, range] of blips) {
+    const bx = cx + Math.cos(bearing) * r * range;
+    const by = cy + Math.sin(bearing) * r * range;
+    // Fades with how long ago the sweep passed: a blip is a memory of the last pass.
+    const age = ((sweep - bearing + Math.PI * 4) % (Math.PI * 2)) / (Math.PI * 2);
+    ctx.fillStyle = `rgba(68, 224, 204, ${Math.max(0.12, 1 - age)})`;
+    ctx.fillRect(bx - 2.5, by - 2.5, 5, 5);
+  }
+}
+
+/**
+ * A tracking callout: marker bracket, elbow leader line, then the label block. `side` flips the
+ * elbow so a callout never runs off its own edge of the frame.
+ */
+export function callout(ctx: CanvasRenderingContext2D, x: number, y: number, name: string, lines: string[], side: 1 | -1, lead = 70): void {
+  ctx.strokeStyle = PALETTE.teal;
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(x - 9, y - 9, 18, 18);
+
+  const ex = x + lead * side;
+  const ey = y - 44;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(x + 11 * side, y - 4);
+  ctx.lineTo(ex - 14 * side, ey + 12);
+  ctx.lineTo(ex + 6 * side, ey + 12);
+  ctx.stroke();
+
+  ctx.textAlign = side === 1 ? 'left' : 'right';
+  const tx = ex + 10 * side;
+  font(ctx, 19, 500, 0.12);
+  text(ctx, name, tx, ey + 4, PALETTE.text);
+  font(ctx, 8, 400);
+  lines.forEach((l, i) => text(ctx, l, tx, ey + 18 + i * 11, PALETTE.dim));
+  ctx.textAlign = 'left';
+}
+
+/** Search state: verb on top, subject below it, then the result rows as they resolve. */
+export function scanPanel(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, verb: string, subject: string, rows: Array<[string, string]>, revealed: number): void {
+  font(ctx, 9, 400);
+  text(ctx, verb, x + 8, y, PALETTE.dim);
+
+  ctx.fillStyle = 'rgba(68, 224, 204, 0.14)';
+  ctx.fillRect(x, y + 8, w, 40);
+  font(ctx, 26, 500, 0.06);
+  text(ctx, subject, x + 10, y + 38, PALETTE.text);
+
+  rows.forEach(([head, detail], i) => {
+    if (i >= revealed) return;
+    const ry = y + 76 + i * 30;
+    font(ctx, 10, 500);
+    text(ctx, head, x + 8, ry, PALETTE.teal);
+    font(ctx, 9, 400);
+    text(ctx, detail, x + 8, ry + 13, PALETTE.dim);
+  });
+}
