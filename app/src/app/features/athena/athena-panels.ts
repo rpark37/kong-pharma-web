@@ -1,13 +1,10 @@
 /**
- * Window content for the controls field.
+ * Panel content for the volumetric control field. Each painter returns a canvas plus the aspect the
+ * scene should give its plane, so a panel's proportions come from its content rather than from an
+ * arbitrary quad size.
  *
- * Every window shares one chrome — a header bar carrying title and unit code, an open-sided plot
- * well, numeric scales pinned outside — so a bank of them reads as one instrument set. Inside the
- * well, each window composes elements already used by the other two three.js pages: the readout's
- * hero numeral, status bar, slab plates, tick scales and ring gauges, and the site map's tab strip,
- * scan panel, channel checklists, polar plot and tracking callout.
- *
- * Nothing here draws from scratch — it is all `shared/fui/fui-panels.ts`, recomposed.
+ * Content is the manufacturing/QC side of a compound release: line channels, cold chain, assay bus.
+ * Built from the shared primitives in `shared/fui/fui-panels.ts`.
  */
 import * as P from '../../shared/fui/fui-panels';
 
@@ -16,12 +13,11 @@ export interface PanelArt {
   aspect: number;
 }
 
-export type PanelKind = 'trace' | 'scope' | 'contour' | 'profile' | 'axis' | 'primary' | 'strip' | 'column' | 'module';
-
-const W = 900;
-const H = 640;
+export type PanelKind = 'gauges' | 'channels' | 'viewport' | 'timer' | 'plot' | 'serial' | 'stack';
 
 function make(w: number, h: number, into?: HTMLCanvasElement): { c: HTMLCanvasElement; ctx: CanvasRenderingContext2D } {
+  // Repaints reuse the panel's existing canvas: allocating twelve of these several times a second
+  // is pure GC churn for no visual difference.
   const c = into ?? document.createElement('canvas');
   c.width = w;
   c.height = h;
@@ -30,311 +26,217 @@ function make(w: number, h: number, into?: HTMLCanvasElement): { c: HTMLCanvasEl
   return { c, ctx };
 }
 
-function jitter(seed: number, t: number, spread: number): number {
-  const n = Math.sin(seed * 12.9898 + Math.floor(t * 6) * 78.233) * 43758.5453;
-  return Math.round((n - Math.floor(n)) * spread * 2 - spread);
+/** Frame every panel the same way: corner ticks and a hairline, so the set reads as one system. */
+function frame(ctx: CanvasRenderingContext2D, w: number, h: number, title: string, serial: string): void {
+  ctx.strokeStyle = P.PALETTE.tealFaint;
+  ctx.lineWidth = 2;
+  ctx.strokeRect(6, 6, w - 12, h - 12);
+  P.corners(ctx, 6, 6, w - 12, h - 12, 22, P.PALETTE.tealDim);
+  P.font(ctx, 13, 500);
+  P.text(ctx, title, 20, 34, P.PALETTE.text);
+  P.font(ctx, 10, 400);
+  ctx.textAlign = 'right';
+  P.text(ctx, serial, w - 20, 34, P.PALETTE.faint);
+  ctx.textAlign = 'left';
+  P.dashedRule(ctx, 20, 46, w - 40);
 }
 
-interface Well { x: number; y: number; w: number; h: number }
-
-/** Header bar, open-sided plot well, and the scales outside it — shared by every window. */
-function chrome(ctx: CanvasRenderingContext2D, title: string, code: string, side?: string): Well {
-  ctx.strokeStyle = P.PALETTE.teal;
-  ctx.lineWidth = 3;
-  ctx.strokeRect(26, 24, W - 52, 56);
-  P.corners(ctx, 14, 12, W - 28, 80, 18, P.PALETTE.teal);
-  P.font(ctx, 22, 500, 0.12);
-  P.text(ctx, title, 48, 62, P.PALETTE.text);
-  ctx.textAlign = 'right';
-  P.text(ctx, code, W - 48, 62, P.PALETTE.text);
-  ctx.textAlign = 'left';
-
-  const well: Well = { x: 112, y: 128, w: W - 170, h: H - 236 };
-  ctx.lineWidth = 3;
-  ctx.strokeStyle = P.PALETTE.text;
-  ctx.beginPath();
-  ctx.moveTo(well.x, well.y); ctx.lineTo(well.x + well.w, well.y);
-  ctx.moveTo(well.x, well.y + well.h); ctx.lineTo(well.x + well.w, well.y + well.h);
-  ctx.moveTo(well.x, well.y); ctx.lineTo(well.x, well.y + well.h);
-  ctx.moveTo(well.x + well.w, well.y); ctx.lineTo(well.x + well.w, well.y + well.h);
-  ctx.stroke();
-
-  P.font(ctx, 14, 400, 0.08);
-  ctx.textAlign = 'right';
-  ['100', '90', '25', '00', '-90', '-100'].forEach((l, i) => P.text(ctx, l, well.x - 14, well.y + 10 + (i / 5) * well.h, P.PALETTE.dim));
-  ctx.textAlign = 'center';
-  ['-100', '-50', '0', '50', '100'].forEach((l, i) => P.text(ctx, l, well.x + (i / 4) * well.w, H - 46, P.PALETTE.dim));
-  ctx.textAlign = 'left';
-  P.font(ctx, 13, 400, 0.1);
-  P.text(ctx, 'TGS', 30, H - 46, P.PALETTE.dim);
-  ctx.textAlign = 'right';
-  P.text(ctx, 'ESM', W - 30, H - 46, P.PALETTE.dim);
-  ctx.textAlign = 'left';
-
-  if (side) {
-    P.font(ctx, 15, 400, 0.3);
+/** Tall column of segmented bars with a numbered scale down the side. */
+function gauges(t: number, into?: HTMLCanvasElement): PanelArt {
+  const { c, ctx } = make(420, 760, into);
+  frame(ctx, 420, 760, 'LINE PRESSURE', 'KP/309 04627.21A');
+  const labels = ['B2', 'B7', 'B9', 'C2', 'C4', 'C6'];
+  for (let i = 0; i < 6; i++) {
+    const x = 40 + i * 60;
+    const fill = 0.25 + (Math.sin(t * 0.9 + i * 1.3) * 0.5 + 0.5) * 0.7;
+    for (let s = 0; s < 22; s++) {
+      const on = s / 22 < fill;
+      ctx.fillStyle = on ? (s > 18 ? P.PALETTE.amber : P.PALETTE.teal) : P.PALETTE.micro;
+      ctx.fillRect(x, 640 - s * 24, 34, 16);
+    }
+    P.font(ctx, 10, 500);
     ctx.textAlign = 'center';
-    [...side].forEach((ch, i) => P.text(ctx, ch, 62, well.y + 56 + i * 26, P.PALETTE.dim));
+    P.text(ctx, labels[i], x + 17, 690, P.PALETTE.dim);
     ctx.textAlign = 'left';
   }
-  return well;
-}
-
-/** Waveform strip over the readout's instrument rail: ring gauges, bar pair, tick scale. */
-function trace(t: number, into?: HTMLCanvasElement): PanelArt {
-  const { c, ctx } = make(W, H, into);
-  const well = chrome(ctx, 'CHROMATOGRAM', 'QC1', 'WNDW');
-  for (let line = 0; line < 3; line++) {
-    ctx.strokeStyle = line === 1 ? P.PALETTE.amber : P.PALETTE.teal;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    for (let i = 0; i <= 110; i++) {
-      const x = well.x + (i / 110) * well.w;
-      const base = well.y + well.h * (0.16 + line * 0.09);
-      const y = base + Math.sin(i * 0.33 + t * 1.2 + line * 2.1) * 12 + Math.sin(i * 0.08 + t) * 7;
-      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-    }
-    ctx.stroke();
-  }
-  P.tickScale(ctx, well.x + 16, well.y + well.h * 0.46, 150, ['240', '180', '120', '060']);
-  P.ringGauge(ctx, well.x + 250, well.y + well.h * 0.68, 46, jitter(1, t, 6), 0.55 + Math.sin(t * 0.5) * 0.2, 'PULSE/FREQUENCY:MPS');
-  P.ringGauge(ctx, well.x + 400, well.y + well.h * 0.68, 46, jitter(2, t, 8), 0.3 + Math.cos(t * 0.4) * 0.2, 'ANGSTROM.WAVE');
-  P.barMeter(ctx, well.x + 490, well.y + well.h * 0.5, 18, 96, 0.4 + Math.sin(t * 0.7) * 0.3);
-  P.barMeter(ctx, well.x + 516, well.y + well.h * 0.5, 18, 96, 0.7 + Math.sin(t * 0.5) * 0.2);
-  P.dataTable(ctx, well.x + 560, well.y + well.h * 0.55, [['PEAK', `${(96 + Math.sin(t) * 3).toFixed(1)}%`], ['RT', '13.57'], ['AREA', '6709']], 110);
-  return { canvas: c, aspect: W / H };
-}
-
-/** The site map's polar plot and tracking callout, with coordinates. */
-function scope(t: number, into?: HTMLCanvasElement): PanelArt {
-  const { c, ctx } = make(W, H, into);
-  const well = chrome(ctx, 'VIAL TRACKING', 'QC2', 'WNDW');
-  P.polarPlot(ctx, well.x + 190, well.y + well.h * 0.5, 120, [
-    [0.4, 0.55], [1.9, 0.8], [3.4, 0.35], [4.8, 0.62], [2.6, 0.9],
-  ], (t * 0.9) % (Math.PI * 2));
-  P.callout(ctx, well.x + 470, well.y + well.h * 0.44, 'LOT-04', [
-    'CR067 · LYO CHAMBER 02',
-    `42°30'17" N  71°11'44" W`,
-    `UNITS ${String(128 + jitter(4, t, 4)).padStart(3, '0')} · 17 KM`,
-  ], 1, 70);
-  P.corners(ctx, well.x + 436, well.y + well.h * 0.44 - 34, 68, 68, 12, P.PALETTE.teal);
+  P.tickScale(ctx, 396, 120, 520, ['240', '180', '120', '060', '000']);
+  P.font(ctx, 34, 500, 0.02);
+  P.text(ctx, `${(142 + Math.sin(t) * 6).toFixed(0)}/L`, 34, 110, P.PALETTE.text);
   P.font(ctx, 9, 400);
-  P.text(ctx, '+3 IN CLUSTER', well.x + 480, well.y + well.h * 0.44 + 30, P.PALETTE.teal);
-  P.dataTable(ctx, well.x + 430, well.y + well.h * 0.72, [['CODE', 'US-207'], ['STATUS', 'LOCKED']], 110);
-  return { canvas: c, aspect: W / H };
+  P.text(ctx, 'VARIABLE CHARGE · 2330.18', 34, 128, P.PALETTE.faint);
+  P.font(ctx, 11, 400, 0.1);
+  P.text(ctx, `257.789.${(66 + Math.floor(t * 3)) % 100}`, 34, 728, P.PALETTE.teal);
+  return { canvas: c, aspect: 420 / 760 };
 }
 
-/** Contour field under the readout's anchor bar. */
-function contour(t: number, into?: HTMLCanvasElement): PanelArt {
-  const { c, ctx } = make(W, H, into);
-  const well = chrome(ctx, 'CHAMBER PRESSURE ::', '00A');
-  const cx = well.x + well.w * 0.5;
-  const cy = well.y + well.h * 0.42;
-  ctx.setLineDash([3, 8]);
-  for (let ring = 0; ring < 5; ring++) {
-    ctx.strokeStyle = ring < 2 ? P.PALETTE.amber : P.PALETTE.teal;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    for (let a = 0; a <= 72; a++) {
-      const th = (a / 72) * Math.PI * 2;
-      const wob = 1 + Math.sin(th * 3 + ring + t * 0.6) * 0.16 + Math.sin(th * 5 - t * 0.4) * 0.08;
-      const r = (20 + ring * 20) * wob;
-      a === 0 ? ctx.moveTo(cx + Math.cos(th) * r * 1.5, cy + Math.sin(th) * r) : ctx.lineTo(cx + Math.cos(th) * r * 1.5, cy + Math.sin(th) * r);
-    }
-    ctx.closePath();
-    ctx.stroke();
-  }
-  ctx.setLineDash([]);
-  P.statusBar(ctx, well.x + 30, well.y + well.h - 92, well.w - 60, 'SYNTHESIS IN PROGRESS', 'B53.FS.21', Math.sin(t * 2) * 0.5 + 0.5);
-  return { canvas: c, aspect: W / H };
-}
-
-/** The readout's hero numeral and transition block. */
-function profile(t: number, into?: HTMLCanvasElement): PanelArt {
-  const { c, ctx } = make(W, H, into);
-  const well = chrome(ctx, 'STRUCTURAL PROGRESS', '00A');
-  const pct = Math.floor((0.06 + ((t % 13) / 13) * 0.92) * 100);
-  ctx.textAlign = 'center';
-  P.font(ctx, 132, 400, -0.01);
-  P.text(ctx, String(pct).padStart(2, '0'), well.x + well.w * 0.42, well.y + 168, P.PALETTE.text);
-  P.font(ctx, 40, 400);
-  P.text(ctx, '%', well.x + well.w * 0.42 + 152, well.y + 126, P.PALETTE.teal);
-  ctx.textAlign = 'left';
-  P.corners(ctx, well.x + 40, well.y + 30, well.w * 0.78, 180, 18, P.PALETTE.teal);
-  P.font(ctx, 10, 400);
-  P.text(ctx, 'Q-SWITCH · NEAR FIELD IMAGING - ON/6S', well.x + 40, well.y + 250, P.PALETTE.dim);
-  P.font(ctx, 52, 400, 0.02);
-  P.text(ctx, '312', well.x + 40, well.y + 312, P.PALETTE.text);
-  P.font(ctx, 30, 400);
-  P.text(ctx, '→', well.x + 190, well.y + 306, P.PALETTE.teal);
-  P.font(ctx, 52, 400, 0.02);
-  P.text(ctx, `${480 + jitter(5, t, 3)}`, well.x + 250, well.y + 312, P.PALETTE.text);
-  P.slab(ctx, well.x + 40, well.y + 340, 420, 'RFN-637.A', 'POINT ORIG-', '[CR.R 10/9]');
-  return { canvas: c, aspect: W / H };
-}
-
-/** The site map's tab strip, scan panel and redundant channel checklists. */
-function axis(t: number, into?: HTMLCanvasElement): PanelArt {
-  const { c, ctx } = make(W, H, into);
-  const well = chrome(ctx, 'RELEASE CHANNELS', 'JPL');
-  P.tabBar(ctx, well.x + 20, well.y + 24, well.w - 40, ['TRACKS', 'BATCH', 'ROUTES', 'METOC'], 1);
-  P.scanPanel(ctx, well.x + 24, well.y + 76, 330, 'SCANNING', 'LOT NETWORK', [
-    ['ROUTE A - COLD CHAIN RELAY', 'LAST VERIFIED 2026-09-11'],
-    ['ROUTE B - ASSAY TRANSFER', 'LAST VERIFIED 2026-08-30'],
-  ], Math.min(2, Math.floor((t % 6) / 2)));
+/** Three redundant line channels under a tab strip — identical panels read as parallel units. */
+function channels(t: number, into?: HTMLCanvasElement): PanelArt {
+  const { c, ctx } = make(880, 520, into);
+  frame(ctx, 880, 520, 'RELEASE CHANNELS', 'KP/309 55523.21A');
+  P.tabBar(ctx, 40, 78, 800, ['LINE', 'BATCH', 'ASSAY', 'METOC'], 1);
   const fault = Math.floor(t * 0.4) % 4 === 2;
   const rows: Array<[string, boolean]> = [
-    ['COLD CHAIN', true], ['CUSTODY LOG', true], ['ASSAY BUS', !fault], ['VIAL LINE', true],
+    ['COLD CHAIN', true],
+    ['CUSTODY LOG', true],
+    ['ASSAY BUS', !fault],
+    ['LYOPHILIZER', true],
+    ['VIAL LINE', true],
   ];
-  for (let i = 0; i < 2; i++) {
-    P.channelPanel(ctx, well.x + 390 + i * 170, well.y + 90, 158, rows, `A0${i + 1}`);
-    P.circuitTrace(ctx, [
-      [well.x + 390 + i * 170 + 79, well.y + 178],
-      [well.x + 390 + i * 170 + 79, well.y + 210],
-      [well.x + 545, well.y + 210],
-      [well.x + 545, well.y + 238],
-    ]);
+  for (let i = 0; i < 3; i++) {
+    P.channelPanel(ctx, 44 + i * 276, 150, 250, rows, `A0${i + 1}`);
+    P.circuitTrace(ctx, [[44 + i * 276 + 125, 150 + 106], [44 + i * 276 + 125, 330], [440, 330], [440, 362]]);
   }
-  P.dotMatrix(ctx, well.x + 390, well.y + 252, 26, 3, Math.floor(t * 4));
-  return { canvas: c, aspect: W / H };
+  P.font(ctx, 9, 400);
+  P.text(ctx, 'UNIFORM ENERGY DISTRIBUTION', 44, 400, P.PALETTE.faint);
+  P.dataTable(ctx, 44, 424, [['MODE', 'AUTO'], ['SET', '08.23'], ['FAULTS', fault ? '01' : '00']], 150);
+  return { canvas: c, aspect: 880 / 520 };
 }
 
-const PAINTERS: Record<PanelKind, (t: number, into?: HTMLCanvasElement) => PanelArt> = { trace, scope, contour, profile, axis, primary, strip, column, module: module_ };
-
-export function paintPanel(kind: PanelKind, t: number, into?: HTMLCanvasElement): PanelArt {
-  return PAINTERS[kind](t, into);
-}
-
-/* ---------------------------------------------------------------------------------------------
- * Size classes. A wall of identically-proportioned panels reads as a grid; a console reads as one
- * dominant display surrounded by columns, strips and small modules. These four carry that variety.
- * ------------------------------------------------------------------------------------------- */
-
-/** The dominant display: tolerance envelope over the anchor bar. */
-function primary(t: number, into?: HTMLCanvasElement): PanelArt {
-  const w = 1240;
-  const h = 700;
-  const { c, ctx } = make(w, h, into);
-  ctx.strokeStyle = P.PALETTE.teal;
-  ctx.lineWidth = 3;
-  ctx.strokeRect(26, 24, w - 52, 56);
-  P.corners(ctx, 14, 12, w - 28, h - 24, 22, P.PALETTE.teal);
-  P.font(ctx, 24, 500, 0.12);
-  P.text(ctx, 'LOT RELEASE · PRIMARY', 48, 62, P.PALETTE.text);
-  ctx.textAlign = 'right';
-  P.text(ctx, 'KP/309 04627.21A', w - 48, 62, P.PALETTE.text);
-  ctx.textAlign = 'left';
-
-  const cx = w * 0.38;
-  const cy = h * 0.46;
+/** Wireframe viewport: a schematic outline with a crosshair and corner data blocks. */
+function viewport(t: number, into?: HTMLCanvasElement): PanelArt {
+  const { c, ctx } = make(820, 520, into);
+  frame(ctx, 820, 520, 'CHAMBER VIEW', 'KP/309 46702.21A');
   ctx.strokeStyle = P.PALETTE.tealDim;
-  ctx.lineWidth = 2;
-  for (const f of [1, 0.66, 0.33]) {
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(150, 120, 520, 300);
+  P.corners(ctx, 130, 100, 560, 340, 26, P.PALETTE.teal);
+  const cx = 410;
+  const cy = 270;
+  ctx.strokeStyle = P.PALETTE.teal;
+  ctx.beginPath();
+  ctx.moveTo(cx - 34, cy); ctx.lineTo(cx - 10, cy);
+  ctx.moveTo(cx + 10, cy); ctx.lineTo(cx + 34, cy);
+  ctx.moveTo(cx, cy - 34); ctx.lineTo(cx, cy - 10);
+  ctx.moveTo(cx, cy + 10); ctx.lineTo(cx, cy + 34);
+  ctx.stroke();
+  ctx.strokeStyle = P.PALETTE.tealFaint;
+  ctx.strokeRect(cx - 60 + Math.sin(t) * 18, cy - 44, 120, 88);
+  P.microRail(ctx, 24, 140, ['CAL REV13 SEA CAL INTEG 1.1', 'ACTIVE 3.20 244V', 'PSI 0.4 SETP', '-06:05:28', '-06:05:41']);
+  P.microRail(ctx, 700, 140, ['SUPPLY MODE', 'SET.TIN 244V', 'FIL 22 ARR12', '1.20 L ARR03']);
+  P.font(ctx, 10, 400);
+  P.text(ctx, `TEMP ${(4.2 + Math.sin(t * 1.4) * 0.3).toFixed(1)}°C`, 150, 462, P.PALETTE.dim);
+  P.text(ctx, 'DWELL 00:41', 340, 462, P.PALETTE.dim);
+  P.text(ctx, 'SEAL OK', 520, 462, P.PALETTE.teal);
+  return { canvas: c, aspect: 820 / 520 };
+}
+
+/** Countdown, mode icons, and the run state — the block the eye goes to. */
+function timer(t: number, into?: HTMLCanvasElement): PanelArt {
+  const { c, ctx } = make(520, 420, into);
+  frame(ctx, 520, 420, 'RUN STATE', 'KP/309 11884.21A');
+  const total = 24 * 3600 + 32 * 60;
+  const left = total - Math.floor(t * 7);
+  const hh = String(Math.floor(left / 3600) % 100).padStart(2, '0');
+  const mm = String(Math.floor(left / 60) % 60).padStart(2, '0');
+  const ss = String(left % 60).padStart(2, '0');
+  P.font(ctx, 44, 500, 0.04);
+  P.text(ctx, `${hh}:${mm}:${ss}`, 34, 120, P.PALETTE.text);
+  P.font(ctx, 9, 400);
+  P.text(ctx, 'TIME TO RELEASE', 34, 142, P.PALETTE.tealDim);
+
+  for (let i = 0; i < 3; i++) {
+    const cx = 70 + i * 74;
+    ctx.strokeStyle = i === 1 ? P.PALETTE.amber : P.PALETTE.tealDim;
+    ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(cx, cy - 170 * f);
-    ctx.lineTo(cx + 230 * f, cy);
-    ctx.lineTo(cx, cy + 170 * f);
-    ctx.lineTo(cx - 230 * f, cy);
+    ctx.arc(cx, 220, 22, 0, Math.PI * 2);
+    ctx.stroke();
+    if (i === 1) {
+      ctx.beginPath();
+      ctx.moveTo(cx - 14, 234); ctx.lineTo(cx + 14, 206);
+      ctx.stroke();
+    }
+  }
+  P.font(ctx, 20, 500, 0.02);
+  P.text(ctx, `${(255 + Math.floor(Math.sin(t) * 4))}/R`, 300, 226, P.PALETTE.text);
+  P.font(ctx, 9, 400);
+  P.text(ctx, 'DEPLOYED', 300, 246, P.PALETTE.teal);
+  P.dataTable(ctx, 34, 300, [['BATCH', 'CR067-L04'], ['STAGE', 'LYO 02'], ['OPERATOR', '—']], 190);
+  return { canvas: c, aspect: 520 / 420 };
+}
+
+/** Rhombus plot over a perspective tick array. */
+function plot(t: number, into?: HTMLCanvasElement): PanelArt {
+  const { c, ctx } = make(640, 560, into);
+  frame(ctx, 640, 560, 'TOLERANCE ENVELOPE', 'KP/309 07714.21A');
+  const cx = 320;
+  const cy = 250;
+  ctx.strokeStyle = P.PALETTE.tealDim;
+  ctx.lineWidth = 1.5;
+  for (const s of [1, 0.66, 0.33]) {
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - 150 * s);
+    ctx.lineTo(cx + 190 * s, cy);
+    ctx.lineTo(cx, cy + 150 * s);
+    ctx.lineTo(cx - 190 * s, cy);
     ctx.closePath();
     ctx.stroke();
   }
-  ctx.setLineDash([5, 6]);
+  ctx.setLineDash([4, 5]);
   ctx.strokeStyle = P.PALETTE.amber;
-  const env = 0.55 + Math.sin(t * 0.8) * 0.18;
+  const w = 0.55 + Math.sin(t * 0.8) * 0.18;
   ctx.beginPath();
-  ctx.moveTo(cx, cy - 170 * env);
-  ctx.lineTo(cx + 230 * env, cy);
-  ctx.lineTo(cx, cy + 170 * env);
-  ctx.lineTo(cx - 230 * env, cy);
+  ctx.moveTo(cx, cy - 150 * w);
+  ctx.lineTo(cx + 190 * w, cy);
+  ctx.lineTo(cx, cy + 150 * w);
+  ctx.lineTo(cx - 190 * w, cy);
   ctx.closePath();
   ctx.stroke();
   ctx.setLineDash([]);
-
-  P.tickScale(ctx, 700, 140, 300, ['240', '180', '120', '060', '000']);
-  P.dataTable(ctx, 790, 170, [
-    ['BATCH', 'CR067-L04'], ['STAGE', 'LYO 02'], ['MODE', 'AUTO'], ['FAULTS', '00'], ['OPERATOR', '—'],
-  ], 220);
-  P.ringGauge(ctx, 880, 400, 54, jitter(1, t, 6), 0.6 + Math.sin(t * 0.5) * 0.2, 'PULSE/FREQUENCY');
-  P.ringGauge(ctx, 1050, 400, 54, jitter(2, t, 8), 0.4, 'ANGSTROM.WAVE');
-  P.statusBar(ctx, 60, h - 130, w - 120, 'SYNTHESIS IN PROGRESS', 'B53.FS.21', Math.sin(t * 2) * 0.5 + 0.5);
-  return { canvas: c, aspect: w / h };
+  // Perspective tick array beneath, rows converging toward the top.
+  for (let r = 0; r < 7; r++) {
+    const y = 440 + r * 14;
+    const spread = 40 + r * 26;
+    ctx.fillStyle = P.PALETTE.micro;
+    for (let i = 0; i < 14; i++) ctx.fillRect(cx - spread + (i * spread * 2) / 13, y, 5, 3);
+  }
+  P.font(ctx, 9, 400);
+  P.text(ctx, 'F1.0', 40, 250, P.PALETTE.faint);
+  P.text(ctx, 'F1.8 3/1', 40, 200, P.PALETTE.faint);
+  P.text(ctx, 'F1.8 3/1', 540, 200, P.PALETTE.faint);
+  return { canvas: c, aspect: 640 / 560 };
 }
 
-/** Wide and short: the serial docket bar that rides above a cluster. */
-function strip(t: number, into?: HTMLCanvasElement): PanelArt {
-  const w = 940;
-  const h = 200;
-  const { c, ctx } = make(w, h, into);
-  P.corners(ctx, 12, 10, w - 24, h - 20, 20, P.PALETTE.tealDim);
+/** A serial header bar — the long thin element that sits on a rail. */
+function serial(t: number, into?: HTMLCanvasElement): PanelArt {
+  const { c, ctx } = make(760, 130, into);
   ctx.strokeStyle = P.PALETTE.tealFaint;
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(24, h - 40);
-  ctx.lineTo(w - 24, h - 40);
+  ctx.moveTo(10, 100);
+  ctx.lineTo(750, 100);
   ctx.stroke();
-  P.font(ctx, 26, 500, 0.06);
-  P.text(ctx, 'KP/309', 34, 78, P.PALETTE.dim);
-  P.font(ctx, 38, 500, 0.02);
-  P.text(ctx, `${(4627 + Math.floor(t * 2)) % 10000}`.padStart(5, '0'), 180, 78, P.PALETTE.text);
-  P.font(ctx, 16, 400);
-  P.text(ctx, '.21A', 348, 78, P.PALETTE.teal);
-  P.font(ctx, 11, 400);
-  P.text(ctx, 'RELEASE LOT DOCKET', 34, 110, P.PALETTE.faint);
-  P.dotMatrix(ctx, 470, 48, 60, 5, Math.floor(t * 4));
-  P.font(ctx, 12, 400, 0.12);
-  P.text(ctx, 'DEPLOYED', w - 190, 110, P.PALETTE.teal);
-  return { canvas: c, aspect: w / h };
-}
-
-/** Tall and narrow: a stack of segmented bars with a scale down the side. */
-function column(t: number, into?: HTMLCanvasElement): PanelArt {
-  const w = 360;
-  const h = 820;
-  const { c, ctx } = make(w, h, into);
-  P.corners(ctx, 12, 10, w - 24, h - 20, 20, P.PALETTE.tealDim);
-  P.font(ctx, 13, 500);
-  P.text(ctx, 'LINE PRESSURE', 28, 44, P.PALETTE.text);
-  P.dashedRule(ctx, 28, 58, w - 56);
-  const labels = ['B2', 'B7', 'B9', 'C4'];
-  for (let i = 0; i < 4; i++) {
-    const x = 40 + i * 62;
-    const fill = 0.25 + (Math.sin(t * 0.9 + i * 1.3) * 0.5 + 0.5) * 0.7;
-    for (let sgm = 0; sgm < 20; sgm++) {
-      const on = sgm / 20 < fill;
-      ctx.fillStyle = on ? (sgm > 16 ? P.PALETTE.amber : P.PALETTE.teal) : P.PALETTE.micro;
-      ctx.fillRect(x, 640 - sgm * 26, 36, 18);
-    }
-    P.font(ctx, 11, 500);
-    ctx.textAlign = 'center';
-    P.text(ctx, labels[i], x + 18, 686, P.PALETTE.dim);
-    ctx.textAlign = 'left';
-  }
-  P.tickScale(ctx, 300, 140, 480, ['240', '180', '120', '060', '000']);
+  P.font(ctx, 22, 500, 0.06);
+  P.text(ctx, 'KP/309', 16, 62, P.PALETTE.dim);
   P.font(ctx, 30, 500, 0.02);
-  P.text(ctx, `${(142 + Math.sin(t) * 6).toFixed(0)}/L`, 28, 110, P.PALETTE.text);
-  P.font(ctx, 11, 400, 0.1);
-  P.text(ctx, `257.789.${(66 + Math.floor(t * 3)) % 100}`, 28, h - 40, P.PALETTE.teal);
-  return { canvas: c, aspect: w / h };
+  P.text(ctx, `${(4627 + Math.floor(t * 2)) % 10000}`.padStart(5, '0'), 130, 62, P.PALETTE.text);
+  P.font(ctx, 13, 400);
+  P.text(ctx, '.21A', 260, 62, P.PALETTE.teal);
+  P.font(ctx, 9, 400);
+  P.text(ctx, 'RELEASE LOT DOCKET', 16, 86, P.PALETTE.faint);
+  P.dotMatrix(ctx, 420, 40, 40, 4, Math.floor(t * 4));
+  return { canvas: c, aspect: 760 / 130 };
 }
 
-/** Small module, meant to be repeated in a cluster. */
-function module_(t: number, into?: HTMLCanvasElement): PanelArt {
-  const w = 460;
-  const h = 400;
-  const { c, ctx } = make(w, h, into);
-  P.corners(ctx, 12, 10, w - 24, h - 20, 18, P.PALETTE.tealDim);
-  P.font(ctx, 13, 500);
-  P.text(ctx, 'DRONE BANK', 28, 44, P.PALETTE.text);
-  P.dashedRule(ctx, 28, 58, w - 56);
-  const fault = Math.floor(t * 0.4) % 5 === 2;
-  P.channelPanel(ctx, 28, 82, w - 56, [
-    ['HYDRAULIC SYS', true], ['AUTO-PITCH', true], ['PRIMARY DC BUS', !fault], ['INERTIAL NAV', true],
-  ], 'A01');
-  P.font(ctx, 26, 500, 0.06);
-  ctx.textAlign = 'center';
-  P.text(ctx, `${(2.5 + Math.sin(t * 0.7) * 0.4).toFixed(1)}`, w / 2, h - 60, P.PALETTE.text);
-  ctx.textAlign = 'left';
-  P.font(ctx, 9, 400);
-  P.text(ctx, 'ENERGY HIGH', 28, h - 26, P.PALETTE.faint);
-  return { canvas: c, aspect: w / h };
+/** Dense stack of small readouts — texture more than content, for the far field. */
+function stack(t: number, into?: HTMLCanvasElement): PanelArt {
+  const { c, ctx } = make(420, 620, into);
+  frame(ctx, 420, 620, 'BUS TRACE', 'KP/309 92210.21A');
+  for (let i = 0; i < 10; i++) {
+    const y = 80 + i * 52;
+    ctx.strokeStyle = P.PALETTE.tealFaint;
+    ctx.strokeRect(24, y, 372, 40);
+    P.font(ctx, 9, 400);
+    P.text(ctx, `CH ${String(i + 1).padStart(2, '0')}`, 36, y + 25, P.PALETTE.dim);
+    P.barMeter(ctx, 110, y + 8, 200, 24, 0.2 + (Math.sin(t * 0.7 + i) * 0.5 + 0.5) * 0.75);
+    P.font(ctx, 9, 400);
+    P.text(ctx, `${(38 + i * 3)}`, 330, y + 25, P.PALETTE.faint);
+  }
+  return { canvas: c, aspect: 420 / 620 };
+}
+
+const PAINTERS: Record<PanelKind, (t: number, into?: HTMLCanvasElement) => PanelArt> = { gauges, channels, viewport, timer, plot, serial, stack };
+
+export function paintPanel(kind: PanelKind, t: number, into?: HTMLCanvasElement): PanelArt {
+  return PAINTERS[kind](t, into);
 }

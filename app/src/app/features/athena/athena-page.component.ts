@@ -3,21 +3,21 @@ import { GsapService } from '../../shared/animation/gsap.service';
 import type { AthenaScene } from './athena-scene';
 
 /**
- * An input deck with instrument windows growing out of it on a branching tree. The structural idea
- * is causality: a branch reaches a place, and a window opens there — rather than windows appearing
- * on timers that merely look sequenced.
+ * Control panels distributed through a volume with the camera travelling past them. The structural
+ * difference from the other two three.js pages here: those compose on parallel planes, this one
+ * mixes orientations so panels swing from edge-on to face-on as the camera moves.
  */
 @Component({
   selector: 'app-athena-page',
   template: `
     <section class="head">
       <p class="eyebrow" data-reveal>three.js · bokeh pass</p>
-      <h1 data-reveal>Console and branch tree</h1>
+      <h1 data-reveal>Volumetric control field</h1>
       <p class="lede" data-reveal>
-        An input deck with instrument windows growing out of it on a branching tree. Branches root
-        at the keyboard and fork outward, and each window opens as its branch arrives rather than on
-        a timer, so the build reads as causal. Depth of field is a real postprocessing pass, because
-        the out-of-focus set changes as the camera pushes in.
+        Twelve panels distributed through a volume on three orientation families, wired to spine
+        rails by routed traces, with the camera flying a spline through the middle of it. Depth of
+        field is a real postprocessing pass rather than baked blur, because the out-of-focus set has
+        to change as the camera moves.
       </p>
     </section>
 
@@ -31,8 +31,8 @@ import type { AthenaScene } from './athena-scene';
         @if (error()) { <p class="error">{{ error() }}</p> }
       </div>
       <p class="note">
-        The build runs on a 13-second loop: the deck lights, the tree grows out from it fork by
-        fork, and each instrument window opens as its branch lands.
+        The build runs on a 13-second loop: rails draw on, panels arrive near to far, traces route
+        between them, then the field settles and the counters go live.
       </p>
     </div>
   `,
