@@ -50,7 +50,7 @@ interface VegaMorphChartsUmd {
   imports: [SpecEditorComponent],
   template: `
     <section class="head">
-      <p class="eyebrow" data-reveal>vega-morphcharts · ViewGl · WebGL · Transition</p>
+      <p class="eyebrow" data-reveal>vega-morphcharts · ViewGl · WebGL</p>
     </section>
 
     <div class="client">
@@ -64,6 +64,7 @@ interface VegaMorphChartsUmd {
           <button type="button" class="btn small" [class.active]="viewType() === '3d'" (click)="toggleView()" [disabled]="!ready()">
             {{ viewType() === '3d' ? '3D' : '2D' }}
           </button>
+          <h1>Transition</h1>
           <span class="spacer"></span>
           @if (!ready() && !fatal()) { <span class="status">Loading renderer…</span> }
           @if (error()) { <span class="status err">{{ error() }}</span> }
@@ -112,7 +113,8 @@ interface VegaMorphChartsUmd {
     :host ::ng-deep .vega-morphcharts-legend:empty { display: none; }
     .fallback { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 24px; text-align: center; color: var(--rose); font-size: 13px; }
     .right { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
-    .toolbar { display: flex; align-items: center; gap: 8px; }
+    .toolbar { display: flex; align-items: center; gap: 10px; }
+    .toolbar h1 { font-size: 18px; margin: 0; line-height: 1; }
     .spacer { flex: 1; }
     .status { font-size: 12px; color: var(--on-ink-faint); }
     .status.err { color: var(--rose); }
