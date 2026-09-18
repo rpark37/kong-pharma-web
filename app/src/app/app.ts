@@ -38,6 +38,7 @@ export class App {
         { path: '/google', label: 'Google' },
         { path: '/hud', label: 'Readout' },
         { path: '/site-map', label: 'Site map' },
+        { path: '/controls', label: 'Controls' },
       ],
     },
     { path: '/atlas', label: 'Human Atlas' },
