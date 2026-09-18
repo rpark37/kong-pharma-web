@@ -50,7 +50,7 @@ interface VegaMorphChartsUmd {
   imports: [SpecEditorComponent],
   template: `
     <section class="head">
-      <p class="eyebrow" data-reveal>vega-morphcharts · ViewGl · WebGL</p>
+      <p class="eyebrow" data-reveal>vega-morphcharts · ViewGl · WebGL · Transition</p>
     </section>
 
     <div class="client">
