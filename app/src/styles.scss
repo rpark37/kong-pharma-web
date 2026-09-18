@@ -138,6 +138,58 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--teal); }
   flex-wrap: wrap;
 }
 
+/* Vega inside a chart stage: the plot takes the whole card and its signal bindings float over the
+ * bottom-left, rather than stacking underneath and pushing the plot out of the frame. Scoped to
+ * .chart-stage on purpose — the inline charts on the data pages want the ordinary stacked layout.
+ */
+.chart-stage {
+  app-vega-chart { position: absolute; inset: 0; }
+
+  .vega-embed {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+  }
+
+  /* Vega sizes the plot inline from the spec's own width, which overflows a narrower card and gets
+     clipped. Contained rather than stretched: it scales down and keeps its aspect, so a wide facet
+     grid stays whole. !important because the inline style would otherwise win. */
+  .vega-embed canvas.marks,
+  .vega-embed svg {
+    display: block;
+    width: auto !important;
+    height: auto !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+  }
+
+  .vega-bindings {
+    position: absolute;
+    left: 12px;
+    bottom: 12px;
+    width: auto;
+    max-width: min(340px, 60%);
+    max-height: calc(100% - 24px);
+    overflow: auto;
+    z-index: 2;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--panel) 88%, transparent);
+    border: 1px solid var(--hairline);
+    box-shadow: var(--shadow-sm);
+    font-size: 12px;
+    color: var(--on-ink-dim);
+  }
+
+  .vega-bind { display: flex; align-items: center; gap: 6px; }
+  .vega-bind input[type="range"] { max-width: 120px; }
+  .vega-bind-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .vega-bindings:empty { display: none; }
+}
+
 /* Drag handle between the columns. Sized in the pages, which own the width signal. */
 .chart-divider {
   cursor: col-resize;

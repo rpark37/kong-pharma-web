@@ -71,8 +71,6 @@ const PANEL_MIN = 320;
     .actions { display: inline-flex; gap: 6px; }
     .status.err { font-size: 12px; color: var(--rose); font-family: var(--font-mono); }
     app-spec-editor { flex: 1; min-height: 200px; }
-    /* The chart fills its card rather than sizing to the spec. */
-    :host ::ng-deep app-vega-chart { position: absolute; inset: 0; }
     @media (max-width: 860px) {
       :host { height: auto; }
       .client { grid-template-columns: 1fr !important; }

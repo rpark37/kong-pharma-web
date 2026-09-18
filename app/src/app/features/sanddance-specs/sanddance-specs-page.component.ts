@@ -91,32 +91,6 @@ interface SandDanceSpecsUmd {
     .status.err { color: var(--rose); }
     .fallback { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 24px; text-align: center; color: var(--rose); font-size: 13px; }
 
-    /* Same treatment as /transition: the plot takes the whole box and Vega's signal bindings float
-       over its bottom-left corner instead of stacking underneath and pushing it out of view.
-       ::ng-deep because vega-embed's DOM belongs to <app-vega-chart>, not to this component. */
-    :host ::ng-deep app-vega-chart { position: absolute; inset: 0; }
-    :host ::ng-deep .vega-embed { position: absolute; inset: 0; }
-    /* Vega sizes the canvas inline from the spec's own width, which overflows a narrower box and
-       gets clipped. Contained rather than stretched: it scales down to fit and keeps its aspect,
-       so a wide facet grid stays whole. !important because the inline style would otherwise win. */
-    :host ::ng-deep .vega-embed { display: flex; align-items: center; justify-content: center; padding: 8px; }
-    :host ::ng-deep .vega-embed canvas.marks,
-    :host ::ng-deep .vega-embed svg {
-      display: block;
-      width: auto !important; height: auto !important;
-      max-width: 100% !important; max-height: 100% !important;
-    }
-    :host ::ng-deep .vega-bindings {
-      position: absolute; left: 12px; bottom: 12px; width: auto; max-width: min(340px, 60%);
-      max-height: calc(100% - 24px); overflow: auto; z-index: 2;
-      padding: 10px 12px; border-radius: var(--radius-sm);
-      background: color-mix(in srgb, var(--panel) 88%, transparent);
-      border: 1px solid var(--hairline); box-shadow: var(--shadow-sm);
-      font-size: 12px; color: var(--on-ink-dim);
-    }
-    :host ::ng-deep .vega-bind { display: flex; align-items: center; gap: 6px; }
-    :host ::ng-deep .vega-bind input[type="range"] { max-width: 120px; }
-    :host ::ng-deep .vega-bind-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     app-spec-editor { flex: 1; min-height: 140px; }
     @media (max-width: 1000px) { .client { grid-template-columns: 1fr; } :host { height: auto; } .chart-stage { min-height: 60vh; } }
   `,
