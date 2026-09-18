@@ -68,7 +68,17 @@ export class VegaChartComponent implements OnDestroy {
       const { default: vegaEmbed } = await import('vega-embed');
       if (token !== this.embedToken) return;
       this.view?.finalize();
-      const result = await vegaEmbed(container, spec as never, { actions: false, renderer: this.renderer(), config: VEGA_DARK_CONFIG as never, tooltip: { theme: 'dark' } });
+      // Gallery specs reference their datasets as relative `data/*.json`. Those live on Vega's own
+      // host — 56 MB of them — so the loader resolves relative URLs there rather than vendoring
+      // the lot. Specs with inlined `data.values` are unaffected.
+      const { loader } = await import('vega');
+      const result = await vegaEmbed(container, spec as never, {
+        actions: false,
+        renderer: this.renderer(),
+        config: VEGA_DARK_CONFIG as never,
+        tooltip: { theme: 'dark' },
+        loader: loader({ baseURL: 'https://vega.github.io/vega/' }),
+      });
       if (token !== this.embedToken) { result.finalize(); return; }
       this.view = result.view;
       this.error.set(null);

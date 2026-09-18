@@ -13,9 +13,16 @@ const VL = 'https://vega.github.io/schema/vega-lite/v6.json';
 export interface GalleryChart {
   id: string;
   label: string;
+  /** Which optgroup the entry sits under; 107 flat options is unusable. */
+  group?: 'Built-in' | 'Specs' | 'Examples';
   /** Rebuilt on demand; the randomised sets differ per call, which is the point of "Shuffle". */
-  spec: () => Record<string, unknown>;
+  spec?: () => Record<string, unknown>;
+  /** Vendored specs load from here instead. Exactly one of `spec` / `url` is set. */
+  url?: string;
 }
+
+/** A built-in always carries its builder — only vendored entries are url-backed. */
+export type BuiltInChart = GalleryChart & { spec: () => Record<string, unknown> };
 
 const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const iso = (month: number, day: number) => new Date(2024, month, day).toISOString().split('T')[0];
@@ -387,7 +394,7 @@ export function radialBar(): Record<string, unknown> {
 }
 
 /** Gallery order matches the source component's built-in chart list. */
-export const GALLERY: GalleryChart[] = [
+export const GALLERY: BuiltInChart[] = [
   { id: 'bar-chart', label: 'Simple bar', spec: barChart },
   { id: 'line-chart', label: 'Line with points', spec: lineChart },
   { id: 'scatter-plot', label: 'Scatter', spec: scatterPlot },

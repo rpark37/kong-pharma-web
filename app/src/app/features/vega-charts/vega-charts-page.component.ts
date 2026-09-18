@@ -1,8 +1,11 @@
+import { HttpClient } from '@angular/common/http';
 import { Component, ElementRef, afterNextRender, computed, inject, signal, viewChild } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import { GsapService } from '../../shared/animation/gsap.service';
 import { SpecEditorComponent } from '../../shared/ui/spec-editor.component';
 import { VegaChartComponent } from '../../shared/vega/vega-chart.component';
-import { GALLERY } from './vega-charts-specs';
+import { GALLERY, type GalleryChart } from './vega-charts-specs';
+import { VENDORED } from './vega-gallery-vendored';
 
 const PANEL_MIN = 320;
 
@@ -28,12 +31,16 @@ const PANEL_MIN = 320;
           <label class="field">
             <span>Chart</span>
             <select [value]="selectedId()" (change)="select($any($event.target).value)">
-              @for (c of gallery; track c.id) { <option [value]="c.id">{{ c.label }}</option> }
+              @for (g of groups; track g.name) {
+                <optgroup [label]="g.name">
+                  @for (c of g.items; track c.id) { <option [value]="c.id">{{ c.label }}</option> }
+                </optgroup>
+              }
             </select>
           </label>
           <div class="toolbar">
             <span class="spacer"></span>
-            <button type="button" class="btn small" (click)="shuffle()" title="Rebuild this chart's randomised sample">Shuffle</button>
+            <button type="button" class="btn small" [disabled]="!selected().spec" (click)="shuffle()" title="Rebuild this chart's randomised sample">Shuffle</button>
             <button type="button" class="btn small" (click)="reset()">Reset</button>
             <button type="button" class="btn small" (click)="apply()">Apply</button>
           </div>
@@ -63,9 +70,14 @@ const PANEL_MIN = 320;
   `,
 })
 export class VegaChartsPageComponent {
-  readonly gallery = GALLERY;
+  readonly gallery: GalleryChart[] = [...GALLERY, ...VENDORED];
+  readonly groups = [
+    { name: 'Built-in', items: GALLERY },
+    { name: 'Specs', items: VENDORED.filter((c) => c.group === 'Specs') },
+    { name: 'Examples', items: VENDORED.filter((c) => c.group === 'Examples') },
+  ];
   readonly selectedId = signal(GALLERY[0].id);
-  readonly selected = computed(() => GALLERY.find((c) => c.id === this.selectedId()) ?? GALLERY[0]);
+  readonly selected = computed(() => this.gallery.find((c) => c.id === this.selectedId()) ?? GALLERY[0]);
   /** The spec currently rendered — replaced wholesale by select/shuffle/apply. */
   readonly spec = signal<Record<string, unknown>>(GALLERY[0].spec());
   readonly error = signal('');
@@ -75,6 +87,9 @@ export class VegaChartsPageComponent {
   private readonly editor = viewChild.required(SpecEditorComponent);
   private readonly right = viewChild.required<ElementRef<HTMLDivElement>>('right');
   private readonly gsap = inject(GsapService);
+  private readonly http = inject(HttpClient);
+  /** Guards against a slow fetch landing after the user has moved on. */
+  private loadToken = 0;
 
   constructor() {
     afterNextRender(() => {
@@ -84,16 +99,16 @@ export class VegaChartsPageComponent {
 
   select(id: string): void {
     this.selectedId.set(id);
-    this.load();
+    void this.load();
   }
 
   /** Rebuilds the chart, which redraws the randomised sample sets. */
   shuffle(): void {
-    this.load();
+    void this.load();
   }
 
   reset(): void {
-    this.load();
+    void this.load();
   }
 
   /** Parses the editor content and renders it; SpecEditor highlights the offending line on failure. */
@@ -121,9 +136,23 @@ export class VegaChartsPageComponent {
     document.addEventListener('pointerup', up);
   }
 
-  private load(): void {
+  private async load(): Promise<void> {
+    const token = ++this.loadToken;
     this.error.set('');
-    this.spec.set(this.selected().spec());
+    const entry = this.selected();
+    if (entry.spec) {
+      this.spec.set(entry.spec());
+    } else if (entry.url) {
+      try {
+        const loaded = await firstValueFrom(this.http.get<Record<string, unknown>>(entry.url));
+        if (token !== this.loadToken) return;
+        this.spec.set(loaded);
+      } catch (e) {
+        if (token !== this.loadToken) return;
+        this.error.set(`Could not load ${entry.url}: ${e instanceof Error ? e.message : String(e)}`);
+        return;
+      }
+    }
     this.editor().setContent(this.json());
   }
 }
