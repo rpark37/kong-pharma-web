@@ -11,7 +11,7 @@ import { DebugOverlayComponent } from './debug-overlay.component';
 import { RenderTabComponent, ResizeRequest } from './render-tab.component';
 import { SAMPLE_SPEC_FOLDER, SamplePlot, SamplesDialogComponent } from './samples-dialog.component';
 import { SignalsTabComponent } from './signals-tab.component';
-import { SpecEditorComponent } from './spec-editor.component';
+import { SpecEditorComponent } from '../../shared/ui/spec-editor.component';
 import { TileSettings, TilesTabComponent } from './tiles-tab.component';
 
 const TABS = ['Plot', 'Render', 'Data', 'Signals', 'Tiles'] as const;

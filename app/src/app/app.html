@@ -4,8 +4,20 @@
     <span>Kong's <em>Labs</em></span>
   </a>
   <nav aria-label="Pages">
-    @for (link of links; track link.path) {
-      <a [routerLink]="link.path" routerLinkActive="active">{{ link.label }}</a>
+    @for (link of links; track link.label) {
+      @if (link.children) {
+        <!-- routerLinkActive on the <details> highlights the group while any child route is open. -->
+        <details class="group" routerLinkActive="open-route" #menu>
+          <summary>{{ link.label }}</summary>
+          <div class="menu glass">
+            @for (child of link.children; track child.path) {
+              <a [routerLink]="child.path" routerLinkActive="active" (click)="menu.open = false">{{ child.label }}</a>
+            }
+          </div>
+        </details>
+      } @else {
+        <a [routerLink]="link.path" routerLinkActive="active">{{ link.label }}</a>
+      }
     }
   </nav>
   <a class="site-link" href="/">Back to site ↗</a>

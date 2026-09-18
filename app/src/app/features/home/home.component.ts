@@ -89,5 +89,12 @@ export class HomeComponent {
       blurb: 'A synthetic population of blocks morphs through four views to show what a positive test really means, with natural frequencies and the PPV curve alongside.',
       tags: ['MorphCharts', 'Vega-Lite', 'GSAP'],
     },
+    {
+      path: '/vega-charts',
+      eyebrow: 'Gallery · Vega-Lite',
+      title: 'Chart gallery',
+      blurb: 'Fifteen Vega-Lite specifications with their data inlined, each editable in place: change the JSON, apply it, and the chart re-renders.',
+      tags: ['Vega-Lite', 'spec editor'],
+    },
   ];
 }

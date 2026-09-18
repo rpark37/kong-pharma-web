@@ -3,6 +3,8 @@ import { Component, ElementRef, afterNextRender, model, output, signal, viewChil
 /**
  * Port of the MorphCharts client editor: a textarea with a line-number gutter that tracks the
  * caret line and highlights the line of the last JSON parse error.
+ *
+ * Shared: the MorphCharts page and the Vega chart gallery both edit specs with it.
  */
 @Component({
   selector: 'app-spec-editor',
