@@ -32,7 +32,7 @@
             "styles": [
               "src/styles.scss"
             ],
-            "baseHref": "/app/",
+            "baseHref": "./",
             "outputPath": "dist/app"
           },
           "configurations": {
