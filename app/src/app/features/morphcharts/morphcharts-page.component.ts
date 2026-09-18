@@ -24,31 +24,50 @@ const DEFAULT_SAMPLE = 'line4'; // "Multi Series Line Chart" — generated in-sp
   selector: 'app-morphcharts-page',
   imports: [MorphchartsCanvasComponent, WebGpuFallbackComponent, DataTabComponent, DebugOverlayComponent, RenderTabComponent, SamplesDialogComponent, SignalsTabComponent, SpecEditorComponent, TilesTabComponent],
   template: `
-    <div class="client">
-      <div class="left" #left>
-        <app-morphcharts-canvas (hostReady)="onHostReady($event)" (failed)="onFailed($event)" />
-        @if (debug() && debugSnapshot()) { <app-debug-overlay [snapshot]="debugSnapshot()" /> }
-        @if (fallback()) {
-          <div class="fallback-wrap">
-            <app-webgpu-fallback title="MorphCharts needs WebGPU" image="samples/images/bar2_raytrace_640x360.jpg">
-              <p class="small">{{ fallback() }}</p>
-            </app-webgpu-fallback>
-          </div>
-        }
-        @if (error()) { <div class="error" role="alert">{{ error() }}</div> }
+    <section class="head">
+      <p class="eyebrow">morphcharts · webgpu path tracer</p>
+    </section>
+
+    <div class="client chart-shell" [style.gridTemplateColumns]="'1fr 6px ' + panelWidth() + 'px'">
+      <div class="chart-column">
+        <div class="chart-toolbar">
+          <button type="button" class="btn small" [class.active]="running()" [disabled]="startDisabled()" (click)="toggleRun()">{{ running() ? 'Stop' : 'Start' }}</button>
+          <button type="button" class="btn small" [disabled]="!running()" (click)="resetCamera()" title="Reset camera position">Reset</button>
+          <button type="button" class="btn small" [disabled]="!host() || !hasScene()" (click)="capture()" title="Capture current frame">Capture</button>
+          <h1>MorphCharts</h1>
+          <span class="spacer"></span>
+          <a href="#" (click)="$event.preventDefault(); showSamples.set(true)">Show examples</a>
+        </div>
+        <div class="chart-stage" #left>
+          <app-morphcharts-canvas (hostReady)="onHostReady($event)" (failed)="onFailed($event)" />
+          @if (debug() && debugSnapshot()) { <app-debug-overlay [snapshot]="debugSnapshot()" /> }
+          @if (fallback()) {
+            <div class="fallback-wrap">
+              <app-webgpu-fallback title="MorphCharts needs WebGPU" image="samples/images/bar2_raytrace_640x360.jpg">
+                <p class="small">{{ fallback() }}</p>
+              </app-webgpu-fallback>
+            </div>
+          }
+          @if (error()) { <div class="error" role="alert">{{ error() }}</div> }
+        </div>
       </div>
-      <div class="divider" (pointerdown)="startDivider($event)" role="separator" aria-orientation="vertical"></div>
-      <div class="right" #right [style.width.px]="panelWidth()">
+
+      <div class="chart-divider" (pointerdown)="startDivider($event)" role="separator" aria-orientation="vertical"></div>
+
+      <div class="chart-column" #right>
+        <!-- The five panels have always existed behind activeTab; until now nothing switched it. -->
+        <div class="tabs" role="tablist" aria-label="Control panels">
+          @for (t of tabs; track t) {
+            <button type="button" class="btn small" role="tab" [class.active]="activeTab() === t"
+                    [attr.aria-selected]="activeTab() === t" (click)="activeTab.set(t)">{{ t }}</button>
+          }
+        </div>
         <div class="tab-body" #tabBody>
           <div [hidden]="activeTab() !== 'Plot'" class="plot-tab">
-            <div class="toolbar">
-              <button type="button" class="btn small" [class.active]="running()" [disabled]="startDisabled()" (click)="toggleRun()">{{ running() ? 'Stop' : 'Start' }}</button>
-              <button type="button" class="btn small" [disabled]="!running()" (click)="resetCamera()" title="Reset camera position">Reset</button>
-              <button type="button" class="btn small" [disabled]="!host() || !hasScene()" (click)="capture()" title="Capture current frame">Capture</button>
-              <span class="spacer"></span>
-              <a href="#" (click)="$event.preventDefault(); showSamples.set(true)">Show examples</a>
+            <div class="chart-pane-head">
+              <span class="eyebrow">Specification</span>
+              <label class="row"><input type="checkbox" [checked]="includeCamera()" (change)="includeCamera.set($any($event.target).checked)"> Set camera from specification</label>
             </div>
-            <label class="row"><input type="checkbox" [checked]="includeCamera()" (change)="includeCamera.set($any($event.target).checked)"> Set camera from specification</label>
             <app-spec-editor #editor [(value)]="specText" (changed)="onSpecChanged()" />
           </div>
           <div [hidden]="activeTab() !== 'Render'">
@@ -71,29 +90,32 @@ const DEFAULT_SAMPLE = 'line4'; // "Multi Series Line Chart" — generated in-sp
     }
   `,
   styles: `
-    :host { display: block; height: calc(100vh - var(--nav-h)); }
-    .client { display: flex; height: 100%; overflow: hidden; }
-    .left { position: relative; flex: 1; min-width: 0; overflow: hidden; }
+    /* Shell, stage, panes, toolbar and divider come from styles.scss. */
+    :host { display: block; height: calc(100vh - var(--nav-h)); display: flex; flex-direction: column; }
+    .head { padding: clamp(0.75rem, 2vh, 1.1rem) var(--pad-x) 0; }
+    app-morphcharts-canvas { position: absolute; inset: 0; }
     .fallback-wrap { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 24px; overflow: auto; }
     .small { font-size: 12px; color: var(--on-ink-faint); }
-    .divider { width: 6px; cursor: col-resize; background: var(--ink-3); border-left: 1px solid var(--hairline); }
-    .divider:hover { background: var(--teal-deep); }
-    .right { display: flex; flex-direction: column; min-width: ${PANEL_MIN}px; max-width: 70vw; background: var(--ink-2); border-left: 1px solid var(--hairline); }
-    .tab-body { flex: 1; overflow: auto; padding: 10px 12px; }
-    .plot-tab { display: flex; flex-direction: column; gap: 10px; height: 100%; }
-    .toolbar { display: flex; align-items: center; gap: 8px; }
-    .spacer { flex: 1; }
-    .row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--on-ink-dim); }
-    app-spec-editor { flex: 1; min-height: 300px; }
-    .error { position: absolute; left: 12px; right: 12px; bottom: 12px; padding: 10px 14px; border-radius: var(--radius-sm); background: rgba(239,122,138,0.16); border: 1px solid rgba(239,122,138,0.5); color: var(--on-ink); font-size: 13px; }
+    .tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+    .tab-body { flex: 1; overflow: auto; min-height: 0; }
+    .plot-tab { display: flex; flex-direction: column; gap: 8px; height: 100%; }
+    /* display:flex on .plot-tab outranks the hidden attribute's own display:none, so the panel
+       stayed laid out behind whichever tab was chosen. Latent until the switcher existed: Plot
+       was always the active tab. */
+    .tab-body > [hidden] { display: none !important; }
+    .row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--on-ink-dim); }
+    app-spec-editor { flex: 1; min-height: 240px; }
+    .error { position: absolute; left: 12px; right: 12px; bottom: 12px; padding: 10px 14px; border-radius: var(--radius-sm); background: rgba(179,38,30,0.12); border: 1px solid rgba(179,38,30,0.45); color: var(--on-ink); font-size: 13px; }
     @media (max-width: 860px) {
-      .client { flex-direction: column; }
-      .divider { display: none; }
-      .right { width: 100% !important; max-width: none; min-width: 0; height: 50%; }
+      :host { height: auto; }
+      .client { grid-template-columns: 1fr !important; }
+      .chart-divider { display: none; }
+      .chart-stage { min-height: 55vh; }
     }
   `,
 })
 export class MorphchartsPageComponent {
+  readonly tabs = ['Plot', 'Render', 'Data', 'Signals', 'Tiles'] as const;
   readonly activeTab = signal<string>('Plot');
   readonly host = signal<MorphChartsHost | null>(null);
   readonly fallback = signal<string | null>(null);

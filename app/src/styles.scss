@@ -78,6 +78,75 @@ code, kbd, .mono { font-family: var(--font-mono); }
 input[type="range"] { accent-color: var(--teal); }
 input[type="checkbox"], input[type="radio"] { accent-color: var(--teal); }
 
+/* ------------------------------------------------------------------------------------------------
+ * Chart-client paneling, shared by /morphcharts, /vega-charts and /sanddance-specs.
+ *
+ * All three are the same thing — a plot on the left, its specification and controls on the right —
+ * and they held three drifting copies of this layout before it moved here. Column widths stay with
+ * the pages, because two of the three are draggable, and so does every ::ng-deep block: those reach
+ * into renderer internals that have nothing in common.
+ * ---------------------------------------------------------------------------------------------- */
+.chart-shell {
+  flex: 1;
+  display: grid;
+  gap: 16px;
+  padding: 12px var(--pad-x) 16px;
+  min-height: 0;
+}
+
+.chart-column {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+}
+
+/* The row above the stage: controls, then the page title, then status pushed right. */
+.chart-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  h1 { font-size: 18px; margin: 0; line-height: 1; }
+  .spacer { flex: 1; }
+}
+
+/* The card the plot sits in. Clipped, so a renderer that oversizes itself cannot escape it. */
+.chart-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+.chart-pane {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  gap: 6px;
+}
+
+.chart-pane-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Drag handle between the columns. Sized in the pages, which own the width signal. */
+.chart-divider {
+  cursor: col-resize;
+  border-radius: 999px;
+  background: var(--ink-3);
+  transition: background var(--dur-fast) var(--ease-out);
+  &:hover { background: var(--teal); }
+}
+
 [data-reveal] { will-change: transform, opacity; }
 
 @media (prefers-reduced-motion: reduce) {

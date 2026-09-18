@@ -21,15 +21,14 @@ const PANEL_MIN = 320;
   selector: 'app-vega-charts-page',
   imports: [VegaChartComponent, SpecEditorComponent],
   template: `
-    <div class="client">
-      <div class="left">
-        @if (hasSpec()) { <app-vega-chart [spec]="spec()" [fill]="true" /> }
-      </div>
-      <div class="divider" (pointerdown)="startDivider($event)" role="separator" aria-orientation="vertical"></div>
-      <div class="right" #right [style.width.px]="panelWidth()">
-        <div class="panel-body">
+    <section class="head">
+      <p class="eyebrow">vega · vega-lite · {{ gallery.length }} specifications</p>
+    </section>
+
+    <div class="client chart-shell" [style.gridTemplateColumns]="'1fr 6px ' + panelWidth() + 'px'">
+      <div class="chart-column">
+        <div class="chart-toolbar">
           <label class="field">
-            <span>Chart</span>
             <select [value]="selectedId()" (change)="select($any($event.target).value)">
               @for (g of groups; track g.name) {
                 <optgroup [label]="g.name">
@@ -38,34 +37,47 @@ const PANEL_MIN = 320;
               }
             </select>
           </label>
-          <div class="toolbar">
-            <span class="spacer"></span>
-            <button type="button" class="btn small" (click)="shuffle()" title="Jump to a random chart from the list">Shuffle</button>
-            <button type="button" class="btn small" (click)="reset()">Reset</button>
-            <button type="button" class="btn small" (click)="apply()">Apply</button>
+          <h1>Vega Charts</h1>
+          <span class="spacer"></span>
+          @if (error()) { <span class="status err">{{ error() }}</span> }
+        </div>
+        <div class="chart-stage">
+          @if (hasSpec()) { <app-vega-chart [spec]="spec()" [fill]="true" /> }
+        </div>
+      </div>
+
+      <div class="chart-divider" (pointerdown)="startDivider($event)" role="separator" aria-orientation="vertical"></div>
+
+      <div class="chart-column" #right>
+        <div class="chart-pane">
+          <div class="chart-pane-head">
+            <span class="eyebrow">Specification · {{ selected().label }}</span>
+            <span class="actions">
+              <button type="button" class="btn small" (click)="shuffle()" title="Jump to a random chart from the list">Shuffle</button>
+              <button type="button" class="btn small" (click)="reset()">Reset</button>
+              <button type="button" class="btn small" (click)="apply()">Apply</button>
+            </span>
           </div>
           <app-spec-editor #editor [value]="json()" />
-          @if (error()) { <p class="err" role="alert">{{ error() }}</p> }
         </div>
       </div>
     </div>
   `,
   styles: `
-    :host { display: block; height: calc(100vh - var(--nav-h)); }
-    .client { display: flex; height: 100%; overflow: hidden; }
-    .left { position: relative; flex: 1; min-width: 0; overflow: hidden; padding: 16px; }
-    .divider { width: 6px; cursor: col-resize; background: var(--ink-3); border-left: 1px solid var(--hairline); }
-    .divider:hover { background: var(--teal-deep); }
-    .right { display: flex; flex-direction: column; min-width: ${PANEL_MIN}px; max-width: 70vw; background: var(--ink-2); border-left: 1px solid var(--hairline); }
-    .panel-body { flex: 1; display: flex; flex-direction: column; gap: 10px; padding: 10px 12px; min-height: 0; }
-    .toolbar { display: flex; align-items: center; gap: 6px; }
-    .spacer { flex: 1; }
+    /* Shell, stage, panes and divider come from styles.scss; only what is specific to this page
+       lives here. */
+    :host { display: block; height: calc(100vh - var(--nav-h)); display: flex; flex-direction: column; }
+    .head { padding: clamp(0.75rem, 2vh, 1.1rem) var(--pad-x) 0; }
+    .actions { display: inline-flex; gap: 6px; }
+    .status.err { font-size: 12px; color: var(--rose); font-family: var(--font-mono); }
     app-spec-editor { flex: 1; min-height: 200px; }
-    .err { color: var(--rose); font-size: 12px; font-family: var(--font-mono); margin: 0; }
+    /* The chart fills its card rather than sizing to the spec. */
+    :host ::ng-deep app-vega-chart { position: absolute; inset: 0; }
     @media (max-width: 860px) {
-      .client { flex-direction: column; }
-      .divider { display: none; }
-      .right { width: 100% !important; max-width: none; min-width: 0; height: 50%; }
+      :host { height: auto; }
+      .client { grid-template-columns: 1fr !important; }
+      .chart-divider { display: none; }
+      .chart-stage { min-height: 55vh; }
     }
   `,
 })

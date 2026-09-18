@@ -39,9 +39,9 @@ interface SandDanceSpecsUmd {
       <p class="eyebrow" data-reveal>sanddance-specs · insight compiler · demovote.tsv</p>
     </section>
 
-    <div class="client">
-      <div class="left">
-        <div class="toolbar">
+    <div class="client chart-shell">
+      <div class="chart-column">
+        <div class="chart-toolbar">
           <label class="field">
             <select [value]="selected()" (change)="pick($any($event.target).value)" [disabled]="!ready()">
               @for (i of insights; track i.file) { <option [value]="i.file">{{ i.label }}</option> }
@@ -52,7 +52,7 @@ interface SandDanceSpecsUmd {
           @if (!ready() && !fatal()) { <span class="status">Loading compiler…</span> }
           @if (error()) { <span class="status err">{{ error() }}</span> }
         </div>
-        <div class="stage">
+        <div class="chart-stage">
           @if (fatal()) {
             <div class="fallback"><p>{{ fatal() }}</p></div>
           } @else if (vegaSpec(); as spec) {
@@ -61,17 +61,17 @@ interface SandDanceSpecsUmd {
         </div>
       </div>
 
-      <div class="right">
-        <div class="pane">
-          <div class="pane-head">
+      <div class="chart-column">
+        <div class="chart-pane">
+          <div class="chart-pane-head">
             <span class="eyebrow">Insight · in</span>
             <button type="button" class="btn small" (click)="applyInsight()" [disabled]="!ready()">Update</button>
           </div>
           <app-spec-editor #editor [value]="insightJson()" />
         </div>
 
-        <div class="pane">
-          <div class="pane-head">
+        <div class="chart-pane">
+          <div class="chart-pane-head">
             <span class="eyebrow">Vega specification · out{{ outLines() ? ' · ' + outLines() + ' lines' : '' }}</span>
             <button type="button" class="btn small" (click)="copy()" [disabled]="!vegaJson()">{{ copied() ? 'copied' : 'copy' }}</button>
           </div>
@@ -83,15 +83,12 @@ interface SandDanceSpecsUmd {
   styles: `
     :host { display: block; height: calc(100vh - var(--nav-h)); display: flex; flex-direction: column; }
     .head { padding: clamp(0.75rem, 2vh, 1.1rem) var(--pad-x) 0; }
-    .client { flex: 1; display: grid; grid-template-columns: 1fr 460px; gap: 16px; padding: 12px var(--pad-x) 16px; min-height: 0; }
-    .left { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
-    .toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-    .toolbar h1 { font-size: 18px; margin: 0; line-height: 1; }
+    /* Shell, column, toolbar, stage and panes come from styles.scss, shared with the MorphCharts
+       and Vega Charts clients. This page has no divider, so it sets its own column widths. */
+    .client { grid-template-columns: 1fr 460px; }
     .field { display: inline-flex; }
-    .spacer { flex: 1; }
     .status { font-size: 12px; color: var(--on-ink-faint); }
     .status.err { color: var(--rose); }
-    .stage { position: relative; flex: 1; min-height: 0; overflow: hidden; border: 1px solid var(--hairline); border-radius: var(--radius); background: var(--panel); }
     .fallback { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 24px; text-align: center; color: var(--rose); font-size: 13px; }
 
     /* Same treatment as /transition: the plot takes the whole box and Vega's signal bindings float
@@ -120,11 +117,8 @@ interface SandDanceSpecsUmd {
     :host ::ng-deep .vega-bind { display: flex; align-items: center; gap: 6px; }
     :host ::ng-deep .vega-bind input[type="range"] { max-width: 120px; }
     :host ::ng-deep .vega-bind-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .right { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
-    .pane { display: flex; flex-direction: column; flex: 1; min-height: 0; gap: 6px; }
-    .pane-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
     app-spec-editor { flex: 1; min-height: 140px; }
-    @media (max-width: 1000px) { .client { grid-template-columns: 1fr; } :host { height: auto; } .stage { min-height: 60vh; } }
+    @media (max-width: 1000px) { .client { grid-template-columns: 1fr; } :host { height: auto; } .chart-stage { min-height: 60vh; } }
   `,
 })
 export class SanddanceSpecsPageComponent {
