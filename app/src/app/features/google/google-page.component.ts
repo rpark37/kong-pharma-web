@@ -37,47 +37,50 @@ function parseCsv(text: string): Purchase[] {
   selector: 'app-google-page',
   imports: [DecimalPipe, KpiTileComponent, MorphchartsSceneComponent],
   template: `
-    <section class="head">
-      <p class="eyebrow" data-reveal>MorphCharts · path traced</p>
-      <h1 data-reveal>Every Google Merchandise Store Purchase</h1>
-    </section>
-
-    <section class="kpis">
-      <app-kpi-tile label="Purchases" [value]="rows().length" hint="one block each" />
-      <app-kpi-tile label="Revenue" [value]="revenue()" prefix="$" hint="sum of item price" />
-      <app-kpi-tile label="Categories" [value]="categories()" hint="depth axis" />
-      <app-kpi-tile label="Days" [value]="days()" hint="width axis" />
-    </section>
-
-    <div class="card glass" data-reveal>
-      <div class="card-head">
-        <span class="eyebrow">{{ range() }}</span>
-        <h3>Sales landscape</h3>
-      </div>
-      <div class="scene-wrap">
-        <app-morphcharts-scene
-          [spec]="spec()"
-          [datasets]="datasets()"
-          fallbackTitle="The sales landscape needs WebGPU"
-          fallbackImage="samples/images/bar10_raytrace_640x360.jpg"
-        >
-          <p class="small">{{ rows().length | number }} purchases across {{ categories() }} categories.</p>
-        </app-morphcharts-scene>
-      </div>
+    <div class="scene-bg">
+      <app-morphcharts-scene
+        [spec]="spec()"
+        [datasets]="datasets()"
+        fallbackTitle="The sales landscape needs WebGPU"
+        fallbackImage="samples/images/bar10_raytrace_640x360.jpg"
+      >
+        <p class="small">{{ rows().length | number }} purchases across {{ categories() }} categories.</p>
+      </app-morphcharts-scene>
     </div>
-    @if (error()) { <p class="error">{{ error() }}</p> }
+
+    <div class="overlay">
+      <section class="head">
+        <p class="eyebrow" data-reveal>MorphCharts · path traced · {{ range() }}</p>
+        <h1 data-reveal>Every Google Merchandise Store Purchase</h1>
+      </section>
+
+      <section class="kpis">
+        <app-kpi-tile label="Purchases" [value]="rows().length" hint="one block each" />
+        <app-kpi-tile label="Revenue" [value]="revenue()" prefix="$" hint="sum of item price" />
+        <app-kpi-tile label="Categories" [value]="categories()" hint="depth axis" />
+        <app-kpi-tile label="Days" [value]="days()" hint="width axis" />
+      </section>
+
+      @if (error()) { <p class="error">{{ error() }}</p> }
+    </div>
   `,
   styles: `
-    :host { display: block; padding: clamp(1.5rem, 4vh, 3rem) var(--pad-x) 4rem; max-width: 1400px; margin: 0 auto; width: 100%; }
-    h1 { font-size: clamp(1.5rem, 3.2vw, 2.3rem); margin: 6px 0 10px; max-width: 900px; }
-    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 16px; }
-    .card { padding: 14px 16px; }
-    .card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
-    .card-head h3 { font-size: 18px; }
-    .scene-wrap { height: 620px; }
+    /* The landscape is the page: it fills the viewport under the nav and everything else sits on it. */
+    :host { display: block; position: relative; width: 100%; height: calc(100vh - var(--nav-h)); overflow: hidden; }
+    .scene-bg { position: absolute; inset: 0; z-index: 0; }
+    /* Full bleed, so the scene's own card chrome is suppressed. ::ng-deep because those styles
+       belong to <app-morphcharts-scene>; same reach-in pattern the atlas page already uses. */
+    :host ::ng-deep .scene { border: 0; border-radius: 0; min-height: 0; }
+
+    /* Transparent to the pointer so the scene can still be orbited between the tiles — only the
+       text and the tiles themselves take input. */
+    .overlay { position: relative; z-index: 1; pointer-events: none; padding: clamp(1.5rem, 4vh, 3rem) var(--pad-x) 0; max-width: 1400px; margin: 0 auto; }
+    .overlay > * { pointer-events: auto; }
+
+    h1 { font-size: clamp(1.5rem, 3.2vw, 2.3rem); margin: 6px 0 16px; max-width: 900px; }
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
     .small { font-size: 12px; color: var(--on-ink-faint); }
     .error { margin-top: 12px; color: var(--rose); font-size: 13px; }
-    @media (max-width: 960px) { .scene-wrap { height: 420px; } }
   `,
 })
 export class GooglePageComponent {
