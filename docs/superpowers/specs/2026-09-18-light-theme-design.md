@@ -70,7 +70,7 @@ repurposing `--ink` as a text colour would have silently broken
 | `--panel` | `rgba(25,38,48,0.78)` | `#F5F5F3` | `.glass` surface |
 | `--panel-solid` | `#192630` | `#F5F5F3` | opaque panel |
 
-`--ink-light` `#ABABAB` is added for the faintest tier, which the dark theme expressed
+`--on-ink-light` `#ABABAB` is added for the faintest foreground tier, which the dark theme expressed
 as low-alpha white and which does not translate to a single light value.
 
 Contrast pairs in the tables below use `--ink-2` `#F5F5F3` as the reference surface.
