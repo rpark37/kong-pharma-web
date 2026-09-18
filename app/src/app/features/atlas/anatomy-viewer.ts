@@ -39,6 +39,17 @@ class PointerTap {
 
 interface Target { index: number; x: number; y: number; left: number; right: number; top: number; bottom: number; }
 
+/** `SYSTEMS` colours (anatomy.ts) were tuned to pop off a near-black ground; several (bone, nerve,
+ * connective, sensory) fall under 3:1 against the light one, so the viewer darkens its own copy
+ * instead of touching the shared palette used elsewhere (e.g. the legend). */
+function darken(hex: string, factor: number): string {
+  const n = parseInt(hex.slice(1), 16);
+  const r = Math.round(((n >> 16) & 255) * factor);
+  const g = Math.round(((n >> 8) & 255) * factor);
+  const b = Math.round((n & 255) * factor);
+  return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
+}
+
 export class AnatomyViewer {
   private renderer!: T.WebGLRenderer;
   private readonly scene = new T.Scene();
@@ -100,7 +111,7 @@ export class AnatomyViewer {
     this.selectionTexture.needsUpdate = true;
     this.markerPositions = new Float32Array(parts.length * 3);
     this.markerGeometry.setAttribute('position', new T.BufferAttribute(this.markerPositions, 3));
-    const markerMaterial = new T.PointsMaterial({ color: 0x8fa3b0, size: 5, sizeAttenuation: false, transparent: true, opacity: 0.72, depthTest: false });
+    const markerMaterial = new T.PointsMaterial({ color: 0x6b7a84, size: 5, sizeAttenuation: false, transparent: true, opacity: 0.72, depthTest: false });
     markerMaterial.onBeforeCompile = (shader) => { shader.fragmentShader = shader.fragmentShader.replace('#include <clipping_planes_fragment>', '#include <clipping_planes_fragment>\nif (distance(gl_PointCoord, vec2(0.5)) > 0.5) discard;'); };
     this.materials.push(markerMaterial);
     this.markers = new T.Points(this.markerGeometry, markerMaterial);
@@ -121,10 +132,10 @@ export class AnatomyViewer {
     }
     const r = this.renderer;
     r.setPixelRatio(Math.min(devicePixelRatio, innerWidth < 768 ? 1.5 : 2));
-    r.setClearColor('#121c24');
+    r.setClearColor('#F5F5F3');
     r.outputColorSpace = T.SRGBColorSpace;
     r.toneMapping = T.ACESFilmicToneMapping;
-    r.toneMappingExposure = 1.05;
+    r.toneMappingExposure = 1.2;
     el.appendChild(r.domElement);
     el.appendChild(this.hover);
     r.domElement.setAttribute('aria-label', 'Interactive human anatomy. Drag to orbit, pinch or scroll to zoom, and tap a structure to inspect it.');
@@ -137,13 +148,13 @@ export class AnatomyViewer {
     controls.addEventListener('change', () => { this.dirty = true; });
     const pmrem = new T.PMREMGenerator(r), room = new RoomEnvironment();
     this.env = pmrem.fromScene(room, 0.04); scene.environment = this.env.texture; room.dispose(); pmrem.dispose();
-    scene.add(new T.HemisphereLight(0xdfe8ee, 0x1a252d, 0.9));
+    scene.add(new T.HemisphereLight(0xdfe8ee, 0xc9c4b4, 0.9));
     const key = new T.DirectionalLight(0xfff6ea, 2.2); key.position.set(-2, 4, 3); scene.add(key);
     const rim = new T.DirectionalLight(0x9fe8dc, 1.6); rim.position.set(2, 2, -3); scene.add(rim);
-    this.ground = new T.Mesh(new T.CircleGeometry(30, 96), new T.MeshStandardMaterial({ color: 0x151f27, roughness: 1 })); this.ground.rotation.x = -Math.PI / 2; this.ground.position.y = -0.019; scene.add(this.ground);
-    this.platform = new T.Mesh(new T.CylinderGeometry(0.68, 0.7, 0.028, 100), new T.MeshStandardMaterial({ color: 0x1b2a34, metalness: 0.15, roughness: 0.6 })); this.platform.position.y = -0.016; scene.add(this.platform);
-    this.ring = new T.Mesh(new T.RingGeometry(0.63, 0.632, 128), new T.MeshBasicMaterial({ color: 0x44e0cc, transparent: true, opacity: 0.5, side: T.DoubleSide })); this.ring.rotation.x = -Math.PI / 2; this.ring.position.y = 0.001; scene.add(this.ring);
-    this.innerRing = new T.Mesh(new T.RingGeometry(0.55, 0.551, 128), new T.MeshBasicMaterial({ color: 0x44e0cc, transparent: true, opacity: 0.18, side: T.DoubleSide })); this.innerRing.rotation.x = -Math.PI / 2; this.innerRing.position.y = 0.001; scene.add(this.innerRing);
+    this.ground = new T.Mesh(new T.CircleGeometry(30, 96), new T.MeshStandardMaterial({ color: 0xe8e8e6, roughness: 1 })); this.ground.rotation.x = -Math.PI / 2; this.ground.position.y = -0.019; scene.add(this.ground);
+    this.platform = new T.Mesh(new T.CylinderGeometry(0.68, 0.7, 0.028, 100), new T.MeshStandardMaterial({ color: 0xd4d4d2, metalness: 0.15, roughness: 0.6 })); this.platform.position.y = -0.016; scene.add(this.platform);
+    this.ring = new T.Mesh(new T.RingGeometry(0.63, 0.632, 128), new T.MeshBasicMaterial({ color: 0x00705d, transparent: true, opacity: 0.85, side: T.DoubleSide })); this.ring.rotation.x = -Math.PI / 2; this.ring.position.y = 0.001; scene.add(this.ring);
+    this.innerRing = new T.Mesh(new T.RingGeometry(0.55, 0.551, 128), new T.MeshBasicMaterial({ color: 0x00705d, transparent: true, opacity: 0.3, side: T.DoubleSide })); this.innerRing.rotation.x = -Math.PI / 2; this.innerRing.position.y = 0.001; scene.add(this.innerRing);
     scene.add(this.markers);
 
     const mats = new Map<SystemId, T.Material>(SYSTEMS.map((s) => [s.id, this.materialFor(s.id)]));
@@ -194,14 +205,14 @@ export class AnatomyViewer {
   }
 
   private materialFor(system: SystemId): T.Material {
-    const m = new T.MeshStandardMaterial({ color: SYSTEMS.find((s) => s.id === system)?.color ?? '#aebbb8', metalness: 0.08, roughness: 0.53, side: T.DoubleSide, transparent: system === 'integumentary', opacity: system === 'integumentary' ? 0.1 : 1, depthWrite: system !== 'integumentary' });
+    const m = new T.MeshStandardMaterial({ color: darken(SYSTEMS.find((s) => s.id === system)?.color ?? '#aebbb8', 0.62), metalness: 0.08, roughness: 0.53, side: T.DoubleSide, transparent: system === 'integumentary', opacity: system === 'integumentary' ? 0.1 : 1, depthWrite: system !== 'integumentary' });
     m.onBeforeCompile = (shader) => {
       shader.uniforms['partState'] = { value: this.partTexture }; shader.uniforms['selectionState'] = { value: this.selectionTexture }; shader.uniforms['stateWidth'] = { value: this.width };
       shader.vertexShader = 'attribute float partIndex; uniform sampler2D partState; uniform sampler2D selectionState; uniform float stateWidth; varying float partVisible; varying float partSelected;\n' + shader.vertexShader;
       shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvec2 stateUv = vec2((partIndex + 0.5) / stateWidth, 0.5); vec4 state = texture2D(partState, stateUv); transformed += state.xyz; partVisible = state.w; partSelected = texture2D(selectionState, stateUv).r;');
       shader.fragmentShader = 'varying float partVisible; varying float partSelected;\n' + shader.fragmentShader;
       shader.fragmentShader = shader.fragmentShader.replace('#include <clipping_planes_fragment>', '#include <clipping_planes_fragment>\nif (partVisible < 0.5) discard;');
-      shader.fragmentShader = shader.fragmentShader.replace('#include <color_fragment>', '#include <color_fragment>\ndiffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.27, 0.88, 0.80), partSelected * 0.75);');
+      shader.fragmentShader = shader.fragmentShader.replace('#include <color_fragment>', '#include <color_fragment>\ndiffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.0, 0.439, 0.365), partSelected * 0.75);');
     };
     this.materials.push(m);
     return m;
