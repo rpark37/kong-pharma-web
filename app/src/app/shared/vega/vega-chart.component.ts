@@ -73,13 +73,20 @@ export class VegaChartComponent implements OnDestroy {
     return base;
   }
 
-  /** Specs from the Vega Editor say `assets/data/<file>`; on vega.github.io it is `data/<file>`. */
+  /**
+   * The two SandDance specs in the gallery. Their datasets are not on Vega's host under any path,
+   * and the specs disagree about how to ask for them — scatter3D says `../../sample-data/`,
+   * titanic says `assets/data/` — so they are matched on filename rather than prefix.
+   */
+  private static readonly SANDDANCE_DATA = new Set(['demovote.tsv', 'titanicmaster.tsv']);
+
   private static resolveDataUri(uri: string): string {
-    if (uri.startsWith('assets/data/')) return uri.slice('assets/'.length);
-    // scatter3D is a SandDance spec — its dataset is not on Vega's host at all.
-    if (uri.startsWith('../../sample-data/')) {
-      return `https://microsoft.github.io/SandDance/sample-data/${uri.slice('../../sample-data/'.length)}`;
+    const file = uri.slice(uri.lastIndexOf('/') + 1);
+    if (VegaChartComponent.SANDDANCE_DATA.has(file)) {
+      return `https://microsoft.github.io/SandDance/sample-data/${file}`;
     }
+    // Specs from the Vega Editor say `assets/data/<file>`; on vega.github.io it is `data/<file>`.
+    if (uri.startsWith('assets/data/')) return uri.slice('assets/'.length);
     return uri;
   }
 
