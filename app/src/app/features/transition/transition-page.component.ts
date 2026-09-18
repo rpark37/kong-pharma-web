@@ -18,6 +18,9 @@ interface ViewGlInstance {
   renderer(name: string): ViewGlInstance;
   initialize(el: Element): ViewGlInstance;
   run(): ViewGlInstance;
+  /** Inherited from Vega's View: resizes the scene rather than stretching its canvas. */
+  width(w: number): ViewGlInstance;
+  height(h: number): ViewGlInstance;
   finalize?: () => void;
 }
 interface VegaMorphChartsUmd {
@@ -89,7 +92,24 @@ interface VegaMorphChartsUmd {
     .head { padding: clamp(0.75rem, 2vh, 1.1rem) var(--pad-x) 0; }
     .client { flex: 1; display: grid; grid-template-columns: 1fr 460px; gap: 16px; padding: 14px var(--pad-x) 16px; min-height: 0; }
     .left { position: relative; border: 1px solid var(--hairline); border-radius: var(--radius); background: var(--ink-2); overflow: hidden; }
-    .left :global(canvas) { display: block; width: 100%; height: 100%; }
+
+    /* ViewGl builds its own DOM inside the host, so these are reached with ::ng-deep — the same
+       way atlas-page reaches the canvas it does not own. The renderer stacks a gl surface above a
+       controls panel; here the surface takes the whole box and the controls float over it. */
+    :host ::ng-deep .vega-morphcharts-root { position: absolute; inset: 0; }
+    :host ::ng-deep .vega-morphcharts-gl,
+    :host ::ng-deep .vega-morphcharts-gl canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+    :host ::ng-deep .vega-morphcharts-panel {
+      position: absolute; left: 12px; bottom: 12px; right: auto; top: auto; width: auto; max-width: min(340px, 60%);
+      max-height: calc(100% - 24px); overflow: auto; z-index: 2;
+      padding: 10px 12px; border-radius: var(--radius-sm);
+      background: color-mix(in srgb, var(--panel) 88%, transparent);
+      border: 1px solid var(--hairline); box-shadow: var(--shadow-sm);
+      font-size: 12px; color: var(--on-ink-dim);
+    }
+    :host ::ng-deep .vega-morphcharts-panel select,
+    :host ::ng-deep .vega-morphcharts-panel input { font: inherit; max-width: 150px; }
+    :host ::ng-deep .vega-morphcharts-legend:empty { display: none; }
     .fallback { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 24px; text-align: center; color: var(--rose); font-size: 13px; }
     .right { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
     .toolbar { display: flex; align-items: center; gap: 8px; }
@@ -121,13 +141,16 @@ export class TransitionPageComponent {
   private view: ViewGlInstance | null = null;
   /** The spec last applied, so the 2D/3D toggle can rebuild without re-reading an editor. */
   private lastSpec: unknown = null;
+  private resize: ResizeObserver | null = null;
 
   constructor() {
     afterNextRender(() => {
       this.gsap.reveal(this.el.nativeElement.querySelectorAll('[data-reveal]'), { delay: this.gsap.MOTION.delay.short });
       void this.boot();
+      this.resize = new ResizeObserver(() => this.fit());
+      this.resize.observe(this.stage().nativeElement);
     });
-    inject(DestroyRef).onDestroy(() => this.view?.finalize?.());
+    inject(DestroyRef).onDestroy(() => { this.resize?.disconnect(); this.view?.finalize?.(); });
   }
 
   toggleView(): void {
@@ -167,6 +190,18 @@ export class TransitionPageComponent {
     }
   }
 
+  /**
+   * The specs declare their own 700x700, which leaves the scene floating in a corner of a wider
+   * panel. Resizing the view redraws at the panel's size rather than stretching a fixed buffer,
+   * so the result stays crisp.
+   */
+  private fit(): void {
+    const el = this.stage().nativeElement;
+    const w = Math.max(64, Math.floor(el.clientWidth));
+    const h = Math.max(64, Math.floor(el.clientHeight));
+    try { this.view?.width(w).height(h).run(); } catch { /* spec without resizable size signals */ }
+  }
+
   private render(spec: unknown): void {
     const umd = this.umd;
     if (!umd) return;
@@ -182,6 +217,7 @@ export class TransitionPageComponent {
         .initialize(this.stage().nativeElement)
         .run();
       this.lastSpec = spec;
+      this.fit();
       this.error.set('');
     } catch (e) {
       this.error.set(e instanceof Error ? e.message : String(e));
