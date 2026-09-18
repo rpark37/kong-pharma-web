@@ -1,6 +1,17 @@
 <!doctype html>
 <html lang="en">
   <head>
+<script>
+  // Deep links into the Angular labs app (/app/<route>) are served by this 404 page on GitHub Pages.
+  // Hand the requested path to the app, which navigates to it after bootstrap.
+  (function () {
+    var p = location.pathname;
+    if (p.indexOf('/app/') === 0 && p !== '/app/') {
+      location.replace('/app/?r=' + encodeURIComponent(p.slice(4) + location.search + location.hash));
+    }
+  })();
+</script>
+
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Page not found | Kong's Pharmaceutical Co.</title>

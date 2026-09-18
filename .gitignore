@@ -1,3 +1,21 @@
 .DS_Store
 node_modules/
 .superpowers/
+
+# Angular app
+app/node_modules/
+app/dist/
+app/.angular/
+app/vendor/morphcharts/**/dist/
+app/test-results/
+app/playwright-report/
+*.tsbuildinfo
+
+# API
+api/.venv/
+api/data/**/*.parquet
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+api/data/atlas/atlas.json
+api/data/ga4/SOURCE

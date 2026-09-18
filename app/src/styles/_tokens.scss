@@ -1,0 +1,35 @@
+// Design tokens mirrored from the marketing site's styles.css so the labs app reads as the
+// same product. Dark surfaces only.
+:root {
+  --teal: #44e0cc;
+  --teal-bright: #2fb7a6;
+  --teal-deep: #063a34;
+  --teal-ink: #0f8577;
+  --violet: #8b7cff;
+  --green: #7ac585;
+  --amber: #f2c14e;
+  --rose: #ef7a8a;
+  --ink: #121c24;
+  --ink-2: #192630;
+  --ink-3: #24343f;
+  --on-ink: #e6f6f3;
+  --on-ink-dim: rgba(230, 246, 243, 0.62);
+  --on-ink-faint: rgba(230, 246, 243, 0.38);
+  --hairline: rgba(230, 246, 243, 0.12);
+  --panel: rgba(25, 38, 48, 0.78);
+  --panel-solid: #192630;
+  --glow: rgba(68, 224, 204, 0.22);
+
+  --font-display: "Space Grotesk", "Inter", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --radius: 14px;
+  --radius-sm: 8px;
+  --pad-x: clamp(1rem, 4vw, 3rem);
+  --nav-h: 60px;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 0.25s;
+  --dur: 0.55s;
+}

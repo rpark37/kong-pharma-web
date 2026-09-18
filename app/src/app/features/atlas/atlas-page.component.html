@@ -1,0 +1,141 @@
+<main class="studio">
+  <div class="stage" #stage (pointerdown)="onPointerDown($event)" (pointerup)="onPointerUp($event)">
+    @if (!fallback()) {
+      <app-morphcharts-canvas (hostReady)="onHost($event)" (failed)="onFailed($event)" />
+    } @else {
+      <div class="fallback-wrap">
+        @if (fallbackSpec(); as spec) {
+          <app-vega-chart class="fallback-chart" [spec]="spec" [height]="520" />
+        }
+        <app-webgpu-fallback title="The 3D atlas needs WebGPU">
+          <p class="small">The treemap above shows the same 2,234 structures grouped by system.</p>
+        </app-webgpu-fallback>
+      </div>
+    }
+    <div class="vignette"></div>
+  </div>
+
+  <header class="identity" data-reveal>
+    <div class="eyebrow"><span class="status-dot"></span> INTERACTIVE ANATOMY</div>
+    <h1>Human Atlas <span class="edition">MorphCharts</span></h1>
+    <div class="identity-meta">{{ parts().length ? (parts().length | number) : '2,234' }} modeled pieces <span>·</span> BodyParts3D</div>
+  </header>
+
+  <nav class="top-actions" aria-label="Explorer panels" data-reveal>
+    <button type="button" class="btn small" [class.active]="panel() === 'search'" (click)="openPanel('search')" aria-label="Search anatomy">🔍 <span>Find a structure</span><kbd>/</kbd></button>
+    <button type="button" class="btn small icon" aria-label="About this atlas" (click)="openAbout()">i</button>
+  </nav>
+
+  <section class="layers-panel glass" [class.mobile-open]="panel() === 'layers'" aria-label="Anatomical layers" data-reveal>
+    <div class="panel-heading"><span>Systems</span><button type="button" class="btn small mobile-only" (click)="panel.set(null)" aria-label="Close systems">✕</button><span class="badge desktop-only">{{ activeSystems().length }}</span></div>
+    <div class="layer-presets">
+      <button type="button" class="btn small" [attr.aria-pressed]="allVisible()" (click)="showAll()">All</button>
+      <button type="button" class="btn small" [attr.aria-pressed]="skeletonOnly()" (click)="showSkeleton()">Skeleton</button>
+      <button type="button" class="btn small" [attr.aria-pressed]="organsOnly()" (click)="showOrgans()">Organs</button>
+    </div>
+    <div class="system-list">
+      @for (s of activeSystems(); track s.id) {
+        <div class="system-row" [class.enabled]="visible().includes(s.id)">
+          <button type="button" class="system-name" [title]="'Show only ' + s.name.toLowerCase()" (click)="showOnly(s.id)">
+            <span class="system-dot" [style.background]="s.color"></span>{{ s.name }}<span class="system-count">{{ count(s.id) }}</span>
+          </button>
+          <app-switch [checked]="visible().includes(s.id)" (checkedChange)="toggle(s.id)" [label]="'Show ' + s.name.toLowerCase()" />
+        </div>
+      }
+    </div>
+    <div class="panel-foot"><span>{{ visibleCount() | number }} pieces visible</span><button type="button" class="btn small" (click)="hideAll()">Hide all</button></div>
+  </section>
+
+  @if (panel() === 'search') {
+    <section class="search-panel glass" aria-label="Find anatomy">
+      <div class="panel-heading"><span>Find a structure</span><button type="button" class="btn small icon" (click)="panel.set(null)" aria-label="Close search">✕</button></div>
+      <input class="search-input" type="search" autofocus placeholder="Heart, femur, cranial nerve…" aria-label="Search named anatomical structures" [value]="query()" (input)="query.set($any($event.target).value)">
+      <ul class="search-results" role="listbox">
+        @for (c of results(); track c.id) {
+          <li><button type="button" role="option" (click)="choose(c)"><span class="search-result-name">{{ c.name }}</span><span class="small-number">{{ c.elements.length }} {{ c.elements.length === 1 ? 'piece' : 'pieces' }}</span></button></li>
+        } @empty {
+          <li class="empty">No structures match your search.</li>
+        }
+      </ul>
+      <p class="search-note">{{ query() ? 'Showing up to 80 matches. Refine your search to find smaller structures.' : 'Start with a major organ, or search every named structure.' }}</p>
+    </section>
+  }
+
+  <nav class="view-controls glass" aria-label="Camera controls" data-reveal>
+    @for (v of views; track v.id) {
+      <button type="button" class="btn small" [class.active]="view() === v.id" [attr.aria-pressed]="view() === v.id" [disabled]="explode() > 0.8 && v.id !== 'front'" (click)="setView(v.id)" [title]="v.id + ' view'" [attr.aria-label]="v.id + ' view'">{{ v.glyph }}</button>
+    }
+    <i></i>
+    <button type="button" class="btn small" [disabled]="explode() >= 0.4" [attr.aria-label]="rotate() ? 'Pause rotation' : 'Rotate body'" title="Auto rotate" [class.active]="rotate()" (click)="toggleRotate()">{{ rotate() ? '❚❚' : '↻' }}</button>
+    <button type="button" class="btn small" aria-label="Reset view and layers" title="Reset" (click)="reset()">⟲</button>
+  </nav>
+
+  <div class="scene-caption" data-reveal><span class="caption-line"></span><span>{{ caption() }}</span><span class="caption-line"></span></div>
+
+  <div class="bottom-dock glass" data-reveal>
+    <button type="button" class="btn small mobile-only dock-layers" (click)="openPanel('layers')" aria-label="Open system layers">Systems</button>
+    <div class="explode-control">
+      <div class="explode-label"><label id="explode-label">Explode anatomy</label><output>{{ (explode() * 100) | number: '1.0-0' }}<span>%</span></output></div>
+      <input type="range" min="0" max="100" step="1" aria-labelledby="explode-label" [value]="explode() * 100" (input)="onExplodeInput(+$any($event.target).value, false)" (change)="onExplodeInput(+$any($event.target).value, true)">
+      <div class="slider-endpoints"><span>Assembled</span><span>Every piece</span></div>
+    </div>
+    <button type="button" class="btn small dock-reset" (click)="reset()" aria-label="Assemble and reset">⟲ <span>Reset</span></button>
+  </div>
+
+  <footer class="studio-footer" data-reveal>
+    <span>{{ explode() > 0.8 ? 'Drag to pan' : 'Drag to orbit' }} <b>·</b> Wheel to zoom <b>·</b> Tap to inspect</span>
+    <button type="button" class="btn small" (click)="openAbout()">Source &amp; credits ↗</button>
+  </footer>
+
+  @if (progress() < 100 && !error()) {
+    <div class="loading glass" role="status">
+      <div><strong>Preparing the anatomy</strong><span>{{ progress() }}% · Loading {{ parts().length ? (parts().length | number) : '2,234' }} pieces</span><div class="loading-track"><i [style.width.%]="progress()"></i></div></div>
+    </div>
+  }
+  @if (error()) {
+    <div class="loading glass error" role="alert"><p>{{ error() }}</p><button type="button" class="btn small" (click)="reload()">Reload viewer</button></div>
+  }
+
+  <aside class="detail-sheet glass" [class.open]="details() && selectedParts().length > 0" [class.is-isolated]="isolate()" aria-label="Structure details">
+    <div class="detail-header">
+      <div class="detail-accent" [style.background]="selectedSystem()?.color"></div>
+      <div class="eyebrow">{{ selectedSystem()?.name ?? 'ANATOMY' }}</div>
+      <h2 class="structure-title">{{ chosen()?.name }}</h2>
+      <button type="button" class="btn small icon close" (click)="details.set(false)" aria-label="Close details">✕</button>
+    </div>
+    <div class="detail-scroll">
+      <p class="structure-description">{{ explanationText() }}</p>
+      @if (chosen() && !hasExplanation()) { <span class="context-note">System overview · structure identified from source anatomy</span> }
+      <div class="structure-meta"><span>Atlas reference<strong>{{ chosen()?.id }}</strong></span><span>Selected pieces<strong>{{ selected().length | number }}</strong></span></div>
+      @if (selectedParts().length > 1) {
+        <div class="member-list">
+          <h3>Included structures</h3>
+          @for (p of selectedParts().slice(0, 50); track p.id) { <button type="button" class="member" (click)="choosePart(p.id)"><span>{{ p.name }}</span><span>›</span></button> }
+          @if (selectedParts().length > 50) { <p>And {{ selectedParts().length - 50 }} more modeled pieces.</p> }
+        </div>
+      }
+      <a class="source-link" href="https://lifesciencedb.jp/bp3d/" target="_blank" rel="noreferrer">View anatomical source ↗</a>
+    </div>
+    <div class="detail-actions">
+      <button type="button" class="btn primary-action" [class.active]="isolate()" (click)="toggleIsolate()">◎ {{ isolate() ? 'Show surrounding anatomy' : 'Isolate structure' }} ›</button>
+      <button type="button" class="btn small secondary-action" (click)="clearSelection()">Clear selection</button>
+    </div>
+  </aside>
+
+  <aside class="about-sheet glass" [class.open]="about()" aria-label="Source and scope">
+    <button type="button" class="btn small icon close" (click)="about.set(false)" aria-label="Close">✕</button>
+    <div class="eyebrow">SOURCE &amp; SCOPE</div>
+    <h2 class="structure-title">A body, revealed.</h2>
+    <p class="structure-description">Explore the adult male reference anatomy from BodyParts3D, reinterpreted as data: each of the {{ parts().length | number }} source meshes is drawn by MorphCharts as a primitive at its bounding box, coloured by system, from a Vega-style specification.</p>
+    <div class="about-copy">
+      <p><strong>Male · BodyParts3D</strong><br>{{ parts().length | number }} individual meshes and {{ concepts().length | number }} named concepts from an adult male reference anatomy.</p>
+      <p>This reference does not contain every human structure or variation. Named concepts can contain multiple pieces; each source mesh is represented once.</p>
+      <p>Colors and system groupings are designed for exploration. Shapes are bounding-box proxies of the simplified web geometry. This is an anatomical reference, not a diagnostic or surgical tool.</p>
+      <h3>Source</h3>
+      <p>BodyParts3D, © The Database Center for Life Science, licensed under CC Attribution 4.0 International. Catalogue packaged by <a href="https://github.com/ashemag/human-atlas" target="_blank" rel="noreferrer">ashemag/human-atlas</a> (MIT).</p>
+      <a href="https://dbarchive.biosciencedbc.jp/en/bodyparts3d/lic.html" target="_blank" rel="noreferrer">Dataset license ↗</a>
+      <a href="https://dbarchive.biosciencedbc.jp/en/bodyparts3d/download.html" target="_blank" rel="noreferrer">Original geometry &amp; metadata ↗</a>
+      <a href="https://academic.oup.com/nar/article/37/suppl_1/D782/1000752" target="_blank" rel="noreferrer">Read the source publication ↗</a>
+    </div>
+  </aside>
+</main>

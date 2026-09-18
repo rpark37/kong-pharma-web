@@ -1,0 +1,82 @@
+@use "styles/tokens";
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html, body { height: 100%; margin: 0; }
+
+body {
+  background: var(--ink);
+  color: var(--on-ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+
+h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.02em; margin: 0; }
+p { margin: 0; }
+a { color: var(--teal); text-decoration: none; }
+button { font: inherit; color: inherit; }
+code, kbd, .mono { font-family: var(--font-mono); }
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--teal);
+}
+
+.glass {
+  background: var(--panel);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--hairline);
+  background: transparent;
+  color: var(--on-ink);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+  &:hover { background: rgba(68, 224, 204, 0.1); border-color: rgba(68, 224, 204, 0.4); }
+  &.active, &[aria-pressed="true"] { background: var(--teal); color: var(--teal-deep); border-color: var(--teal); }
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
+  &.small { padding: 5px 10px; font-size: 13px; }
+  &.icon { padding: 8px; }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  label { font-size: 12px; color: var(--on-ink-dim); }
+  input, select, textarea {
+    font: inherit;
+    color: var(--on-ink);
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-sm);
+    padding: 6px 8px;
+    &:focus { outline: 2px solid var(--glow); border-color: var(--teal); }
+  }
+}
+
+input[type="range"] { accent-color: var(--teal); }
+input[type="checkbox"], input[type="radio"] { accent-color: var(--teal); }
+
+[data-reveal] { will-change: transform, opacity; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
