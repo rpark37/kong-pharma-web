@@ -36,7 +36,7 @@ export class App {
     {
       label: 'Examples',
       children: [
-        { path: '/bayes', label: 'Disease' },
+        { path: '/bayes', label: 'Clinical (Bayes Theorem)' },
         { path: '/google', label: 'Google Merchandise' },
       ],
     },
