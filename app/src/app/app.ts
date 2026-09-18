@@ -17,17 +17,22 @@ export interface NavItem {
 })
 export class App {
   readonly links: NavItem[] = [
-    { path: '/morphcharts', label: 'MorphCharts' },
     {
-      label: 'Database',
+      label: 'Data',
       children: [
         { path: '/ares', label: 'People' },
         { path: '/merchandise', label: 'Merchandise' },
       ],
     },
+    {
+      label: 'Charts',
+      children: [
+        { path: '/morphcharts', label: 'MorphCharts' },
+        { path: '/vega-charts', label: 'Vega Charts' },
+      ],
+    },
     { path: '/atlas', label: 'Human Atlas' },
     { path: '/bayes', label: 'Bayes' },
-    { path: '/vega-charts', label: 'Vega Charts' },
   ];
 
   private readonly el = inject<ElementRef<HTMLElement>>(ElementRef);
