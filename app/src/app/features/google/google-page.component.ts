@@ -74,13 +74,24 @@ function parseCsv(text: string): Purchase[] {
 
     /* Transparent to the pointer so the scene can still be orbited between the tiles — only the
        text and the tiles themselves take input. */
-    .overlay { position: relative; z-index: 1; pointer-events: none; padding: clamp(1.5rem, 4vh, 3rem) var(--pad-x) 0; max-width: 1400px; margin: 0 auto; }
+    .overlay { position: relative; z-index: 1; pointer-events: none; padding: clamp(1rem, 3vh, 2rem) var(--pad-x) 0; max-width: 1400px; margin: 0 auto;
+               display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
     .overlay > * { pointer-events: auto; }
 
-    h1 { font-size: clamp(1.5rem, 3.2vw, 2.3rem); margin: 6px 0 16px; max-width: 900px; }
-    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+    .head { flex: 1 1 300px; min-width: 0; }
+    h1 { font-size: clamp(1.25rem, 2.2vw, 1.75rem); margin: 4px 0 0; }
+    .kpis { display: flex; gap: 8px; flex: 0 1 auto; }
+
+    /* Compact enough to share the row with the title. The tile is shared by 18 call sites across
+       four pages, so it is shrunk here rather than in the component. The hint line is dropped —
+       four hints plus the heading do not fit on one row at any readable size. */
+    :host ::ng-deep app-kpi-tile .tile { padding: 8px 12px; gap: 1px; }
+    :host ::ng-deep app-kpi-tile .label { font-size: 10px; letter-spacing: 0.06em; }
+    :host ::ng-deep app-kpi-tile .value { font-size: 18px; }
+    :host ::ng-deep app-kpi-tile .hint { display: none; }
     .small { font-size: 12px; color: var(--on-ink-faint); }
-    .error { margin-top: 12px; color: var(--rose); font-size: 13px; }
+    /* Third flex item in .overlay — given its own line rather than squeezed beside the tiles. */
+    .error { flex: 1 0 100%; margin-top: 12px; color: var(--rose); font-size: 13px; }
   `,
 })
 export class GooglePageComponent {
