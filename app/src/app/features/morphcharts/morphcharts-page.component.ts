@@ -16,6 +16,7 @@ import { TileSettings, TilesTabComponent } from './tiles-tab.component';
 const LOADING_SHOW_DELAY = 200;
 const LOADING_MIN_DISPLAY = 500;
 const PANEL_MIN = 320;
+const DEFAULT_SAMPLE = 'line4'; // "Multi Series Line Chart" — generated in-spec, so it needs no data file
 
 /**
  * Recreation of https://microsoft.github.io/morphcharts/client.html: a path-traced canvas on the
@@ -131,13 +132,14 @@ export class MorphchartsPageComponent {
   private loadingTimeout: ReturnType<typeof setTimeout> | null = null;
   private sizeType: ResizeRequest['type'] = 'hd';
   private pendingSample: string | null = null;
+  private autoStart = true;
+  private specReady = false;
 
   constructor() {
-    const sample = this.route.snapshot.queryParamMap.get('plot') ?? this.route.snapshot.queryParamMap.get('spec');
-    if (sample) this.pendingSample = sample;
+    this.pendingSample = this.route.snapshot.queryParamMap.get('plot') ?? this.route.snapshot.queryParamMap.get('spec') ?? DEFAULT_SAMPLE;
     afterNextRender(() => {
       this.gsap.slideIn(this.right().nativeElement, 'right', this.gsap.MOTION.delay.medium);
-      if (this.pendingSample) void this.loadSampleFile(this.pendingSample);
+      void this.loadSampleFile(this.pendingSample!).then(() => { this.specReady = true; this.maybeAutoStart(); });
     });
     this.destroyRef.onDestroy(() => this.host()?.dispose());
   }
@@ -149,6 +151,14 @@ export class MorphchartsPageComponent {
     this.host.set(host);
     this.applySize('hd');
     this.renderTab().syncFromHost();
+    this.maybeAutoStart();
+  }
+
+  /** Renders the sample we loaded on arrival, once both it and the WebGPU host are ready (either can win the race). */
+  private maybeAutoStart(): void {
+    if (!this.autoStart || !this.specReady || !this.host()) return;
+    this.autoStart = false;
+    void this.toggleRun();
   }
 
   onFailed(message: string): void {
