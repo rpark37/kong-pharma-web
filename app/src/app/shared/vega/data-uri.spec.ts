@@ -6,12 +6,10 @@ import { VEGA_DATA_BASE, resolveDataUri } from './data-uri';
  * here means a future edit has to be deliberate.
  */
 describe('resolveDataUri', () => {
-  it('sends the two SandDance datasets to SandDance, whatever prefix the spec used', () => {
+  it('sends the two vendored datasets at our own copy, whatever prefix the spec used', () => {
     // scatter3D asks one way, titanic the other; both files are absent from Vega's host.
-    expect(resolveDataUri('../../sample-data/demovote.tsv'))
-      .toBe('https://microsoft.github.io/SandDance/sample-data/demovote.tsv');
-    expect(resolveDataUri('assets/data/titanicmaster.tsv'))
-      .toBe('https://microsoft.github.io/SandDance/sample-data/titanicmaster.tsv');
+    expect(resolveDataUri('../../sample-data/demovote.tsv')).toBe(new URL('data/demovote.tsv', document.baseURI).href);
+    expect(resolveDataUri('assets/data/titanicmaster.tsv')).toBe(new URL('data/titanicmaster.tsv', document.baseURI).href);
   });
 
   it('strips the Vega Editor assets/ prefix so the path resolves on vega.github.io', () => {
@@ -29,12 +27,12 @@ describe('resolveDataUri', () => {
     expect(resolveDataUri(url)).toBe(url);
   });
 
-  it('matches SandDance datasets on filename, not on the directory they came from', () => {
+  it('matches vendored datasets on filename, not on the directory they came from', () => {
     // The rule is filename-based precisely because the two specs disagree about the prefix.
-    expect(resolveDataUri('data/demovote.tsv')).toContain('SandDance');
-    expect(resolveDataUri('demovote.tsv')).toContain('SandDance');
+    expect(resolveDataUri('data/demovote.tsv')).toContain('data/demovote.tsv');
+    expect(resolveDataUri('demovote.tsv')).toMatch(/^https?:/);
     // A different file in the same directory is not swept along with it.
-    expect(resolveDataUri('data/cars.json')).not.toContain('SandDance');
+    expect(resolveDataUri('data/cars.json')).toBe('data/cars.json');
   });
 
   it('points relative data at Vega rather than at this app', () => {

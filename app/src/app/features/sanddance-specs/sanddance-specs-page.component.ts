@@ -9,8 +9,8 @@ import { INSIGHTS, INSIGHT_DIR } from './insights';
 
 /** Vendored UMD, served from public/. See public/vendor/UPSTREAM.json for provenance. */
 const VENDOR_SRC = 'vendor/sanddance-specs.js';
-/** Every insight in the set is written against this dataset. */
-const DATA_URL = 'https://microsoft.github.io/SandDance/sample-data/demovote.tsv';
+/** Every insight in the set is written against this dataset, vendored so the page works offline. */
+const DATA_URL = 'data/demovote.tsv';
 
 /** The slice of `@msrvida/sanddance-specs` this page uses; the UMD ships no types. */
 interface SandDanceSpecsUmd {

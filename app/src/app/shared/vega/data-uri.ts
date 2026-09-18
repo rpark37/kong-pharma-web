@@ -14,16 +14,18 @@ import type { Loader } from 'vega';
 export const VEGA_DATA_BASE = 'https://vega.github.io/vega/';
 
 /**
- * Datasets that live on SandDance rather than Vega's host. The two specs that use them disagree
- * about how to ask — scatter3D says `../../sample-data/`, titanic says `assets/data/` — so they
- * are matched on filename rather than prefix.
+ * Datasets we hold ourselves, absent from Vega's host. The two specs that use them disagree about
+ * how to ask — scatter3D says `../../sample-data/`, titanic says `assets/data/` — so they are
+ * matched on filename rather than prefix.
+ *
+ * Absolute on purpose: the loader carries a `baseURL` pointing at Vega's host, so a relative path
+ * would be resolved there instead of against this app.
  */
-const SANDDANCE_DATA = new Set(['demovote.tsv', 'titanicmaster.tsv']);
-const SANDDANCE_BASE = 'https://microsoft.github.io/SandDance/sample-data/';
+const VENDORED_DATA = new Set(['demovote.tsv', 'titanicmaster.tsv']);
 
 export function resolveDataUri(uri: string): string {
   const file = uri.slice(uri.lastIndexOf('/') + 1);
-  if (SANDDANCE_DATA.has(file)) return SANDDANCE_BASE + file;
+  if (VENDORED_DATA.has(file)) return new URL(`data/${file}`, document.baseURI).href;
   // Specs from the Vega Editor say `assets/data/<file>`; on vega.github.io it is `data/<file>`.
   if (uri.startsWith('assets/data/')) return uri.slice('assets/'.length);
   return uri;

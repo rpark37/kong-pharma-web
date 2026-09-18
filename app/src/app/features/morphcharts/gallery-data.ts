@@ -1,27 +1,25 @@
 /**
- * The gallery specs reference their inputs by relative path. Rather than vendor all 9.5 MB of them,
- * the datasets are pointed back at upstream, which serves every file with
- * `access-control-allow-origin: *`.
+ * The gallery specs fetch their data from five different hosts — vega-datasets, SandDance,
+ * charticulator — and their own `data/…` paths from the MorphCharts site. All of it is vendored
+ * into `public/data` so the page works with no network, which also removes five third-party hosts
+ * from the page's runtime dependencies.
  *
- * Images are the exception and must stay local. MorphCharts decodes a texture into a 2D canvas and
- * reads it back with `getImageData`; a cross-origin image taints that canvas, and the SecurityError
- * takes down the whole scene rather than just the texture — a blank canvas with no error in the UI.
- * `crossOrigin` would fix it but is set inside the vendored renderer, so the two textures the
- * gallery needs (2.1 MB) are vendored into public/data instead.
+ * The relative paths need no help: they resolve against our own base once the files are there.
+ * Only the absolute URLs are rewritten, and only when we actually hold the file — so a spec that
+ * grows a new remote dataset keeps working, it just needs the network until someone vendors it.
  *
- * The rewrite is keyed on the `gallery/` folder rather than on a list of filenames: the 34 samples
- * in `specs/` reference `data/` too, and theirs are vendored and must stay local. Same reasoning as
- * `shared/vega/data-uri.ts` — rewrite on the way in, leave the spec files byte-identical to
- * upstream so a re-download diffs cleanly.
+ * The rewrite happens on the way in, leaving the spec files byte-identical to upstream so a
+ * re-download diffs cleanly. Same reasoning as `shared/vega/data-uri.ts`.
  */
-export const GALLERY_DATA_BASE = 'https://microsoft.github.io/morphcharts/';
+const VENDORED = new Set([
+  'flare.json', // flaretreemap1, flarecirclepack1, flaresunburst1
+  'miserables.json', // lesmis1
+  'population.json', // populationpyramid1
+  'demovote.tsv', // electiontreemap1
+  'polio_incidence_rates_us.csv', // uspolio1
+]);
 
-/** Read back with getImageData, so they have to come from our own origin. */
-const TEXTURE = /\.(png|jpe?g|webp)$/i;
-
-/** `file` is the plot path as it appears in index.json, e.g. `gallery/ustornados1.json`. */
-export function resolveGalleryData(file: string, specText: string): string {
-  if (!file.startsWith('gallery/')) return specText;
-  return specText.replace(/"data\/([^"]+)"/g, (whole, name: string) =>
-    TEXTURE.test(name) ? whole : `"${GALLERY_DATA_BASE}data/${name}"`);
+export function useVendoredData(specText: string): string {
+  return specText.replace(/"https?:\/\/[^"]+\/([^"/]+)"/g, (whole, name: string) =>
+    VENDORED.has(name) ? `"data/${name}"` : whole);
 }
