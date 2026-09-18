@@ -15,7 +15,6 @@ export interface GalleryChart {
   label: string;
   /** Rebuilt on demand; the randomised sets differ per call, which is the point of "Shuffle". */
   spec: () => Record<string, unknown>;
-  height?: number;
 }
 
 const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -26,7 +25,7 @@ export function barChart(): Record<string, unknown> {
     $schema: VL,
     description: 'A simple bar chart with embedded data.',
     width: 'container',
-    height: 300,
+    height: 'container',
     data: {
       values: [
         { category: 'A', value: 28 },
@@ -53,7 +52,7 @@ export function lineChart(): Record<string, unknown> {
     $schema: VL,
     description: 'Stock price over time.',
     width: 'container',
-    height: 300,
+    height: 'container',
     data: {
       values: Array.from({ length: 50 }, (_, i) => ({
         date: iso(0, i + 1),
@@ -73,7 +72,7 @@ export function scatterPlot(): Record<string, unknown> {
     $schema: VL,
     description: 'Scatter plot with tooltips.',
     width: 'container',
-    height: 300,
+    height: 'container',
     data: {
       values: Array.from({ length: 100 }, () => ({
         x: Math.random() * 100,
@@ -102,7 +101,7 @@ export function areaChart(): Record<string, unknown> {
     $schema: VL,
     description: 'Stacked area chart.',
     width: 'container',
-    height: 300,
+    height: 'container',
     data: {
       values: ['Product A', 'Product B', 'Product C'].flatMap((product) =>
         Array.from({ length: 12 }, (_, i) => ({
@@ -126,7 +125,7 @@ export function heatmap(): Record<string, unknown> {
     $schema: VL,
     description: 'Heatmap showing values across two dimensions.',
     width: 'container',
-    height: 300,
+    height: 'container',
     data: {
       values: days.flatMap((day) =>
         Array.from({ length: 24 }, (_, hour) => ({ day, hour, value: Math.floor(Math.random() * 100) })),
@@ -150,8 +149,8 @@ export function donutChart(): Record<string, unknown> {
   return {
     $schema: VL,
     description: 'A donut chart.',
-    width: 300,
-    height: 300,
+    width: 'container',
+    height: 'container',
     data: {
       values: [
         { category: 'Desktop', value: 45 },
@@ -177,7 +176,7 @@ export function boxplot(): Record<string, unknown> {
     $schema: VL,
     description: 'Box plot showing distribution.',
     width: 'container',
-    height: 300,
+    height: 'container',
     data: {
       values: ['Group A', 'Group B', 'Group C', 'Group D'].flatMap((group) =>
         Array.from({ length: 50 }, () => ({
@@ -200,7 +199,7 @@ export function histogram(): Record<string, unknown> {
     $schema: VL,
     description: 'A histogram of values.',
     width: 'container',
-    height: 300,
+    height: 'container',
     data: {
       values: Array.from({ length: 200 }, () => ({ value: Math.random() * 100 + Math.random() * 50 })),
     },
@@ -217,7 +216,7 @@ export function groupedBar(): Record<string, unknown> {
     $schema: VL,
     description: 'Grouped bar chart comparing categories.',
     width: 'container',
-    height: 300,
+    height: 'container',
     data: {
       values: ['Q1', 'Q2', 'Q3', 'Q4'].flatMap((quarter) =>
         ['Product A', 'Product B', 'Product C'].map((product) => ({
@@ -243,7 +242,7 @@ export function multiLine(): Record<string, unknown> {
     $schema: VL,
     description: 'Multiple lines showing trends over time.',
     width: 'container',
-    height: 300,
+    height: 'container',
     data: {
       values: ['Series A', 'Series B', 'Series C'].flatMap((series) =>
         Array.from({ length: 30 }, (_, i) => ({
@@ -268,7 +267,7 @@ export function bubbleChart(): Record<string, unknown> {
     $schema: VL,
     description: 'Bubble chart with size encoding.',
     width: 'container',
-    height: 350,
+    height: 'container',
     data: {
       values: Array.from({ length: 50 }, (_, i) => ({
         x: Math.random() * 100,
@@ -298,7 +297,7 @@ export function horizontalBar(): Record<string, unknown> {
     $schema: VL,
     description: 'Horizontal bar chart sorted by value.',
     width: 'container',
-    height: 300,
+    height: 'container',
     data: {
       values: [
         { country: 'United States', population: 331 },
@@ -325,7 +324,7 @@ export function streamgraph(): Record<string, unknown> {
     $schema: VL,
     description: 'Streamgraph showing flow over time.',
     width: 'container',
-    height: 300,
+    height: 'container',
     data: {
       values: ['Category A', 'Category B', 'Category C', 'Category D'].flatMap((category) =>
         Array.from({ length: 20 }, (_, i) => ({
@@ -349,7 +348,7 @@ export function lollipop(): Record<string, unknown> {
     $schema: VL,
     description: 'Lollipop chart showing values.',
     width: 'container',
-    height: 300,
+    height: 'container',
     data: {
       values: [
         { item: 'Alpha', value: 85 },
@@ -375,8 +374,8 @@ export function radialBar(): Record<string, unknown> {
   return {
     $schema: VL,
     description: 'Radial/circular bar chart.',
-    width: 300,
-    height: 300,
+    width: 'container',
+    height: 'container',
     data: { values: days.map((category, i) => ({ category, value: [28, 55, 43, 91, 81, 53, 19][i] })) },
     mark: { type: 'arc', innerRadius: 30 },
     encoding: {
@@ -394,14 +393,14 @@ export const GALLERY: GalleryChart[] = [
   { id: 'scatter-plot', label: 'Scatter', spec: scatterPlot },
   { id: 'area-chart', label: 'Stacked area', spec: areaChart },
   { id: 'heatmap', label: 'Heatmap', spec: heatmap },
-  { id: 'pie-chart', label: 'Donut', spec: donutChart, height: 340 },
+  { id: 'pie-chart', label: 'Donut', spec: donutChart },
   { id: 'boxplot', label: 'Box plot', spec: boxplot },
   { id: 'histogram', label: 'Histogram', spec: histogram },
   { id: 'grouped-bar', label: 'Grouped bar', spec: groupedBar },
   { id: 'multi-line', label: 'Multi-line', spec: multiLine },
-  { id: 'bubble-chart', label: 'Bubble', spec: bubbleChart, height: 390 },
+  { id: 'bubble-chart', label: 'Bubble', spec: bubbleChart },
   { id: 'horizontal-bar', label: 'Horizontal bar', spec: horizontalBar },
   { id: 'streamgraph', label: 'Streamgraph', spec: streamgraph },
   { id: 'lollipop', label: 'Lollipop', spec: lollipop },
-  { id: 'radial-bar', label: 'Radial bar', spec: radialBar, height: 340 },
+  { id: 'radial-bar', label: 'Radial bar', spec: radialBar },
 ];

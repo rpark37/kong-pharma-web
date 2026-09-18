@@ -14,6 +14,15 @@ describe('vega-charts gallery', () => {
     }
   });
 
+  it('sizes every spec to its container so the plot fills the pane', () => {
+    // Paired with <app-vega-chart fill>, which gives the container a definite height.
+    for (const chart of GALLERY) {
+      const spec = chart.spec() as { width: unknown; height: unknown };
+      expect(spec.width, chart.id).toBe('container');
+      expect(spec.height, chart.id).toBe('container');
+    }
+  });
+
   it('gives every entry a unique id', () => {
     expect(new Set(GALLERY.map((c) => c.id)).size).toBe(GALLERY.length);
   });

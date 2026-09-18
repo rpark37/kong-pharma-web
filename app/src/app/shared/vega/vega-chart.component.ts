@@ -10,9 +10,14 @@ export type VegaSpecInput = Record<string, unknown>;
  *
  * Named datasets can be pushed without re-embedding: `data` maps dataset names to rows and is
  * applied with `view.data(name, rows)` whenever it changes.
+ *
+ * `fill` opts into filling the host's box instead of sizing to the spec, for specs written with
+ * `width`/`height` of `"container"`. Vega-Lite needs a definite container height for that, which
+ * is why it is a mode rather than the default — every other page sizes from its spec.
  */
 @Component({
   selector: 'app-vega-chart',
+  host: { '[class.fill]': 'fill()' },
   template: `
     <div class="chart" #chart [style.minHeight.px]="height()"></div>
     @if (error()) { <p class="err">{{ error() }}</p> }
@@ -22,12 +27,16 @@ export type VegaSpecInput = Record<string, unknown>;
     .chart { width: 100%; }
     .chart :global(svg) { overflow: visible; }
     .err { color: var(--rose); font-size: 12px; }
+    :host(.fill) { height: 100%; }
+    :host(.fill) .chart { height: 100%; }
   `,
 })
 export class VegaChartComponent implements OnDestroy {
   readonly spec = input.required<VegaSpecInput>();
   readonly data = input<Record<string, unknown[]> | null>(null);
   readonly height = input(260);
+  /** Fill the host box rather than the spec's size; pair with `"container"` width/height. */
+  readonly fill = input(false);
   readonly renderer = input<'svg' | 'canvas'>('svg');
   readonly viewReady = output<View>();
   readonly error = signal<string | null>(null);
@@ -83,12 +92,23 @@ export class VegaChartComponent implements OnDestroy {
   private observe(container: HTMLElement): void {
     this.resize?.disconnect();
     let lastWidth = -1;
+    let lastHeight = -1;
     this.resize = new ResizeObserver(() => {
       if (!this.view) return;
       const w = container.clientWidth - 16;
-      if (w <= 0 || w === lastWidth) return; // only react to width changes; height follows the chart
-      lastWidth = w;
-      requestAnimationFrame(() => { if (this.view) void this.view.width(w).runAsync().catch(() => undefined); });
+      const h = container.clientHeight - 16;
+      // Without `fill`, only width is tracked and height follows the chart, as it always has.
+      const widthChanged = w > 0 && w !== lastWidth;
+      const heightChanged = this.fill() && h > 0 && h !== lastHeight;
+      if (!widthChanged && !heightChanged) return;
+      if (widthChanged) lastWidth = w;
+      if (heightChanged) lastHeight = h;
+      const fill = this.fill();
+      requestAnimationFrame(() => {
+        if (!this.view) return;
+        const sized = fill ? this.view.width(w).height(h) : this.view.width(w);
+        void sized.runAsync().catch(() => undefined);
+      });
     });
     this.resize.observe(container);
   }
