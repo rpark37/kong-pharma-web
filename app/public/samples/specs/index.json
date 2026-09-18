@@ -273,5 +273,88 @@
         "description": "Faceted pie charts"
       }
     ]
+  },
+  {
+    "title": "Gallery",
+    "description": "The MorphCharts gallery: larger plots over real datasets, most of them fetched from their original hosts",
+    "plots": [
+      {
+        "plot": "gallery/ustornados1.json",
+        "thumbnail": "ustornados1_raytrace_640x360.jpg",
+        "image": "ustornados1_raytrace_3840x2160.jpg",
+        "title": "US Tornados Hex Bin Mercator",
+        "description": "US Tornados Hex Bin Mercator"
+      },
+      {
+        "plot": "gallery/ustornados2.json",
+        "thumbnail": "ustornados2_raytrace_640x360.jpg",
+        "image": "ustornados2_raytrace_3840x2160.jpg",
+        "title": "US Tornados Unit Stack by Month, Strength",
+        "description": "US Tornados Unit Stack by Month, Strength"
+      },
+      {
+        "plot": "gallery/earthquakes1.json",
+        "thumbnail": "earthquakes1_raytrace_640x360.jpg",
+        "image": "earthquakes1_raytrace_3840x2160.jpg",
+        "title": "Earthquakes",
+        "description": "Earthquakes 2000-2025"
+      },
+      {
+        "plot": "gallery/uspolio1.json",
+        "thumbnail": "uspolio1_raytrace_640x360.jpg",
+        "image": "uspolio1_raytrace_3840x2160.jpg",
+        "title": "US Polio Cases",
+        "description": "US Polio Cases by State and Year"
+      },
+      {
+        "plot": "gallery/populationpyramid1.json",
+        "thumbnail": "populationpyramid1_raytrace_640x360.jpg",
+        "image": "populationpyramid1_raytrace_3840x2160.jpg",
+        "title": "Population Pyramid",
+        "description": "Population Pyramid of US Census from 1850 to 2000"
+      },
+      {
+        "plot": "gallery/electiontreemap1.json",
+        "thumbnail": "electiontreemap1_raytrace_640x360.jpg",
+        "image": "electiontreemap1_raytrace_3840x2160.jpg",
+        "title": "Non-Hierarchical Faceted Treemaps",
+        "description": "The 2012 US Presidential election results by county as faceted treemaps"
+      },
+      {
+        "plot": "gallery/flaretreemap1.json",
+        "thumbnail": "flaretreemap1_raytrace_640x360.jpg",
+        "image": "flaretreemap1_raytrace_3840x2160.jpg",
+        "title": "Hierarchical Treemap",
+        "description": "The Flare visualization library as a hierarchical treemap"
+      },
+      {
+        "plot": "gallery/flarecirclepack1.json",
+        "thumbnail": "flarecirclepack1_raytrace_640x360.jpg",
+        "image": "flarecirclepack1_raytrace_3840x2160.jpg",
+        "title": "Circle Packing Chart",
+        "description": "The Flare visualization library as a circle packing chart"
+      },
+      {
+        "plot": "gallery/flaresunburst1.json",
+        "thumbnail": "flaresunburst1_raytrace_640x360.jpg",
+        "image": "flaresunburst1_raytrace_3840x2160.jpg",
+        "title": "Sunburst Chart",
+        "description": "The Flare visualization library as a sunburst chart with rotated labels"
+      },
+      {
+        "plot": "gallery/lesmis1.json",
+        "thumbnail": "lesmis1_raytrace_640x360.jpg",
+        "image": "lesmis1_raytrace_3840x2160.jpg",
+        "title": "Adjacency Matrix",
+        "description": "An adjacency matrix showing character co-occurrence in Les Mis\u00e9rables"
+      },
+      {
+        "plot": "gallery/lissajous1.json",
+        "thumbnail": "lissajous1_raytrace_640x360.jpg",
+        "image": "lissajous1_raytrace_3840x2160.jpg",
+        "title": "Lissajous Curve",
+        "description": "A Lissajous curve generator"
+      }
+    ]
   }
 ]

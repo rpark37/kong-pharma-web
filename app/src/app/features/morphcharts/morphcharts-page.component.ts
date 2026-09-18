@@ -7,6 +7,7 @@ import { MorphchartsCanvasComponent } from '../../shared/morphcharts/morphcharts
 import { WebGpuFallbackComponent } from '../../shared/webgpu/webgpu-fallback.component';
 import { DataTabComponent } from './data-tab.component';
 import { DebugOverlayComponent } from './debug-overlay.component';
+import { resolveGalleryData } from './gallery-data';
 import { RenderTabComponent, ResizeRequest } from './render-tab.component';
 import { SAMPLE_SPEC_FOLDER, SamplePlot, SamplesDialogComponent } from './samples-dialog.component';
 import { SignalsTabComponent } from './signals-tab.component';
@@ -300,7 +301,7 @@ export class MorphchartsPageComponent {
     const file = name.toLowerCase().endsWith('.json') ? name : `${name}.json`;
     try {
       const text = await new Promise<string>((resolve, reject) => this.http.get(`${SAMPLE_SPEC_FOLDER}/${file}`, { responseType: 'text' }).subscribe({ next: resolve, error: reject }));
-      this.editor().setContent(text);
+      this.editor().setContent(resolveGalleryData(file, text));
       this.hasSpecChanged = true;
       return true;
     } catch {
