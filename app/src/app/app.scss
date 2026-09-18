@@ -33,7 +33,7 @@ nav {
     color: var(--on-ink-dim);
     transition: color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
     &:hover { color: var(--on-ink); }
-    &.active { color: var(--teal-deep); background: var(--teal); }
+    &.active { color: var(--ink); background: var(--teal); }
   }
 }
 

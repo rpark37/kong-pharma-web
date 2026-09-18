@@ -30,12 +30,15 @@ code, kbd, .mono { font-family: var(--font-mono); }
   color: var(--teal);
 }
 
+// Was a dark translucent pane. On paper that concept does not survive: it is now a solid
+// panel with a hairline and a shadow, because a light theme signals elevation with shadow
+// rather than by making a surface lighter than its background. backdrop-filter is dropped
+// rather than ported — it buys almost nothing on light and costs compositing.
 .glass {
   background: var(--panel);
   border: 1px solid var(--hairline);
   border-radius: var(--radius);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  box-shadow: var(--shadow-sm);
 }
 
 .btn {
@@ -50,7 +53,7 @@ code, kbd, .mono { font-family: var(--font-mono); }
   cursor: pointer;
   transition: background var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
   &:hover { background: rgba(68, 224, 204, 0.1); border-color: rgba(68, 224, 204, 0.4); }
-  &.active, &[aria-pressed="true"] { background: var(--teal); color: var(--teal-deep); border-color: var(--teal); }
+  &.active, &[aria-pressed="true"] { background: var(--teal); color: var(--ink); border-color: var(--teal); }
   &:disabled { opacity: 0.4; cursor: not-allowed; }
   &.small { padding: 5px 10px; font-size: 13px; }
   &.icon { padding: 8px; }
