@@ -6,6 +6,7 @@
     "skip": { fr: "Aller au contenu", de: "Zum Inhalt springen", ja: "コンテンツへスキップ", en: "Skip to content", zh: "跳至正文", es: "Saltar al contenido", ko: "본문으로 건너뛰기" },
     "nav.science": { en: "Science", zh: "科学", es: "Ciencia", ko: "과학", fr: "Science", de: "Wissenschaft", ja: "科学" },
     "sci.eyebrow": { en: "Science", zh: "科学", es: "Ciencia", ko: "과학", fr: "Science", de: "Wissenschaft", ja: "科学" },
+    "sci.title": { en: "Macropinocytosis", zh: "巨胞饮作用", es: "Macropinocitosis", ko: "거대음세포작용", fr: "Macropinocytose", de: "Makropinozytose", ja: "マクロピノサイトーシス" },
     "nav.partnership": { en: "Partnership", zh: "合作伙伴", es: "Alianza", ko: "파트너십", fr: "Partenariat", de: "Partnerschaft", ja: "パートナーシップ" },
     "part.eyebrow": { en: "Partnership", zh: "合作伙伴", es: "Alianza", ko: "파트너십", fr: "Partenariat", de: "Partnerschaft", ja: "パートナーシップ" },
     "part.title": { en: "Designed with", zh: "携手设计：", es: "Diseñado con", ko: "공동 설계：", fr: "Conçu avec", de: "Entwickelt mit", ja: "共同設計：" },
