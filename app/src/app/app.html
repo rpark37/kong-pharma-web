@@ -23,12 +23,6 @@
   <a class="site-link" href="/">Back to site ↗</a>
 </header>
 
-<main class="page" [appRouteTransition]="wipe">
+<main class="page" appRouteTransition>
   <router-outlet />
 </main>
-
-<div #wipe class="wipe" aria-hidden="true"></div>
-
-<footer class="foot">
-  <span>MorphCharts © Microsoft, MIT · Anatomy data BodyParts3D © DBCLS, CC BY 4.0 · GA4 Google Merchandise Store sample · Report design inspired by OHDSI Ares</span>
-</footer>

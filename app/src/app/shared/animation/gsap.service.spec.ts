@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { signal } from '@angular/core';
 import { gsap } from 'gsap';
 import { GsapService } from './gsap.service';
 import { MOTION, QUAD } from './motion';
@@ -24,13 +23,6 @@ describe('GsapService', () => {
     expect(tween.vars['delay']).toBeCloseTo(service.reducedMotion ? 0 : 0.3);
     expect(tween.vars['stagger']).toBe(service.reducedMotion ? 0 : MOTION.stagger);
     tween.kill();
-  });
-
-  it('tweenNumber writes the target value into the signal on completion', () => {
-    const value = signal(0);
-    const tween = service.tweenNumber(value, 42, { duration: 0.01 });
-    tween.progress(1);
-    expect(value()).toBe(42);
   });
 
   it('kill removes tweens for a target', () => {

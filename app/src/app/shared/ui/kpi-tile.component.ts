@@ -1,15 +1,13 @@
 import { DecimalPipe } from '@angular/common';
-import { Component, effect, inject, input, signal } from '@angular/core';
-import { GsapService } from '../animation/gsap.service';
-import { MOTION } from '../animation/motion';
+import { Component, input } from '@angular/core';
 
-/** A stat tile whose number counts up linearly whenever the value changes. */
+/** A stat tile. The number is shown as-is — no count-up, no entrance animation. */
 @Component({
   selector: 'app-kpi-tile',
   template: `
     <div class="tile glass">
       <span class="label">{{ label() }}</span>
-      <span class="value mono">{{ prefix() }}{{ display() | number: digits() }}{{ suffix() }}</span>
+      <span class="value mono">{{ prefix() }}{{ value() | number: digits() }}{{ suffix() }}</span>
       @if (hint()) { <span class="hint">{{ hint() }}</span> }
     </div>
   `,
@@ -29,22 +27,6 @@ export class KpiTileComponent {
   readonly suffix = input('');
   readonly hint = input('');
   readonly decimals = input(0);
-  /** Position in the row; the count-up is offset by index × MOTION.counter.stagger. */
-  readonly index = input(0);
-  readonly display = signal(0);
-  private readonly gsap = inject(GsapService);
-
-  constructor() {
-    effect(() => {
-      const to = this.value();
-      this.gsap.tweenNumber(this.display, to, {
-        duration: MOTION.counter.duration,
-        delay: this.index() * MOTION.counter.stagger,
-        ease: 'none',
-        decimals: this.decimals(),
-      });
-    });
-  }
 
   digits(): string {
     const d = this.decimals();

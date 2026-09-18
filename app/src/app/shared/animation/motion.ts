@@ -14,8 +14,6 @@ export const MOTION = {
     fast: 0.2,
     base: 0.45,
     slow: 0.9,
-    wipeOut: 0.18,
-    wipeIn: 0.32,
   },
   delay: {
     none: 0,
@@ -25,6 +23,4 @@ export const MOTION = {
   },
   stagger: 0.06,
   distance: 18,
-  /** KPI count-ups: linear, short, and offset by position in the row. */
-  counter: { duration: 0.3, stagger: 0.1 },
 } as const;

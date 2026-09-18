@@ -1,4 +1,4 @@
-import { Injectable, WritableSignal } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { gsap } from 'gsap';
 import { MOTION, QUAD } from './motion';
 
@@ -10,16 +10,9 @@ export interface RevealOptions {
   from?: 'up' | 'down' | 'left' | 'right';
 }
 
-export interface NumberTweenOptions {
-  duration?: number;
-  delay?: number;
-  ease?: string;
-  decimals?: number;
-}
-
 /**
  * Thin wrapper over GreenSock so components never pick eases or timings ad hoc.
- * Think of it as the choreographer: components say "reveal these" or "count this up",
+ * Think of it as the choreographer: components say "reveal these" or "slide that in",
  * and the service decides the Quad ease, delay and stagger.
  */
 @Injectable({ providedIn: 'root' })
@@ -90,22 +83,6 @@ export class GsapService {
     return gsap.to(target, { autoAlpha: 0, [axis]: sign * 32, duration: this.dur(MOTION.duration.fast), ease: QUAD.in, overwrite: 'auto' });
   }
 
-  /** Tween a numeric signal (for KPI count-ups). */
-  tweenNumber(target: WritableSignal<number>, to: number, options: NumberTweenOptions = {}): gsap.core.Tween {
-    const proxy = { value: target() };
-    const decimals = options.decimals ?? 0;
-    const factor = Math.pow(10, decimals);
-    return gsap.to(proxy, {
-      value: to,
-      duration: this.dur(options.duration ?? MOTION.duration.slow),
-      delay: this.delay(options.delay ?? 0),
-      ease: options.ease ?? QUAD.out,
-      overwrite: 'auto',
-      onUpdate: () => target.set(Math.round(proxy.value * factor) / factor),
-      onComplete: () => target.set(to),
-    });
-  }
-
   /** Tween arbitrary numeric properties on a plain object (camera state, explode factor...). */
   tweenObject<T extends object>(target: T, vars: gsap.TweenVars): gsap.core.Tween {
     return gsap.to(target, {
@@ -119,29 +96,6 @@ export class GsapService {
 
   timeline(vars?: gsap.TimelineVars): gsap.core.Timeline {
     return gsap.timeline({ defaults: { ease: QUAD.out }, ...vars });
-  }
-
-  /** Page wipe: teal overlay sweeps in (quad.in) then out (quad.out). Resolves when the content is covered. */
-  wipeIn(overlay: Element): Promise<void> {
-    return new Promise((resolve) => {
-      gsap.fromTo(
-        overlay,
-        { scaleX: 0, transformOrigin: 'left center', autoAlpha: 1 },
-        { scaleX: 1, duration: this.dur(MOTION.duration.wipeOut), ease: QUAD.in, overwrite: 'auto', onComplete: resolve },
-      );
-    });
-  }
-
-  wipeOut(overlay: Element, delay: number = MOTION.delay.short): gsap.core.Tween {
-    return gsap.to(overlay, {
-      scaleX: 0,
-      transformOrigin: 'right center',
-      duration: this.dur(MOTION.duration.wipeIn),
-      delay: this.delay(delay),
-      ease: QUAD.out,
-      overwrite: 'auto',
-      onComplete: () => gsap.set(overlay, { autoAlpha: 0, scaleX: 0 }),
-    });
   }
 
   kill(targets: gsap.TweenTarget): void {
