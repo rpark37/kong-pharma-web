@@ -26,37 +26,7 @@ import { curveSpec, iconArraySpec, outcomeSpec } from './bayes-specs';
       <div class="lede" data-reveal>
         <p>This visualization shows several views of a synthetic dataset to illustrate sensitivity and specificity in a therapeutic test.
           The data is generated using values for people count, test specificity &amp; sensitivity, and a prior (occurrence of the disease in the sample population).</p>
-        <p>Use the Next and Prev buttons to step through the views, and adjust the values to see how it affects the visualizations.
-          See <a href="https://morphcharts.com" target="_blank" rel="noopener">morphcharts.com</a> for more information on the MorphCharts library.</p>
       </div>
-    </section>
-
-    <section class="viz glass" data-reveal>
-      <div class="viz-head">
-        <div>
-          <span class="eyebrow">View {{ layoutIndex() + 1 }} of 4</span>
-          <h2>{{ layoutName() }}</h2>
-        </div>
-        <div class="button-group">
-          <button type="button" class="btn small" (click)="onReset()" title="Reset the camera">Reset</button>
-          <button type="button" class="btn small" (click)="onPrev()" [disabled]="transitioning()">‹ Prev</button>
-          <button type="button" class="btn" [class.active]="true" (click)="onNext()" [disabled]="transitioning()">Next ›</button>
-        </div>
-      </div>
-      <div #morphchartsContainer class="morphcharts-container">
-        @if (!fallback()) {
-          <app-morphcharts-canvas (hostReady)="onHost($event)" (failed)="fallback.set($event)" />
-          <span class="hint">Drag to orbit · wheel to zoom · Reset returns the camera</span>
-        } @else {
-          <div class="fallback-wrap"><app-webgpu-fallback title="The block views need WebGPU"><p class="small">{{ fallback() }} The Vega charts below show the same numbers.</p></app-webgpu-fallback></div>
-        }
-      </div>
-      @if (morphError()) { <p class="err">{{ morphError() }}</p> }
-      <ol class="steps">
-        @for (name of layoutNames; track name; let i = $index) {
-          <li [class.active]="i === layoutIndex()"><button type="button" (click)="goTo(i)" [disabled]="transitioning()">{{ name }}</button></li>
-        }
-      </ol>
     </section>
 
     <section class="layout">
@@ -98,6 +68,34 @@ import { curveSpec, iconArraySpec, outcomeSpec } from './bayes-specs';
       </form>
 
       <div class="results">
+        <div class="viz glass wide" data-reveal>
+          <div class="viz-head">
+            <div>
+              <span class="eyebrow">View {{ layoutIndex() + 1 }} of 4</span>
+              <h2>{{ layoutName() }}</h2>
+            </div>
+            <div class="button-group">
+              <button type="button" class="btn small" (click)="onReset()" title="Reset the camera">Reset</button>
+              <button type="button" class="btn small" (click)="onPrev()" [disabled]="transitioning()">‹ Prev</button>
+              <button type="button" class="btn" [class.active]="true" (click)="onNext()" [disabled]="transitioning()">Next ›</button>
+            </div>
+          </div>
+          <div #morphchartsContainer class="morphcharts-container">
+            @if (!fallback()) {
+              <app-morphcharts-canvas (hostReady)="onHost($event)" (failed)="fallback.set($event)" />
+              <span class="hint">Drag to orbit · wheel to zoom · Reset returns the camera</span>
+            } @else {
+              <div class="fallback-wrap"><app-webgpu-fallback title="The block views need WebGPU"><p class="small">{{ fallback() }} The Vega charts below show the same numbers.</p></app-webgpu-fallback></div>
+            }
+          </div>
+          @if (morphError()) { <p class="err">{{ morphError() }}</p> }
+          <ol class="steps">
+            @for (name of layoutNames; track name; let i = $index) {
+              <li [class.active]="i === layoutIndex()"><button type="button" (click)="goTo(i)" [disabled]="transitioning()">{{ name }}</button></li>
+            }
+          </ol>
+        </div>
+
         <div class="kpis">
           <app-kpi-tile label="Positive predictive value" [value]="out().ppv * 100" suffix="%" [decimals]="1" hint="P(disease | positive)" />
           <app-kpi-tile label="Negative predictive value" [value]="out().npv * 100" suffix="%" [decimals]="1" hint="P(no disease | negative)" />
@@ -141,7 +139,7 @@ import { curveSpec, iconArraySpec, outcomeSpec } from './bayes-specs';
     :host { display: block; padding: clamp(1.5rem, 4vh, 3rem) var(--pad-x) 4rem; max-width: 1400px; margin: 0 auto; width: 100%; }
     h1 { font-size: clamp(1.5rem, 3.2vw, 2.3rem); margin: 6px 0 10px; max-width: 900px; }
     .lede { color: var(--on-ink-dim); max-width: 860px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px; }
-    .viz { padding: 16px; margin-bottom: 16px; }
+    .viz { padding: 16px; }
     .viz-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
     .viz-head h2 { font-size: 20px; margin-top: 2px; }
     .button-group { display: flex; gap: 8px; }
