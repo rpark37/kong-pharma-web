@@ -30,6 +30,7 @@ export class App {
         { path: '/morphcharts', label: 'MorphCharts' },
         { path: '/vega-charts', label: 'Vega Charts' },
         { path: '/transition', label: 'Transition - Deck.gl' },
+        { path: '/sanddance-specs', label: 'Sanddance Specs' },
       ],
     },
     {
