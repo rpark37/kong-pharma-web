@@ -8,9 +8,12 @@ import { Component, DestroyRef, ElementRef, afterNextRender, inject, input, outp
  *
  * 16:9 is a hard constraint, not taste. Each console paints its chrome on a 1600x900 canvas that
  * is stretched over the whole stage, so any other ratio squashes the drawing and drifts DOM
- * islands (positioned in cqw) off the panels they sit on. The Fullscreen button hands the
+ * islands (positioned in cqh) off the panels they sit on. The Fullscreen button hands the
  * `.console` wrapper, not the stage, to the Fullscreen API: the UA forces the fullscreen element
  * to the screen's own ratio, and the stage keeps 16:9 inside it.
+ *
+ * A console that re-paints its overlay at the stage's own aspect can opt out of the box with
+ * `fill`, and then the stage simply is the host.
  *
  * Pages project their canvas and any overlays as content, size their scene from `stageElement()`
  * with a ResizeObserver, and get pointer positions normalised to the stage through `track`. Two
@@ -27,6 +30,7 @@ import { Component, DestroyRef, ElementRef, afterNextRender, inject, input, outp
         #stage
         data-reveal
         [class.draggable]="draggable()"
+        [class.fill]="fill()"
         [style.background]="background()"
         [style.filter]="filter()"
         (pointermove)="onMove($event)"
@@ -65,7 +69,7 @@ import { Component, DestroyRef, ElementRef, afterNextRender, inject, input, outp
        flex: 1 would not bound it. */
     :host { display: block; height: calc(100dvh - var(--nav-h)); overflow: hidden; }
     .console { height: 100%; display: grid; place-items: center; }
-    /* container-type lets projected islands size themselves in cqw, so they track the overlay's
+    /* container-type lets projected islands size themselves in cqh, so they track the overlay's
        own 1600x900 coordinate space at any stage width instead of drifting out of alignment. */
     .stage {
       position: relative;
@@ -79,19 +83,22 @@ import { Component, DestroyRef, ElementRef, afterNextRender, inject, input, outp
     .stage.draggable:active { cursor: grabbing; }
     /* In fullscreen the console is the screen, with no nav to subtract. */
     .console:fullscreen .stage { width: min(100%, calc(100dvh * 16 / 9)); }
+    /* A console whose overlay follows the stage aspect needs no letterbox: the stage is the host. */
+    .console .stage.fill, .console:fullscreen .stage.fill { width: 100%; height: 100%; aspect-ratio: auto; }
     .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 
-    /* DOM islands over the canvas. Sized in cqw like the consoles' own overlays, with px floors so
-       a phone-width stage stays tappable. */
+    /* DOM islands over the canvas. Sized in cqh — the overlays are painted against a 900 px
+       reference height, so container-height units track them on a 16:9 stage and on a filled one
+       alike — with px floors so a phone-width stage stays tappable. */
     .ui { position: absolute; font-family: 'JetBrains Mono', ui-monospace, monospace; color: #e6f6f3; cursor: default; }
-    .ui-label { margin: 0 0 0.5cqw; font-size: max(9px, 0.8cqw); letter-spacing: 0.12em; text-transform: uppercase; color: rgba(68, 224, 204, 0.75); }
-    .actions { right: 3%; top: 11%; display: flex; gap: 0.4cqw; }
-    .actions.left { right: auto; left: 3%; }
+    .ui-label { margin: 0 0 0.89cqh; font-size: max(9px, 1.42cqh); letter-spacing: 0.12em; text-transform: uppercase; color: rgba(68, 224, 204, 0.75); }
+    .actions { right: 5.33cqh; top: 11cqh; display: flex; gap: 0.71cqh; }
+    .actions.left { right: auto; left: 5.33cqh; }
     .chip {
-      font: 500 max(10px, 0.7cqw)/1 'JetBrains Mono', ui-monospace, monospace;
+      font: 500 max(10px, 1.24cqh)/1 'JetBrains Mono', ui-monospace, monospace;
       letter-spacing: 0.14em;
       text-transform: uppercase;
-      padding: max(6px, 0.55cqw) max(10px, 0.9cqw);
+      padding: max(6px, 0.98cqh) max(10px, 1.6cqh);
       border-radius: 2px;
       border: 1px solid rgba(68, 224, 204, 0.35);
       background: rgba(5, 9, 12, 0.72);
@@ -106,20 +113,20 @@ import { Component, DestroyRef, ElementRef, afterNextRender, inject, input, outp
        else has to make room for it. Its text is the page's, so the type rules reach into the
        projected content by element rather than by class. */
     .info {
-      left: 3%;
-      top: 31%;
-      width: min(34%, 560px);
-      max-height: 36%;
+      left: 5.33cqh;
+      top: 31cqh;
+      width: min(60cqh, 560px);
+      max-height: 36cqh;
       overflow-y: auto;
-      padding: 1cqw 1.1cqw;
+      padding: 1.78cqh 1.96cqh;
       border: 1px solid rgba(68, 224, 204, 0.35);
       background: rgba(5, 9, 12, 0.86);
       backdrop-filter: blur(6px);
       font-family: var(--font-body);
     }
-    .info ::ng-deep .eyebrow { margin: 0 0 0.5cqw; font: 400 max(9px, 0.8cqw)/1.3 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(68, 224, 204, 0.75); }
-    .info ::ng-deep .lede { margin: 0 0 0.8cqw; font-size: max(12px, 0.9cqw); line-height: 1.45; color: rgba(230, 246, 243, 0.86); }
-    .info ::ng-deep .note { margin: 0; font-size: max(11px, 0.75cqw); line-height: 1.45; color: rgba(230, 246, 243, 0.55); }
+    .info ::ng-deep .eyebrow { margin: 0 0 0.89cqh; font: 400 max(9px, 1.42cqh)/1.3 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(68, 224, 204, 0.75); }
+    .info ::ng-deep .lede { margin: 0 0 1.42cqh; font-size: max(12px, 1.6cqh); line-height: 1.45; color: rgba(230, 246, 243, 0.86); }
+    .info ::ng-deep .note { margin: 0; font-size: max(11px, 1.33cqh); line-height: 1.45; color: rgba(230, 246, 243, 0.55); }
     .info ::ng-deep a { color: #44e0cc; }
   `,
 })
@@ -132,6 +139,11 @@ export class ConsoleStageComponent {
   readonly filter = input('none');
   /** Shows the grab cursor for consoles that turn on drag. */
   readonly draggable = input(false);
+  /**
+   * Fill the host instead of letterboxing a 16:9 box in it. Only for a console whose scene
+   * re-paints its overlay at the stage's own aspect (God's Eye); the others stretch a fixed frame.
+   */
+  readonly fill = input(false);
   /** Which column the Info / Fullscreen island sits in: the one the painted chrome leaves free. */
   readonly actions = input<'right' | 'left'>('right');
 

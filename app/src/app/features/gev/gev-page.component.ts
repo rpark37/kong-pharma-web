@@ -28,9 +28,10 @@ import type { GevScene } from './gev-scene';
  * units so it tracks the canvas's own 1600x900 coordinate space at any stage width.
  *
  * The page is the console, not a page about the console: `ConsoleStageComponent` gives it the
- * viewport below the nav as the largest 16:9 frame that fits, plus Info and Fullscreen. The
- * controls that used to sit around the card (sensor tray, attribution, lede) live on the stage as
- * small DOM islands in the bands the painted chrome leaves free.
+ * whole viewport below the nav (`fill`, since `GevScene` re-paints its overlay at the stage's own
+ * aspect), plus Info and Fullscreen. The controls that used to sit around the card (sensor tray,
+ * attribution, lede) live on the stage as small DOM islands in the bands the painted chrome
+ * leaves free, positioned in cqh so they track the 900 px-high overlay at any width.
  */
 @Component({
   selector: 'app-gev-page',
@@ -41,6 +42,7 @@ import type { GevScene } from './gev-scene';
       label="God's eye view"
       [filter]="stageFilter()"
       [draggable]="true"
+      [fill]="true"
       (track)="scene?.track($event.nx, $event.ny)"
       (dragStart)="scene?.setDragging(true)"
       (dragEnd)="scene?.setDragging(false)"
@@ -135,22 +137,25 @@ import type { GevScene } from './gev-scene';
     :host { display: block; }
     canvas { display: block; width: 100%; height: 100%; }
 
-    /* Sits where the canvas used to paint this panel: x 1226/1600, y 216/900 of the overlay. */
-    .rail { position: absolute; left: 76.6%; top: 24%; width: 21%; color: #e6f6f3; font-family: 'JetBrains Mono', ui-monospace, monospace; cursor: default; }
-    .rail-title { margin: 0; font-size: 1.05cqw; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; }
-    .rail-sub { margin: 0.3cqw 0 0; font-size: 0.8cqw; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(68, 224, 204, 0.75); }
-    .rail-list { list-style: none; margin: 0.9cqw 0 0; padding: 0.2cqw 0 0; border-top: 1px dashed rgba(68, 224, 204, 0.35); max-height: 24cqw; overflow-y: auto; }
-    .rail-row { display: flex; justify-content: space-between; gap: 0.8cqw; padding: 0.26cqw 0.35cqw; font-size: 0.86cqw; letter-spacing: 0.1em; cursor: pointer; }
+    /* Sits where the canvas used to paint this panel: just outside the aperture (centre + 0.45 of
+       the 900 px overlay height + a gap) and 216 px down, 336 px wide — hence cqh. The min() keeps
+       it inside the stage when the aspect is narrower than 16:9; below that the right column is
+       gone and the container queries further down let it sit over the globe on a backdrop. */
+    .rail { position: absolute; left: min(calc(50% + 47.33cqh), calc(100% - 42.66cqh)); top: 24cqh; width: 37.33cqh; box-sizing: border-box; color: #e6f6f3; font-family: 'JetBrains Mono', ui-monospace, monospace; cursor: default; }
+    .rail-title { margin: 0; font-size: 1.87cqh; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; }
+    .rail-sub { margin: 0.53cqh 0 0; font-size: 1.42cqh; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(68, 224, 204, 0.75); }
+    .rail-list { list-style: none; margin: 1.6cqh 0 0; padding: 0.36cqh 0 0; border-top: 1px dashed rgba(68, 224, 204, 0.35); max-height: 42.67cqh; overflow-y: auto; }
+    .rail-row { display: flex; justify-content: space-between; gap: 1.42cqh; padding: 0.46cqh 0.62cqh; font-size: 1.53cqh; letter-spacing: 0.1em; cursor: pointer; }
     .rail-row:hover { background: rgba(68, 224, 204, 0.10); }
     /* Styled from aria-selected, which the CDK owns, so the visual state cannot disagree with
        what a screen reader is told. */
     .rail-row[aria-selected='true'] { background: rgba(68, 224, 204, 0.18); color: #fff; }
     .rail-row:focus-visible { outline: 1px solid #44e0cc; outline-offset: -1px; }
     .rail-row .km { color: rgba(230, 246, 243, 0.62); }
-    .rail-empty { margin: 1cqw 0 0; font-size: 0.85cqw; letter-spacing: 0.1em; color: rgba(230, 246, 243, 0.3); text-transform: uppercase; }
-    .rail-detail { margin-top: 1.4cqw; }
-    .rail-callsign { margin: 0.35cqw 0 0.55cqw; font-size: 1.8cqw; font-weight: 500; letter-spacing: 0.04em; }
-    .rail-detail dl { display: grid; grid-template-columns: auto 1fr; gap: 0.22cqw 0.8cqw; margin: 0; font-size: 0.8cqw; letter-spacing: 0.1em; text-transform: uppercase; }
+    .rail-empty { margin: 1.78cqh 0 0; font-size: 1.51cqh; letter-spacing: 0.1em; color: rgba(230, 246, 243, 0.3); text-transform: uppercase; }
+    .rail-detail { margin-top: 2.49cqh; }
+    .rail-callsign { margin: 0.62cqh 0 0.98cqh; font-size: 3.2cqh; font-weight: 500; letter-spacing: 0.04em; }
+    .rail-detail dl { display: grid; grid-template-columns: auto 1fr; gap: 0.39cqh 1.42cqh; margin: 0; font-size: 1.42cqh; letter-spacing: 0.1em; text-transform: uppercase; }
     .rail-detail dt { color: rgba(230, 246, 243, 0.62); }
     .rail-detail dd { margin: 0; text-align: right; }
 
@@ -158,18 +163,27 @@ import type { GevScene } from './gev-scene';
     .error { position: absolute; inset: auto 12px 12px; color: var(--rose); font-size: 13px; }
 
     /* The sensor tray is projected content, so it carries its own copy of the island rules from
-       ConsoleStageComponent (component styles do not cross that boundary). Sized in cqw like the
+       ConsoleStageComponent (component styles do not cross that boundary). Sized in cqh like the
        rail, with px floors so a phone-width stage stays tappable. */
     .ui { position: absolute; font-family: 'JetBrains Mono', ui-monospace, monospace; color: #e6f6f3; cursor: default; }
-    .ui-label { margin: 0 0 0.5cqw; font-size: max(9px, 0.8cqw); letter-spacing: 0.12em; text-transform: uppercase; color: rgba(68, 224, 204, 0.75); }
+    .ui-label { margin: 0 0 0.89cqh; font-size: max(9px, 1.42cqh); letter-spacing: 0.12em; text-transform: uppercase; color: rgba(68, 224, 204, 0.75); }
     /* Left column: y 270..585 of the overlay sits between the header micro-rail and the channel panel. */
-    .tray { left: 3%; top: 31%; width: 19%; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 0.4cqw; }
+    .tray { left: 5.33cqh; top: 31cqh; width: 33.8cqh; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 0.71cqh; }
+    /* Narrower than 16:9 the aperture reaches into the side columns, so the islands get a backdrop;
+       in portrait they also shrink to the width, since the cqh sizing would cover the globe. */
+    @container (max-aspect-ratio: 17/10) {
+      .rail, .tray { background: rgba(5, 9, 12, 0.82); padding: 1.2cqh 1.4cqh; box-shadow: 0 0 0 1px rgba(68, 224, 204, 0.14); }
+    }
+    @container (max-aspect-ratio: 1/1) {
+      .rail { left: auto; right: 3%; width: 50%; }
+      .tray { width: 44%; }
+    }
     .tray .ui-label { flex-basis: 100%; }
     .chip {
-      font: 500 max(10px, 0.7cqw)/1 'JetBrains Mono', ui-monospace, monospace;
+      font: 500 max(10px, 1.24cqh)/1 'JetBrains Mono', ui-monospace, monospace;
       letter-spacing: 0.14em;
       text-transform: uppercase;
-      padding: max(6px, 0.55cqw) max(10px, 0.9cqw);
+      padding: max(6px, 0.98cqh) max(10px, 1.6cqh);
       border-radius: 2px;
       border: 1px solid rgba(68, 224, 204, 0.35);
       background: rgba(5, 9, 12, 0.72);

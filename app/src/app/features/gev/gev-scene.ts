@@ -15,6 +15,12 @@
  * The world file is this page's own copy under `data/gev/`, not the Vega gallery's. It is the same
  * 119 kB either way, and a page reaching into another feature's data folder would break silently
  * the day that folder is tidied.
+ *
+ * The overlay is keyed on height, not on a fixed frame: it is always 900 px tall and as wide as the
+ * stage's aspect makes it, re-allocated on resize. That is what lets the canvas fill any viewport
+ * edge to edge — the aperture stays a circle and the right-column chrome stays on the right edge,
+ * instead of a 16:9 painting being stretched over whatever box it is given. DOM islands over it
+ * (the contacts rail, the sensor tray) are positioned in `cqh` units for the same reason.
  */
 import * as T from 'three';
 import * as P from '../../shared/fui/fui-panels';
@@ -32,11 +38,12 @@ import {
   satelliteAt,
 } from './tracks';
 
-const OW = 1600;
+/** Overlay height in pixels; the width follows the stage's aspect (see `resize`). */
 const OH = 900;
+const CY = OH / 2;
 const R = 1;
 /**
- * Radius of the circular aperture in overlay pixels, and its centre.
+ * Radius of the circular aperture in overlay pixels: 0.45 of the shorter overlay side.
  *
  * The camera distance below is set from this, not the other way round: the geostationary ring sits
  * at 1.25 R, so a globe framed to fill the aperture would push two thirds of the satellites outside
@@ -44,9 +51,6 @@ const R = 1;
  * still lands inside is also closer to the reference, where the globe is a small disc inside a wide
  * cloud of contacts.
  */
-const MASK = Math.min(OW, OH) * 0.45;
-const CX = OW / 2;
-const CY = OH / 2;
 
 const TEAL = 0x44e0cc;
 const AMBER = 0xf2c14e;
@@ -84,8 +88,13 @@ export class GevScene {
   private readonly camera = new T.PerspectiveCamera(32, 16 / 9, 0.1, 100);
   private readonly overlayScene = new T.Scene();
   private readonly overlayCam = new T.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  private readonly overlayCanvas: HTMLCanvasElement;
   private readonly overlayCtx: CanvasRenderingContext2D;
   private readonly overlayTex: T.CanvasTexture;
+  /** Overlay width, centre x and aperture radius for the current stage aspect (see `resize`). */
+  private ow = 1600;
+  private cx = 800;
+  private mask = OH * 0.45;
   private readonly tilt = new T.Group();
   private readonly globe = new T.Group();
   private readonly disposables: Array<{ dispose(): void }> = [];
@@ -120,8 +129,9 @@ export class GevScene {
     this.addGraticule();
 
     const oc = document.createElement('canvas');
-    oc.width = OW;
+    oc.width = this.ow;
     oc.height = OH;
+    this.overlayCanvas = oc;
     this.overlayCtx = oc.getContext('2d')!;
     this.overlayTex = new T.CanvasTexture(oc);
     this.overlayTex.colorSpace = T.SRGBColorSpace;
@@ -254,8 +264,24 @@ export class GevScene {
   resize(w: number, h: number): void {
     if (this.disposed) return;
     this.renderer.setSize(w, h, false);
-    this.camera.aspect = w / h;
+    const aspect = w / h;
+    this.camera.aspect = aspect;
+    // The globe is framed against the height (vertical FOV), but the aperture follows the shorter
+    // side; on a portrait stage that is the width, so back the camera off to keep the outermost
+    // satellite shell inside the mask.
+    this.camera.position.z = 5.4 * Math.max(1, 1 / aspect);
     this.camera.updateProjectionMatrix();
+
+    // Re-allocate the overlay at the new aspect. Setting width also resets the 2D context state,
+    // and the texture re-uploads at its new size on the next paint.
+    const ow = Math.round(OH * Math.max(aspect, 0.6));
+    if (ow !== this.ow) {
+      this.ow = ow;
+      this.cx = ow / 2;
+      this.mask = Math.min(ow, OH) * 0.45;
+      this.overlayCanvas.width = ow;
+      this.overlayTex.needsUpdate = true;
+    }
   }
 
   /** Seconds of replay elapsed. Reduced motion freezes the snapshot at its captured instant. */
@@ -338,37 +364,37 @@ export class GevScene {
   private paintMask(ctx: CanvasRenderingContext2D): void {
     ctx.save();
     ctx.beginPath();
-    ctx.rect(0, 0, OW, OH);
-    ctx.arc(CX, CY, MASK, 0, Math.PI * 2, true);
+    ctx.rect(0, 0, this.ow, OH);
+    ctx.arc(this.cx, CY, this.mask, 0, Math.PI * 2, true);
     ctx.fillStyle = 'rgba(5, 9, 12, 0.93)';
     ctx.fill();
     ctx.restore();
 
     // Feathered inner edge so the limb does not end on a hard line.
-    const grad = ctx.createRadialGradient(CX, CY, MASK * 0.82, CX, CY, MASK);
+    const grad = ctx.createRadialGradient(this.cx, CY, this.mask * 0.82, this.cx, CY, this.mask);
     grad.addColorStop(0, 'rgba(5, 9, 12, 0)');
     grad.addColorStop(1, 'rgba(5, 9, 12, 0.93)');
     ctx.fillStyle = grad;
     ctx.beginPath();
-    ctx.arc(CX, CY, MASK, 0, Math.PI * 2);
+    ctx.arc(this.cx, CY, this.mask, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.strokeStyle = P.PALETTE.tealFaint;
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.arc(CX, CY, MASK + 1, 0, Math.PI * 2);
+    ctx.arc(this.cx, CY, this.mask + 1, 0, Math.PI * 2);
     ctx.stroke();
   }
 
   private paintOverlay(): void {
     const ctx = this.overlayCtx;
     const f = this.frame;
-    ctx.clearRect(0, 0, OW, OH);
+    ctx.clearRect(0, 0, this.ow, OH);
 
     this.paintMask(ctx);
     // Painted after the mask so the grid bleeds past the aperture, as the reference does.
-    P.gridPanel(ctx, 0, 0, OW, OH, 30);
-    P.corners(ctx, 26, 26, OW - 52, OH - 52, 26, P.PALETTE.tealDim);
+    P.gridPanel(ctx, 0, 0, this.ow, OH, 30);
+    P.corners(ctx, 26, 26, this.ow - 52, OH - 52, 26, P.PALETTE.tealDim);
 
     this.paintHeader(ctx, f);
     this.paintLeftRail(ctx, f);
@@ -401,9 +427,9 @@ export class GevScene {
     ctx.textAlign = 'right';
     const stamp = new Date((this.snapshot?.captured ?? Date.now()) + this.elapsed() * 60000);
     P.font(ctx, 10, 500);
-    P.text(ctx, `● REC ${stamp.toISOString().slice(0, 19).replace('T', ' ')}Z`, OW - 48, 60, f % 60 < 40 ? P.PALETTE.rose : P.PALETTE.dim);
+    P.text(ctx, `● REC ${stamp.toISOString().slice(0, 19).replace('T', ' ')}Z`, this.ow - 48, 60, f % 60 < 40 ? P.PALETTE.rose : P.PALETTE.dim);
     P.font(ctx, 9, 400);
-    P.text(ctx, `ORB +${String(Math.round(orbitRadius(420) * 1000))} KM   PASS DESC-${String(100 + (f % 99))}`, OW - 48, 78, P.PALETTE.tealDim);
+    P.text(ctx, `ORB +${String(Math.round(orbitRadius(420) * 1000))} KM   PASS DESC-${String(100 + (f % 99))}`, this.ow - 48, 78, P.PALETTE.tealDim);
     ctx.textAlign = 'left';
   }
 
@@ -427,9 +453,9 @@ export class GevScene {
     const placed: Array<[number, number]> = [];
     this.marked.forEach((m, i) => {
       if (m.facing <= 0.08) return;
-      const sx = ((m.screen.x + 1) / 2) * OW;
+      const sx = ((m.screen.x + 1) / 2) * this.ow;
       const sy = ((1 - m.screen.y) / 2) * OH;
-      if (Math.hypot(sx - CX, sy - CY) > MASK - 12) return;
+      if (Math.hypot(sx - this.cx, sy - CY) > this.mask - 12) return;
       const isSel = i === this.selected;
       if (!isSel && placed.some(([px, py]) => Math.hypot(px - sx, py - sy) < 34)) return;
       placed.push([sx, sy]);
@@ -438,7 +464,7 @@ export class GevScene {
       ctx.save();
       ctx.globalAlpha = fade;
       if (isSel) {
-        P.callout(ctx, sx, sy, m.label, m.lines, sx > CX ? -1 : 1, 96);
+        P.callout(ctx, sx, sy, m.label, m.lines, sx > this.cx ? -1 : 1, 96);
         P.corners(ctx, sx - 26, sy - 26, 52, 52, 10, P.PALETTE.teal);
       } else {
         ctx.strokeStyle = P.PALETTE.tealDim;
@@ -459,7 +485,7 @@ export class GevScene {
 
     P.polarPlot(
       ctx,
-      OW - 150,
+      this.ow - 150,
       OH - 130,
       74,
       this.contacts.slice(0, 8).map((c, i) => [(c.craft.hdg * Math.PI) / 180, 0.2 + (i % 4) * 0.2] as [number, number]),
@@ -468,7 +494,7 @@ export class GevScene {
 
     ctx.textAlign = 'center';
     P.font(ctx, 9, 400, 0.14);
-    P.text(ctx, 'ADSB.LOL · CELESTRAK · USGS — SNAPSHOT REPLAY, NO NETWORK', CX, OH - 34, P.PALETTE.faint);
+    P.text(ctx, 'ADSB.LOL · CELESTRAK · USGS — SNAPSHOT REPLAY, NO NETWORK', this.cx, OH - 34, P.PALETTE.faint);
     ctx.textAlign = 'left';
   }
 
