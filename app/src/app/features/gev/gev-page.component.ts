@@ -25,32 +25,24 @@ import type { GevScene } from './gev-scene';
  * is real DOM sitting over the canvas: a `cdkListbox` gives it roving tabindex, arrow and Home/End
  * keys and type-ahead, and `LiveAnnouncer` speaks the selection. It is sized in container-query
  * units so it tracks the canvas's own 1600x900 coordinate space at any stage width.
+ *
+ * The page is the console, not a page about the console: the stage is the largest 16:9 frame the
+ * viewport below the nav allows, letterboxed on the console's own black, and the Fullscreen button
+ * hands that frame to the browser's Fullscreen API for a true edge-to-edge view. 16:9 is a hard
+ * constraint, not taste — the overlay is a 1600x900 canvas stretched over the whole stage, so any
+ * other ratio turns the circular aperture into an ellipse and drifts the rail off its panel. The
+ * controls that used to sit around the card (sensor tray, attribution, lede) now live on the stage
+ * as small DOM islands in the bands the painted chrome leaves free.
  */
 @Component({
   selector: 'app-gev-page',
   imports: [CdkListbox, CdkOption],
   template: `
-    <section class="head">
-      <p class="eyebrow" data-reveal>three.js · vector globe · snapshot replay</p>
-      <h1 data-reveal>God's eye view</h1>
-      <p class="lede" data-reveal>
-        A spy-satellite console built on the FUI vocabulary the other three.js pages share. The
-        globe is drawn straight from a TopoJSON world file — arcs as line segments, so coastlines
-        and borders cost one draw call and no decoder. Aircraft are dead-reckoned from a captured
-        frame, satellites propagated from their orbital elements. Drag to spin it; switch sensors
-        below.
-      </p>
-    </section>
-
-    <div class="card glass" data-reveal>
-      <div class="card-head">
-        <span class="eyebrow">KH11-4894 · OPS-4120</span>
-        <h3>Spatial intelligence console</h3>
-      </div>
-
+    <div class="console" #console (keydown.escape)="info.set(false)">
       <div
         class="stage"
         #stage
+        data-reveal
         [style.filter]="stageFilter()"
         (pointermove)="onMove($event)"
         (pointerdown)="onDown($event)"
@@ -58,6 +50,8 @@ import type { GevScene } from './gev-scene';
         (pointerleave)="onUp()"
       >
         <canvas #canvas role="img" aria-label="Decorative animation: a rotating globe showing 631 aircraft, 140 satellites and 160 recent earthquakes, replayed from a captured snapshot. The nearby aircraft it plots are listed in the contacts rail beside it."></canvas>
+        <!-- The visible title is painted by the overlay canvas; this one is for the document outline. -->
+        <h1 class="sr-only">God's eye view</h1>
 
         <div class="rail">
           <p class="rail-title" id="gev-rail-title">Contacts</p>
@@ -94,25 +88,51 @@ import type { GevScene } from './gev-scene';
           }
         </div>
 
+        <!-- Sensor tray: the left column between the painted header block and the channel panel. -->
+        <div class="ui tray" role="group" aria-label="Sensor mode">
+          <p class="ui-label">Sensor</p>
+          @for (s of sensors; track s.id) {
+            <button type="button" class="chip" [class.on]="mode() === s.id" [attr.aria-pressed]="mode() === s.id" (click)="setMode(s)">
+              {{ s.label }}
+            </button>
+          }
+        </div>
+
+        <!-- Console actions: the right column under the painted REC stamp, above the rail. -->
+        <div class="ui actions">
+          <button type="button" class="chip" [class.on]="info()" [attr.aria-expanded]="info()" aria-controls="gev-info" (click)="info.set(!info())">
+            Info
+          </button>
+          @if (fullscreenEnabled) {
+            <button type="button" class="chip" [class.on]="fullscreen()" (click)="toggleFullscreen()">
+              {{ fullscreen() ? 'Exit fullscreen' : 'Fullscreen' }}
+            </button>
+          }
+        </div>
+
+        @if (info()) {
+          <div class="ui info" id="gev-info" role="region" aria-label="About this console">
+            <p class="ui-label">three.js · vector globe · snapshot replay</p>
+            <p class="lede">
+              A spy-satellite console built on the FUI vocabulary the other three.js pages share. The
+              globe is drawn straight from a TopoJSON world file — arcs as line segments, so coastlines
+              and borders cost one draw call and no decoder. Aircraft are dead-reckoned from a captured
+              frame, satellites propagated from their orbital elements. Drag to spin it; switch sensors
+              on the left.
+            </p>
+            <p class="note">
+              After <a href="https://github.com/bilawalsidhu/gods-eye-view" target="_blank" rel="noopener">God's Eye View</a>
+              by Bilawal Sidhu (MIT). This is an independent reimplementation of the look on this app's
+              three.js stack — no upstream code and no CesiumJS. Contact data captured from adsb.lol,
+              orbital elements from Celestrak, seismic events from USGS; each remains the property of its
+              source.
+            </p>
+          </div>
+        }
+
         @if (mode() === 'crt') { <div class="scanlines"></div> }
         @if (error()) { <p class="error">{{ error() }}</p> }
       </div>
-
-      <div class="tray" role="group" aria-label="Sensor mode">
-        @for (s of sensors; track s.id) {
-          <button type="button" class="preset" [class.on]="mode() === s.id" [attr.aria-pressed]="mode() === s.id" (click)="setMode(s)">
-            {{ s.label }}
-          </button>
-        }
-      </div>
-
-      <p class="note">
-        After <a href="https://github.com/bilawalsidhu/gods-eye-view" target="_blank" rel="noopener">God's Eye View</a>
-        by Bilawal Sidhu (MIT). This is an independent reimplementation of the look on this app's
-        three.js stack — no upstream code and no CesiumJS. Contact data captured from adsb.lol,
-        orbital elements from Celestrak, seismic events from USGS; each remains the property of its
-        source.
-      </p>
     </div>
 
     <!-- Sensor ramps as component-transfer tables. Generated from gradeLut so the ramp is not
@@ -133,15 +153,30 @@ import type { GevScene } from './gev-scene';
     </svg>
   `,
   styles: `
-    :host { display: block; padding: clamp(1.5rem, 4vh, 3rem) var(--pad-x) 4rem; max-width: 1400px; margin: 0 auto; width: 100%; }
-    h1 { font-size: clamp(1.5rem, 3.2vw, 2.3rem); margin: 6px 0 10px; max-width: 900px; }
-    .lede { color: var(--on-ink-dim); max-width: 860px; margin-bottom: 20px; }
-    .card { padding: 14px 16px; }
-    .card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
-    .card-head h3 { font-size: 18px; }
-    /* container-type lets the rail size itself in cqw, so it tracks the canvas's own 1600x900
-       coordinate space at any stage width instead of drifting out of alignment with it. */
-    .stage { position: relative; container-type: size; width: 100%; aspect-ratio: 16 / 9; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--hairline); background: #05090c; touch-action: none; cursor: grab; }
+    /* The whole page is the console: black to the edges, the stage centred inside it. Height is
+       the viewport minus the sticky nav; the shell's .page is only min-height, so flex: 1 would
+       not bound it. */
+    :host { display: block; height: calc(100dvh - var(--nav-h)); background: #05090c; overflow: hidden; }
+    .console { height: 100%; display: grid; place-items: center; background: #05090c; }
+    /* container-type lets the rail and the DOM islands size themselves in cqw, so they track the
+       canvas's own 1600x900 coordinate space at any stage width instead of drifting out of
+       alignment with it. The width rule picks the largest 16:9 box that fits: full width on a
+       wide-and-short viewport, full height on a tall one, letterboxed either way. */
+    .stage {
+      position: relative;
+      container-type: size;
+      width: min(100%, calc((100dvh - var(--nav-h)) * 16 / 9));
+      aspect-ratio: 16 / 9;
+      overflow: hidden;
+      background: #05090c;
+      touch-action: none;
+      cursor: grab;
+    }
+    /* In fullscreen the console is the screen, with no nav to subtract. The UA forces the
+       fullscreen element to 100% x 100%, which is why the console, not the stage, goes fullscreen:
+       the stage keeps its ratio inside it. */
+    .console:fullscreen .stage { width: min(100%, calc(100dvh * 16 / 9)); }
+    .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
     .stage:active { cursor: grabbing; }
     canvas { display: block; width: 100%; height: 100%; }
 
@@ -166,12 +201,49 @@ import type { GevScene } from './gev-scene';
 
     .scanlines { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: multiply; background: repeating-linear-gradient(to bottom, rgba(255,255,255,0.96) 0 2px, rgba(120,120,120,0.72) 2px 4px); }
     .error { position: absolute; inset: auto 12px 12px; color: var(--rose); font-size: 13px; }
-    .tray { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
-    .preset { font: 500 10px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.14em; padding: 8px 14px; border-radius: var(--radius-sm); border: 1px solid var(--hairline); background: transparent; color: var(--on-ink-dim); cursor: pointer; transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out); }
-    .preset:hover { color: var(--on-ink); border-color: var(--teal); }
-    .preset.on { color: var(--teal); border-color: var(--teal); }
-    .note { margin-top: 12px; font-size: 12px; color: var(--on-ink-faint); max-width: 820px; }
-    .note a { color: var(--teal); }
+
+    /* DOM islands over the canvas. Sized in cqw like the rail (with px floors so a phone-width
+       stage stays tappable) and placed in the bands the painted chrome leaves free. */
+    .ui { position: absolute; font-family: 'JetBrains Mono', ui-monospace, monospace; color: #e6f6f3; cursor: default; }
+    .ui-label { margin: 0 0 0.5cqw; font-size: max(9px, 0.8cqw); letter-spacing: 0.12em; text-transform: uppercase; color: rgba(68, 224, 204, 0.75); }
+    /* Left column: y 270..585 of the overlay sits between the header micro-rail and the channel panel. */
+    .tray { left: 3%; top: 31%; width: 19%; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 0.4cqw; }
+    .tray .ui-label { flex-basis: 100%; }
+    /* Right column: under the REC stamp (y 78) and above the rail (y 216). */
+    .actions { right: 3%; top: 11%; display: flex; gap: 0.4cqw; }
+    .chip {
+      font: 500 max(10px, 0.7cqw)/1 'JetBrains Mono', ui-monospace, monospace;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      padding: max(6px, 0.55cqw) max(10px, 0.9cqw);
+      border-radius: 2px;
+      border: 1px solid rgba(68, 224, 204, 0.35);
+      background: rgba(5, 9, 12, 0.72);
+      color: rgba(230, 246, 243, 0.72);
+      cursor: pointer;
+      transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
+    }
+    .chip:hover { color: #fff; border-color: #44e0cc; }
+    .chip.on { color: #44e0cc; border-color: #44e0cc; background: rgba(68, 224, 204, 0.12); }
+    .chip:focus-visible { outline: 1px solid #44e0cc; outline-offset: 2px; }
+    /* The info panel opens over the tray's band and out across the aperture; a toggle, so nothing
+       else has to make room for it. */
+    .info {
+      left: 3%;
+      top: 31%;
+      width: min(34%, 560px);
+      max-height: 36%;
+      overflow-y: auto;
+      padding: 1cqw 1.1cqw;
+      border: 1px solid rgba(68, 224, 204, 0.35);
+      background: rgba(5, 9, 12, 0.86);
+      backdrop-filter: blur(6px);
+      font-family: var(--font-body);
+    }
+    .info .ui-label { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+    .info .lede { margin: 0 0 0.8cqw; font-size: max(12px, 0.9cqw); line-height: 1.45; color: rgba(230, 246, 243, 0.86); }
+    .info .note { margin: 0; font-size: max(11px, 0.75cqw); line-height: 1.45; color: rgba(230, 246, 243, 0.55); }
+    .info a { color: #44e0cc; }
     .defs { position: absolute; width: 0; height: 0; }
   `,
 })
@@ -179,6 +251,12 @@ export class GevPageComponent {
   readonly error = signal<string | null>(null);
   readonly mode = signal<SensorMode>('normal');
   readonly sensors = SENSORS;
+  /** The lede and attribution, folded into a panel so the stage can have the whole viewport. */
+  readonly info = signal(false);
+  /** Mirrors `document.fullscreenElement`; the document owns the state, this only reflects it. */
+  readonly fullscreen = signal(false);
+  /** iOS Safari cannot fullscreen an element, so it never gets a button that would do nothing. */
+  readonly fullscreenEnabled = typeof document !== 'undefined' && !!document.fullscreenEnabled;
 
   /**
    * Sampled from the scene rather than pushed by it. The scene re-reckons every contact at 60fps;
@@ -209,6 +287,7 @@ export class GevPageComponent {
 
   private readonly canvas = viewChild.required<ElementRef<HTMLCanvasElement>>('canvas');
   private readonly stage = viewChild.required<ElementRef<HTMLDivElement>>('stage');
+  private readonly console = viewChild.required<ElementRef<HTMLDivElement>>('console');
   private readonly gsap = inject(GsapService);
   private readonly announcer = inject(LiveAnnouncer);
   private readonly el = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -217,15 +296,34 @@ export class GevPageComponent {
   private poll: ReturnType<typeof setInterval> | null = null;
 
   constructor() {
+    const onFullscreenChange = () => this.fullscreen.set(document.fullscreenElement === this.console().nativeElement);
     afterNextRender(() => {
       this.gsap.reveal(this.el.nativeElement.querySelectorAll('[data-reveal]'), { delay: this.gsap.MOTION.delay.medium });
+      document.addEventListener('fullscreenchange', onFullscreenChange);
       void this.boot();
     });
     inject(DestroyRef).onDestroy(() => {
+      document.removeEventListener('fullscreenchange', onFullscreenChange);
+      // Navigating away while fullscreen would leave the next page fullscreen with no way out.
+      if (this.fullscreen()) void document.exitFullscreen().catch(() => undefined);
       this.scene?.dispose();
       this.resize?.disconnect();
       if (this.poll) clearInterval(this.poll);
     });
+  }
+
+  /**
+   * The console (not the stage) is what goes fullscreen: the UA stretches the fullscreen element to
+   * the screen, and the stage must keep its 16:9 inside that. The ResizeObserver in `boot` picks up
+   * the new stage size, so the scene needs no fullscreen-specific path.
+   */
+  async toggleFullscreen(): Promise<void> {
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await this.console().nativeElement.requestFullscreen();
+    } catch (err) {
+      this.error.set(`Fullscreen was refused: ${err instanceof Error ? err.message : String(err)}`);
+    }
   }
 
   onPick(ids: readonly string[]): void {
@@ -254,8 +352,8 @@ export class GevPageComponent {
   }
 
   onDown(e: PointerEvent): void {
-    // Dragging the globe must not start when the pointer went down on the rail.
-    if ((e.target as HTMLElement).closest('.rail')) return;
+    // Dragging the globe must not start when the pointer went down on the rail or a DOM island.
+    if ((e.target as HTMLElement).closest('.rail, .ui')) return;
     (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
     this.scene?.setDragging(true);
   }
