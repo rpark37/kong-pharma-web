@@ -39,8 +39,9 @@ import { Component, DestroyRef, ElementRef, afterNextRender, inject, input, outp
 
         <ng-content />
 
-        <!-- Right column: under the painted REC stamp (y 78 of 900) and above anything at y 216+. -->
-        <div class="ui actions">
+        <!-- Under the painted header block (y 78 of 900) and above anything at y 216+, on whichever
+             side the console leaves free. -->
+        <div class="ui actions" [class.left]="actions() === 'left'">
           <button type="button" class="chip" [class.on]="info()" [attr.aria-expanded]="info()" aria-controls="console-info" (click)="info.set(!info())">
             Info
           </button>
@@ -85,6 +86,7 @@ import { Component, DestroyRef, ElementRef, afterNextRender, inject, input, outp
     .ui { position: absolute; font-family: 'JetBrains Mono', ui-monospace, monospace; color: #e6f6f3; cursor: default; }
     .ui-label { margin: 0 0 0.5cqw; font-size: max(9px, 0.8cqw); letter-spacing: 0.12em; text-transform: uppercase; color: rgba(68, 224, 204, 0.75); }
     .actions { right: 3%; top: 11%; display: flex; gap: 0.4cqw; }
+    .actions.left { right: auto; left: 3%; }
     .chip {
       font: 500 max(10px, 0.7cqw)/1 'JetBrains Mono', ui-monospace, monospace;
       letter-spacing: 0.14em;
@@ -130,6 +132,8 @@ export class ConsoleStageComponent {
   readonly filter = input('none');
   /** Shows the grab cursor for consoles that turn on drag. */
   readonly draggable = input(false);
+  /** Which column the Info / Fullscreen island sits in: the one the painted chrome leaves free. */
+  readonly actions = input<'right' | 'left'>('right');
 
   /** Pointer position normalised to the stage, -1..1 on both axes, for parallax and tracking. */
   readonly track = output<{ nx: number; ny: number }>();
