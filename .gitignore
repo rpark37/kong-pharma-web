@@ -9,6 +9,7 @@ app/.angular/
 app/vendor/morphcharts/**/dist/
 app/test-results/
 app/playwright-report/
+.playwright-mcp/
 *.tsbuildinfo
 
 # API
