@@ -24,7 +24,7 @@ import type { OsirisScene } from './osiris-scene';
     <app-console-stage background="#05090c" label="Osiris board" [fill]="true" (track)="scene?.hover($event.nx, $event.ny)">
       <canvas #canvas role="img" [attr.aria-label]="summary()" (click)="pickFromMap()"></canvas>
 
-      <div class="rail" console-island (keydown.escape)="select(null)">
+      <div class="rail" console-island>
         <fieldset class="layers">
           <legend class="rail-title">Layers</legend>
           @for (l of layers; track l.id) {
@@ -141,6 +141,7 @@ import type { OsirisScene } from './osiris-scene';
       .rail { right: 3%; width: 50%; }
     }
   `,
+  host: { '(document:keydown.escape)': 'select(null)' },
 })
 export class OsirisPageComponent {
   readonly layers = LAYERS;
@@ -199,6 +200,7 @@ export class OsirisPageComponent {
     const next = new Set(this.enabled());
     if (next.has(id)) next.delete(id);
     else next.add(id);
+    if (this.selected() && !next.has(this.selected()!.layer)) this.select(null);
     this.enabled.set(next);
     this.scene?.setVisible(next);
     this.refreshNamed();
