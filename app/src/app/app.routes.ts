@@ -1,5 +1,11 @@
 import { inject } from '@angular/core';
-import { Router, Routes } from '@angular/router';
+import { Router, Routes, UrlSegment } from '@angular/router';
+
+/** `gene-rab5a` and friends: one segment (see above) carrying the symbol, bound to the page's `symbol` input. */
+const geneMatcher = (segments: UrlSegment[]) => {
+  const m = segments.length === 1 ? /^gene-([a-z0-9]+)$/i.exec(segments[0].path) : null;
+  return m ? { consumed: segments, posParams: { symbol: new UrlSegment(m[1].toUpperCase(), {}) } } : null;
+};
 
 /** The old per-topic science routes are chapters of one dossier now; keep the links alive. */
 const chapter = (fragment: string) => () => inject(Router).createUrlTree(['/science'], { fragment });
@@ -22,6 +28,7 @@ export const routes: Routes = [
   { path: 'sanddance-specs', loadComponent: () => import('./features/sanddance-specs/sanddance-specs-page.component').then((m) => m.SanddanceSpecsPageComponent), title: 'Sanddance Specs' },
   { path: 'transition', loadComponent: () => import('./features/transition/transition-page.component').then((m) => m.TransitionPageComponent), title: 'Transition - Deck.gl' },
   { path: 'science', loadComponent: () => import('./features/science/science-page.component').then((m) => m.SciencePageComponent), title: 'Science · the RAS dossier' },
+  { matcher: geneMatcher, loadComponent: () => import('./features/science/gene-page.component').then((m) => m.GenePageComponent), title: 'Research' },
   { path: 'science-rac1', redirectTo: chapter('rac1') },
   { path: 'science-trials', redirectTo: chapter('trials') },
   { path: 'science-bladder', redirectTo: chapter('bladder') },

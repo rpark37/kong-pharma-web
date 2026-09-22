@@ -12,6 +12,7 @@ import machineryJson from '../../../../public/data/science/machinery.json';
 import rasJson from '../../../../public/data/science/ras.json';
 import trialsJson from '../../../../public/data/science/trials.json';
 import { associationSpec, geneDiseaseSpec, literatureRaceSpec, machineryPapersSpec, phaseSpec, rasDiseaseSpec, stageSpec, statusSpec } from './science-specs';
+import { GENE_ORDER, GENE_STORIES, STATIONS } from './gene-stories';
 import { capturedOn, evidenceRows, isCancer, type BladderSnapshot, type MachinerySnapshot, type Rac1Snapshot, type RasSnapshot, type TrialsSnapshot } from './science.model';
 
 // Imported rather than read from disk: the spec tsconfig exposes only vitest globals, and adding
@@ -205,5 +206,23 @@ describe('machinery snapshot', () => {
   it('builds the machinery figures', () => {
     expect((machineryPapersSpec(machinery.genes)['data'] as { values: unknown[] }).values.length).toBe(10);
     expect((geneDiseaseSpec(machinery.genes[0])['data'] as { values: unknown[] }).values.length).toBeGreaterThan(0);
+  });
+});
+
+describe('gene stories', () => {
+  it('tells one story per gene in the snapshots, in route order', () => {
+    const inSnapshots = [...ras.genes.map((g) => g.symbol), rac1.target.symbol, ...machinery.genes.map((g) => g.symbol)];
+    expect(GENE_ORDER).toEqual(inSnapshots);
+  });
+
+  it('gives every story its prose and a station on the route', () => {
+    for (const s of GENE_STORIES) {
+      expect(s.hook.length, s.symbol).toBeGreaterThan(20);
+      expect(s.what.length, s.symbol).toBeGreaterThan(0);
+      expect(s.route.length, s.symbol).toBeGreaterThan(0);
+      expect(s.kong.length, s.symbol).toBeGreaterThan(20);
+      const station = STATIONS.find((st) => st.id === s.station);
+      if (s.station !== 'sensing') expect(station?.genes, s.symbol).toContain(s.symbol);
+    }
   });
 });

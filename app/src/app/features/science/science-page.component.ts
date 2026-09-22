@@ -1,7 +1,7 @@
 import { DecimalPipe, TitleCasePipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Component, DestroyRef, ElementRef, afterNextRender, computed, inject, signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { gsap } from 'gsap';
 import { GsapService } from '../../shared/animation/gsap.service';
@@ -48,7 +48,7 @@ const ROLES: Record<string, string> = {
  */
 @Component({
   selector: 'app-science-page',
-  imports: [DecimalPipe, TitleCasePipe, VegaChartComponent, GlyphComponent],
+  imports: [DecimalPipe, TitleCasePipe, RouterLink, VegaChartComponent, GlyphComponent],
   template: `
     <article class="dossier">
       <header class="prologue">
@@ -93,7 +93,7 @@ const ROLES: Record<string, string> = {
             </p>
             <dl class="readout" data-reveal>
               @for (g of r.genes; track g.id) {
-                <div><dt>{{ g.symbol }}</dt><dd>{{ g.diseaseCount | number }}<small>diseases</small></dd></div>
+                <div><dt><a [routerLink]="'/gene-' + g.symbol.toLowerCase()">{{ g.symbol }}</a></dt><dd>{{ g.diseaseCount | number }}<small>diseases</small></dd></div>
               }
               <div><dt>Approved</dt><dd>{{ approvedRas().length }}<small>small molecules</small></dd></div>
             </dl>
@@ -198,7 +198,7 @@ const ROLES: Record<string, string> = {
               <div><dt>Partners</dt><dd>{{ r.interactors.length }}<small>STRING, highest confidence</small></dd></div>
               <div><dt>Top association</dt><dd>{{ r.diseases[0].score | number: '1.2-2' }}<small>{{ r.diseases[0].name }}</small></dd></div>
             </dl>
-            <p class="prose" data-reveal>{{ r.target.uniprotFunction }}</p>
+            <p class="prose" data-reveal>{{ r.target.uniprotFunction }} <a class="story-link inline" routerLink="/gene-rac1">Read RAC1's story<app-glyph name="chevron" /></a></p>
             <figure data-reveal>
               <div class="chart tall"><app-vega-chart [spec]="rac1Associations()" [fill]="true" /></div>
               <figcaption><b>Fig. 4</b> What RAC1 is associated with, top {{ r.diseases.length }} of {{ r.diseaseCount | number }}, each score stacked by the evidence behind it. A score built from genetics reads differently from one built from literature alone. Melanoma and head-and-neck carcinoma are the malignancies; the intellectual-disability entries are the germline story again.</figcaption>
@@ -265,6 +265,7 @@ const ROLES: Record<string, string> = {
                     <h3>{{ g.symbol }}</h3>
                     <span class="stage-tag">{{ stageLabel(g.stage) }}</span>
                     <span class="gene-name">{{ g.name }}</span>
+                    <a class="story-link" [routerLink]="'/gene-' + g.symbol.toLowerCase()">Read the story<app-glyph name="chevron" /></a>
                   </header>
                   <p class="prose small">{{ role(g.symbol) }}</p>
                   <dl class="readout compact">
@@ -480,6 +481,10 @@ const ROLES: Record<string, string> = {
     .gene-head h3 { font-family: var(--font-mono); font-size: 18px; font-weight: 600; letter-spacing: 0.02em; color: var(--on-ink); }
     .stage-tag { font: 500 9px/1 var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--teal); padding: 4px 7px; border: 1px solid color-mix(in srgb, var(--teal) 40%, transparent); border-radius: 4px; }
     .gene-name { font-size: 12px; color: var(--on-ink-faint); }
+    .story-link { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; font: 500 10px/1 var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--teal); app-glyph { width: 11px; height: 11px; } }
+    .story-link.inline { margin-left: 8px; }
+    .readout dt a { color: inherit; text-decoration: underline dotted; text-underline-offset: 3px; }
+    .readout dt a:hover { color: var(--teal); }
     .readout.compact { gap: 10px 22px; margin: 6px 0 14px; padding: 10px 0; }
     .readout.compact dd { font-size: 20px; }
     .chart.mini { height: auto; }

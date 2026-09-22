@@ -59,22 +59,25 @@ export class App {
     {
       // One dossier in six chapters — RAS, macropinocytosis, RAC1, the machinery, the bladder
       // indication, the trial field — from public snapshots refreshed by app/scripts/fetch-science.py.
-      // The menu lists the genes; each is an anchor inside /science, not a page.
+      // The menu lists the genes; each has its own story page at /gene-<symbol>.
       label: 'Research',
       icon: 'science',
       children: [
-        { path: '/science', fragment: 'ras', label: 'RAS · KRAS HRAS NRAS', icon: 'ras' },
-        { path: '/science', fragment: 'rac1', label: 'RAC1', icon: 'rac1' },
-        { path: '/science', fragment: 'pak1', label: 'PAK1', icon: 'gene' },
-        { path: '/science', fragment: 'cdc42', label: 'CDC42', icon: 'gene' },
-        { path: '/science', fragment: 'pik3ca', label: 'PIK3CA', icon: 'gene' },
-        { path: '/science', fragment: 'pten', label: 'PTEN', icon: 'gene' },
-        { path: '/science', fragment: 'slc9a1', label: 'SLC9A1 · NHE1', icon: 'gene' },
-        { path: '/science', fragment: 'arf6', label: 'ARF6', icon: 'gene' },
-        { path: '/science', fragment: 'rab5a', label: 'RAB5A', icon: 'gene' },
-        { path: '/science', fragment: 'rab7a', label: 'RAB7A', icon: 'gene' },
-        { path: '/science', fragment: 'mtor', label: 'MTOR', icon: 'gene' },
-        { path: '/science', fragment: 'hif1a', label: 'HIF1A', icon: 'gene' },
+        { path: '/science', label: 'The dossier', icon: 'science' },
+        { path: '/gene-kras', label: 'KRAS', icon: 'ras' },
+        { path: '/gene-hras', label: 'HRAS', icon: 'ras' },
+        { path: '/gene-nras', label: 'NRAS', icon: 'ras' },
+        { path: '/gene-rac1', label: 'RAC1', icon: 'rac1' },
+        { path: '/gene-pak1', label: 'PAK1', icon: 'gene' },
+        { path: '/gene-cdc42', label: 'CDC42', icon: 'gene' },
+        { path: '/gene-pik3ca', label: 'PIK3CA', icon: 'gene' },
+        { path: '/gene-pten', label: 'PTEN', icon: 'gene' },
+        { path: '/gene-slc9a1', label: 'SLC9A1 · NHE1', icon: 'gene' },
+        { path: '/gene-arf6', label: 'ARF6', icon: 'gene' },
+        { path: '/gene-rab5a', label: 'RAB5A', icon: 'gene' },
+        { path: '/gene-rab7a', label: 'RAB7A', icon: 'gene' },
+        { path: '/gene-mtor', label: 'MTOR', icon: 'gene' },
+        { path: '/gene-hif1a', label: 'HIF1A', icon: 'gene' },
         { path: '/science', fragment: 'bladder', label: 'Bladder indication', icon: 'bladder' },
         { path: '/science', fragment: 'trials', label: 'Trial field', icon: 'trials' },
       ],
