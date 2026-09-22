@@ -1,5 +1,5 @@
 {
-  "captured": "2026-09-18T10:53:29Z",
+  "captured": "2026-09-22T05:57:13Z",
   "disease": {
     "id": "MONDO_0004986",
     "name": "urinary bladder carcinoma",
@@ -420,6 +420,36 @@
   ],
   "drugCount": 160,
   "drugs": [
+    {
+      "id": "CHEMBL1200582",
+      "name": "Aminolevulinic Acid Hydrochloride",
+      "type": "Small molecule",
+      "stage": "Approved"
+    },
+    {
+      "id": "CHEMBL1096885",
+      "name": "Valrubicin",
+      "type": "Small molecule",
+      "stage": "Approved"
+    },
+    {
+      "id": "CHEMBL2108905",
+      "name": "Bcg Vaccine",
+      "type": "Vaccine component",
+      "stage": "Approved"
+    },
+    {
+      "id": "CHEMBL359744",
+      "name": "Doxorubicin Hydrochloride",
+      "type": "Small molecule",
+      "stage": "Approved"
+    },
+    {
+      "id": "CHEMBL3545376",
+      "name": "Erdafitinib",
+      "type": "Small molecule",
+      "stage": "Approved"
+    },
     {
       "id": "CHEMBL3301587",
       "name": "Durvalumab",
@@ -1315,22 +1345,10 @@
       "stage": "Unknown"
     },
     {
-      "id": "CHEMBL1200582",
-      "name": "Aminolevulinic Acid Hydrochloride",
-      "type": "Small molecule",
-      "stage": "Approval"
-    },
-    {
       "id": "CHEMBL415606",
       "name": "Degarelix",
       "type": "Protein",
       "stage": "Unknown"
-    },
-    {
-      "id": "CHEMBL1096885",
-      "name": "Valrubicin",
-      "type": "Small molecule",
-      "stage": "Approval"
     },
     {
       "id": "CHEMBL930",
@@ -1345,22 +1363,10 @@
       "stage": "Unknown"
     },
     {
-      "id": "CHEMBL2108905",
-      "name": "Bcg Vaccine",
-      "type": "Vaccine component",
-      "stage": "Approval"
-    },
-    {
       "id": "CHEMBL4298065",
       "name": "Omega-3 Fatty Acids",
       "type": "Unknown",
       "stage": "Early Phase 1"
-    },
-    {
-      "id": "CHEMBL359744",
-      "name": "Doxorubicin Hydrochloride",
-      "type": "Small molecule",
-      "stage": "Approval"
     },
     {
       "id": "CHEMBL180022",
@@ -1373,12 +1379,6 @@
       "name": "Epirubicin",
       "type": "Small molecule",
       "stage": "Unknown"
-    },
-    {
-      "id": "CHEMBL3545376",
-      "name": "Erdafitinib",
-      "type": "Small molecule",
-      "stage": "Approval"
     }
   ]
 }

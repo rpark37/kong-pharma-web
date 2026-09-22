@@ -1,5 +1,5 @@
 {
-  "captured": "2026-09-22T05:40:08Z",
+  "captured": "2026-09-22T06:00:43Z",
   "genes": [
     {
       "id": "ENSG00000133703",
@@ -152,22 +152,22 @@
       "drugCount": 3,
       "drugs": [
         {
-          "id": "CHEMBL23293",
-          "name": "Salirasib",
-          "type": "Small molecule",
-          "stage": "Phase 2"
-        },
-        {
           "id": "CHEMBL4535757",
           "name": "Sotorasib",
           "type": "Small molecule",
-          "stage": "Approval"
+          "stage": "Approved"
         },
         {
           "id": "CHEMBL4594350",
           "name": "Adagrasib",
           "type": "Small molecule",
-          "stage": "Approval"
+          "stage": "Approved"
+        },
+        {
+          "id": "CHEMBL23293",
+          "name": "Salirasib",
+          "type": "Small molecule",
+          "stage": "Phase 2"
         }
       ]
     },

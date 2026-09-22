@@ -9,7 +9,7 @@
         <!-- routerLinkActive on the <details> highlights the group while any child route is open. -->
         <details class="group" routerLinkActive="open-route" #menu>
           <summary><app-nav-icon [name]="link.icon" />{{ link.label }}</summary>
-          <div class="menu glass">
+          <div class="menu glass" [class.columns]="link.children.length > 8">
             @for (child of link.children; track child.path + (child.fragment ?? "")) {
               <a [routerLink]="child.path" [fragment]="child.fragment" routerLinkActive="active" [routerLinkActiveOptions]="child.fragment ? { paths: 'exact', queryParams: 'ignored', fragment: 'exact', matrixParams: 'ignored' } : { exact: false }" (click)="menu.open = false"><app-nav-icon [name]="child.icon" />{{ child.label }}</a>
             }

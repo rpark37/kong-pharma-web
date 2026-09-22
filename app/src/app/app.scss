@@ -73,6 +73,8 @@ nav {
     padding: 6px;
     min-width: 160px;
     a { white-space: nowrap; }
+    /* The research menu lists a dozen genes; two columns keep it on screen. */
+    &.columns { display: grid; grid-template-columns: 1fr 1fr; column-gap: 4px; }
   }
 }
 

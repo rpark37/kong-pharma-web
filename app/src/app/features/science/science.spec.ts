@@ -8,10 +8,11 @@
  */
 import bladderJson from '../../../../public/data/science/bladder.json';
 import rac1Json from '../../../../public/data/science/rac1.json';
+import machineryJson from '../../../../public/data/science/machinery.json';
 import rasJson from '../../../../public/data/science/ras.json';
 import trialsJson from '../../../../public/data/science/trials.json';
-import { associationSpec, literatureRaceSpec, phaseSpec, rasDiseaseSpec, stageSpec, statusSpec } from './science-specs';
-import { capturedOn, evidenceRows, isCancer, type BladderSnapshot, type Rac1Snapshot, type RasSnapshot, type TrialsSnapshot } from './science.model';
+import { associationSpec, geneDiseaseSpec, literatureRaceSpec, machineryPapersSpec, phaseSpec, rasDiseaseSpec, stageSpec, statusSpec } from './science-specs';
+import { capturedOn, evidenceRows, isCancer, type BladderSnapshot, type MachinerySnapshot, type Rac1Snapshot, type RasSnapshot, type TrialsSnapshot } from './science.model';
 
 // Imported rather than read from disk: the spec tsconfig exposes only vitest globals, and adding
 // @types/node for two calls is not worth a dependency. Vite resolves the JSON at build time, so
@@ -20,10 +21,11 @@ const trials = trialsJson as unknown as TrialsSnapshot;
 const rac1 = rac1Json as unknown as Rac1Snapshot;
 const bladder = bladderJson as unknown as BladderSnapshot;
 const ras = rasJson as unknown as RasSnapshot;
+const machinery = machineryJson as unknown as MachinerySnapshot;
 
 describe('science snapshots', () => {
   it('every snapshot records when it was captured', () => {
-    for (const [name, snap] of [['trials', trials], ['rac1', rac1], ['bladder', bladder], ['ras', ras]] as const) {
+    for (const [name, snap] of [['trials', trials], ['rac1', rac1], ['bladder', bladder], ['ras', ras], ['machinery', machinery]] as const) {
       expect(snap.captured, name).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/);
       expect(new Date(snap.captured).valueOf(), name).not.toBeNaN();
     }
@@ -177,5 +179,31 @@ describe('RAS snapshot', () => {
     expect((facets['data'] as { values: unknown[] }).values.length).toBe(ras.genes.length * 8);
     const race = literatureRaceSpec([...ras.literature.map((l) => ({ gene: 'KRAS', ...l })), ...rac1.literature.map((l) => ({ gene: 'RAC1', ...l }))]);
     expect((race['data'] as { values: unknown[] }).values.length).toBe(40);
+  });
+});
+
+describe('machinery snapshot', () => {
+  it('covers the ten genes, each at a known stage with a literature count', () => {
+    expect(machinery.genes.map((g) => g.symbol)).toEqual(['PAK1', 'CDC42', 'PIK3CA', 'PTEN', 'SLC9A1', 'ARF6', 'RAB5A', 'RAB7A', 'MTOR', 'HIF1A']);
+    for (const g of machinery.genes) {
+      expect(['ruffle', 'closure', 'traffic', 'sensing'], g.symbol).toContain(g.stage);
+      expect(g.macropinocytosisPapers, g.symbol).toBeGreaterThan(0);
+      expect(g.macropinocytosisPapers, g.symbol).toBeLessThan(machinery.macropinocytosisPapers);
+      expect(g.diseaseCount, g.symbol).toBeGreaterThanOrEqual(g.diseases.length);
+    }
+  });
+
+  it('spells the last clinical stage Approved, sorted first', () => {
+    for (const g of [...machinery.genes, ...ras.genes]) {
+      for (const d of g.drugs) expect(d.stage, `${g.symbol} ${d.name}`).not.toMatch(/approval/i);
+      const approved = g.drugs.findIndex((d) => d.stage === 'Approved');
+      const other = g.drugs.findIndex((d) => d.stage !== 'Approved');
+      if (approved >= 0 && other >= 0) expect(approved, g.symbol).toBeLessThan(other);
+    }
+  });
+
+  it('builds the machinery figures', () => {
+    expect((machineryPapersSpec(machinery.genes)['data'] as { values: unknown[] }).values.length).toBe(10);
+    expect((geneDiseaseSpec(machinery.genes[0])['data'] as { values: unknown[] }).values.length).toBeGreaterThan(0);
   });
 });

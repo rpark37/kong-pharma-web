@@ -6,7 +6,7 @@
  * `data.values` because every page has already loaded its snapshot by the time it builds a spec.
  */
 import { VEGA_COLORS } from '../../shared/vega/theme';
-import { isCancer, type RasGene } from './science.model';
+import { isCancer, type MachineryGene, type RasGene } from './science.model';
 
 const VL = 'https://vega.github.io/schema/vega-lite/v6.json';
 
@@ -182,6 +182,44 @@ export function stageSpec(rows: { stage: string; count: number }[], order: strin
       x: { field: 'stage', type: 'nominal', title: null, sort: order },
       y: { field: 'count', type: 'quantitative', title: 'Drugs' },
       tooltip: [{ field: 'stage' }, { field: 'count', title: 'Drugs' }],
+    },
+  };
+}
+
+// ── machinery ────────────────────────────────────────────────────────────────────────────────
+
+/** Papers tying each gene to macropinocytosis, grouped by the stage the gene acts at. */
+export function machineryPapersSpec(genes: MachineryGene[]): Record<string, unknown> {
+  const rows = genes.map((g) => ({ gene: g.symbol, stage: g.stage, papers: g.macropinocytosisPapers }));
+  return {
+    ...base('Europe PMC papers mentioning both the gene and macropinocytosis'),
+    data: { values: rows },
+    mark: { type: 'bar', cornerRadiusEnd: 2 },
+    encoding: {
+      y: { field: 'gene', type: 'nominal', title: null, sort: rows.map((r) => r.gene) },
+      x: { field: 'papers', type: 'quantitative', title: 'Papers with macropinocytosis' },
+      color: { field: 'stage', type: 'nominal', title: null, sort: ['ruffle', 'closure', 'traffic', 'sensing'] },
+      tooltip: [{ field: 'gene' }, { field: 'stage' }, { field: 'papers', title: 'Papers' }],
+    },
+  };
+}
+
+/** One gene's top associations, malignancies in the accent — the panel each machinery entry carries. */
+export function geneDiseaseSpec(gene: { diseases: { name: string; score: number }[] }, n = 6): Record<string, unknown> {
+  const rows = gene.diseases.slice(0, n).map((d) => ({ name: d.name, score: d.score, kind: isCancer(d.name) ? 'Malignancy' : 'Other' }));
+  return {
+    // Sized by row, not by the box: the panel grows to fit the axis and its labels.
+    $schema: VL,
+    description: 'Top disease associations',
+    width: 'container',
+    height: rows.length * 20,
+    data: { values: rows },
+    mark: { type: 'bar', cornerRadiusEnd: 2 },
+    encoding: {
+      y: { field: 'name', type: 'nominal', title: null, sort: '-x', axis: { labelLimit: 190 } },
+      x: { field: 'score', type: 'quantitative', title: null, scale: { domain: [0, 1] }, axis: { format: '.1f', tickCount: 3 } },
+      color: { field: 'kind', type: 'nominal', legend: null, scale: { domain: ['Malignancy', 'Other'], range: [VEGA_COLORS.teal, VEGA_COLORS.faint] } },
+      tooltip: [{ field: 'name', title: 'Disease' }, { field: 'score', format: '.3f' }],
     },
   };
 }

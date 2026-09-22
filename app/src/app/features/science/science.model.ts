@@ -86,6 +86,26 @@ export interface RasSnapshot extends Captured {
 export const isCancer = (name: string): boolean =>
   /cancer|carcinoma|melanoma|leuk[ae]mia|tumou?r|lymphoma|neoplasm|sarcoma|glioma|myeloma|adenoma|blastoma/i.test(name);
 
+// ── The rest of the macropinocytosis machinery ───────────────────────────────────────────────
+export type MachineryStage = 'ruffle' | 'closure' | 'traffic' | 'sensing';
+
+export interface MachineryGene {
+  id: string; symbol: string; name: string; stage: MachineryStage;
+  smallMolecule: string[];
+  diseaseCount: number;
+  diseases: DiseaseAssociation[];
+  drugCount: number;
+  drugs: { id: string; name: string; type: string; stage: string }[];
+  /** Europe PMC papers that mention both the gene and macropinocytosis. */
+  macropinocytosisPapers: number;
+}
+
+export interface MachinerySnapshot extends Captured {
+  genes: MachineryGene[];
+  /** Europe PMC papers mentioning macropinocytosis at all — the denominator for the gene counts. */
+  macropinocytosisPapers: number;
+}
+
 // ── /science/bladder ─────────────────────────────────────────────────────────────────────────
 export interface TargetAssociation {
   id: string;

@@ -31,6 +31,20 @@ UA = {'User-Agent': 'kong-atlas-labs/1.0 (science snapshot)'}
 RAC1 = 'ENSG00000136238'
 # The story opens on RAS: the oncogene family whose tumours scavenge nutrients by macropinocytosis.
 RAS = [('KRAS', 'ENSG00000133703'), ('HRAS', 'ENSG00000174775'), ('NRAS', 'ENSG00000213281')]
+# The rest of the macropinocytosis machinery, by the stage each gene acts at. Symbols are resolved
+# to Ensembl ids through Open Targets search at fetch time; `aliases` widen the literature query.
+MACHINERY = [
+    {'symbol': 'PAK1', 'stage': 'ruffle', 'aliases': []},
+    {'symbol': 'CDC42', 'stage': 'ruffle', 'aliases': []},
+    {'symbol': 'PIK3CA', 'stage': 'ruffle', 'aliases': ['PI3K']},
+    {'symbol': 'PTEN', 'stage': 'ruffle', 'aliases': []},
+    {'symbol': 'SLC9A1', 'stage': 'closure', 'aliases': ['NHE1']},
+    {'symbol': 'ARF6', 'stage': 'closure', 'aliases': []},
+    {'symbol': 'RAB5A', 'stage': 'traffic', 'aliases': ['Rab5']},
+    {'symbol': 'RAB7A', 'stage': 'traffic', 'aliases': ['Rab7']},
+    {'symbol': 'MTOR', 'stage': 'sensing', 'aliases': ['mTORC1']},
+    {'symbol': 'HIF1A', 'stage': 'sensing', 'aliases': ['HIF-1']},
+]
 BLADDER = 'MONDO_0004986'  # urinary bladder carcinoma
 CONDITIONS = [
     {'key': 'bladder', 'label': 'Bladder cancer', 'cond': 'bladder cancer', 'programme': 'K-119'},
@@ -174,13 +188,16 @@ def fetch_rac1() -> dict:
     }
 
 
-STAGE_ORDER = ['PRECLINICAL', 'PHASE_1', 'PHASE_1_2', 'PHASE_2', 'PHASE_2_3', 'PHASE_3', 'PHASE_4', 'APPROVED']
+# Open Targets spells the last stage APPROVAL; APPROVED is kept in case that ever changes.
+STAGE_ORDER = ['PRECLINICAL', 'PHASE_1', 'PHASE_1_2', 'PHASE_2', 'PHASE_2_3', 'PHASE_3', 'PHASE_4', 'APPROVED', 'APPROVAL']
 
 
 def _stage_label(stage: str) -> str:
     """PHASE_2_3 is one straddling stage, not two: render it "Phase 2/3", not "Phase 2 3"."""
     if not stage:
         return 'Unknown'
+    if stage in ('APPROVAL', 'APPROVED'):
+        return 'Approved'
     parts = stage.split('_')
     if parts[0] == 'PHASE' and len(parts) > 2:
         return 'Phase ' + '/'.join(parts[1:])
@@ -281,22 +298,69 @@ def fetch_ras() -> dict:
     years = []
     now = datetime.now(timezone.utc).year
     for y in range(now - 19, now + 1):
-        q = urllib.parse.quote(f'(KRAS) AND (FIRST_PDATE:[{y}-01-01 TO {y}-12-31])')
-        url = f'https://www.ebi.ac.uk/europepmc/webservices/rest/search?query={q}&format=json&pageSize=1'
-        hits = _get(url)
-        if 'hitCount' not in hits:  # Europe PMC answers a burst with an error document, not a 429
-            time.sleep(2)
-            hits = _get(url)
-        years.append({'year': y, 'count': hits['hitCount']})
-        time.sleep(0.3)
+        years.append({'year': y, 'count': _pmc_count(f'(KRAS) AND (FIRST_PDATE:[{y}-01-01 TO {y}-12-31])')})
 
     return {'genes': genes, 'literature': years}
+
+
+def _pmc_count(query: str, tries: int = 5) -> int:
+    """Europe PMC answers a burst with a bare {version} document rather than a 429; back off and ask again."""
+    url = f'https://www.ebi.ac.uk/europepmc/webservices/rest/search?query={urllib.parse.quote(query)}&format=json&pageSize=1'
+    for attempt in range(tries):
+        hits = _get(url)
+        if 'hitCount' in hits:
+            time.sleep(0.4)
+            return hits['hitCount']
+        time.sleep(2 * (attempt + 1))
+    raise RuntimeError(f'Europe PMC never answered: {query}')
+
+
+def fetch_machinery() -> dict:
+    genes = []
+    for g in MACHINERY:
+        symbol = g['symbol']
+        print(f'  Open Targets {symbol}…')
+        hits = gql(f'''{{ search(queryString:"{symbol}", entityNames:["target"], page:{{index:0,size:5}}) {{ hits {{ id name }} }} }}''')['search']['hits']
+        hit = next((h for h in hits if h['name'] == symbol), None)
+        if not hit:
+            raise RuntimeError(f'{symbol}: no exact Open Targets hit in {[h["name"] for h in hits]}')
+        t = gql(f'''{{
+          target(ensemblId:"{hit['id']}") {{
+            id approvedSymbol approvedName
+            tractability {{ label modality value }}
+            associatedDiseases(page:{{index:0,size:8}}) {{
+              count
+              rows {{ score disease {{ id name }} datatypeScores {{ id score }} }}
+            }}
+            drugAndClinicalCandidates {{
+              count
+              rows {{ id maxClinicalStage drug {{ id name drugType }} }}
+            }}
+          }}
+        }}''')['target']
+        terms = ' OR '.join(f'"{x}"' for x in [symbol, *g['aliases']])
+        genes.append({
+            'id': t['id'], 'symbol': t['approvedSymbol'], 'name': t['approvedName'], 'stage': g['stage'],
+            'smallMolecule': sorted({x['label'] for x in (t.get('tractability') or [])
+                                     if x.get('value') and x.get('modality') == 'SM'}),
+            'diseaseCount': t['associatedDiseases']['count'],
+            'diseases': [{
+                'id': r['disease']['id'], 'name': r['disease']['name'], 'score': r['score'],
+                'evidence': {d['id']: d['score'] for d in r['datatypeScores']},
+            } for r in t['associatedDiseases']['rows']],
+            'drugCount': t['drugAndClinicalCandidates']['count'],
+            'drugs': _collapse_drugs(t['drugAndClinicalCandidates']['rows'])[:8],
+            # How much of the literature ties this gene to the process, Europe PMC.
+            'macropinocytosisPapers': _pmc_count(f'({terms}) AND (macropinocytosis)'),
+        })
+    print('  Europe PMC…')
+    return {'genes': genes, 'macropinocytosisPapers': _pmc_count('macropinocytosis')}
 
 
 def main() -> int:
     OUT.mkdir(parents=True, exist_ok=True)
     captured = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
-    jobs = [('trials', fetch_trials), ('rac1', fetch_rac1), ('bladder', fetch_bladder), ('ras', fetch_ras)]
+    jobs = [('trials', fetch_trials), ('rac1', fetch_rac1), ('bladder', fetch_bladder), ('ras', fetch_ras), ('machinery', fetch_machinery)]
     # `--only ras` refreshes one snapshot and leaves the others' capture dates alone.
     only = sys.argv[sys.argv.index('--only') + 1] if '--only' in sys.argv else None
     if only:

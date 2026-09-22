@@ -8,8 +8,8 @@ import { GsapService } from '../../shared/animation/gsap.service';
 import { EASE, MOTION } from '../../shared/animation/motion';
 import { GlyphComponent } from '../../shared/ui/glyph.component';
 import { VegaChartComponent } from '../../shared/vega/vega-chart.component';
-import { associationSpec, interactorSpec, literatureRaceSpec, phaseSpec, rasDiseaseSpec, stageSpec, statusSpec } from './science-specs';
-import { capturedOn, evidenceRows, type BladderSnapshot, type Rac1Snapshot, type RasSnapshot, type TrialsSnapshot } from './science.model';
+import { associationSpec, geneDiseaseSpec, interactorSpec, literatureRaceSpec, machineryPapersSpec, phaseSpec, rasDiseaseSpec, stageSpec, statusSpec } from './science-specs';
+import { capturedOn, evidenceRows, type BladderSnapshot, type MachineryGene, type MachineryStage, type MachinerySnapshot, type Rac1Snapshot, type RasSnapshot, type TrialsSnapshot } from './science.model';
 
 /** Stages in the order a programme passes through them, so the bars read left to right. */
 const STAGES = ['Preclinical', 'Phase 1', 'Phase 1 2', 'Phase 2', 'Phase 2 3', 'Phase 3', 'Phase 4', 'Approved'];
@@ -22,6 +22,21 @@ const STAGES = ['Preclinical', 'Phase 1', 'Phase 1 2', 'Phase 2', 'Phase 2 3', '
 const RAS_GEFS = ['TIAM1', 'PREX1', 'VAV1'];
 
 interface Chapter { id: string; numeral: string; title: string; }
+
+/** Where each machinery gene acts, and what it does there. Hand-written; the numbers beside it are the snapshot's. */
+const STAGE_LABEL: Record<MachineryStage, string> = { ruffle: 'The ruffle', closure: 'Closing the cup', traffic: 'Traffic', sensing: 'Sensing' };
+const ROLES: Record<string, string> = {
+  PAK1: "RAC1's first effector: the kinase that turns a GTP-loaded RAC1 into actin remodelling at the ruffle.",
+  CDC42: "RAC1's sibling GTPase. Together they shape the ruffle and the cup that closes behind it.",
+  PIK3CA: 'The PI3K catalytic subunit RAS recruits. Its product, PIP3, is what brings PREX1 and VAV1 to RAC1 and marks the cup for closure.',
+  PTEN: 'Erases PIP3. Lose PTEN and the ruffle signal stays on — PTEN-null tumours are among the heaviest drinkers.',
+  SLC9A1: "The sodium–proton exchanger NHE1, which keeps the ruffle's pH where actin can polymerise. Amiloride and EIPA block it, which is how macropinocytosis is switched off in the dish.",
+  ARF6: 'Recycles membrane to the ruffle and helps the cup close into a vesicle.',
+  RAB5A: 'Marks the early macropinosome and hands it to the endosomal system.',
+  RAB7A: 'Marks the late macropinosome and delivers it to the lysosome, where the scavenged protein is broken down.',
+  MTOR: 'Senses the amino acids the lysosome releases. With mTORC1 inhibited the cell uses scavenged protein more freely — the growth sensor and the drinking programme pull in different directions.',
+  HIF1A: 'The hypoxia switch. Low oxygen, the norm inside a solid tumour, turns the programme up.',
+};
 
 /**
  * The science dossier: one story in five chapters, from the RAS oncogene to the trial field
@@ -37,12 +52,13 @@ interface Chapter { id: string; numeral: string; title: string; }
   template: `
     <article class="dossier">
       <header class="prologue">
-        <p class="eyebrow" data-reveal><app-glyph name="body" />Science · a dossier in five chapters</p>
+        <p class="eyebrow" data-reveal><app-glyph name="body" />Research · a dossier in six chapters</p>
         <h1 data-reveal>Starving a RAS tumour</h1>
         <p class="lead" data-reveal>
           Three genes jam a growth switch on; the cells they drive get hungry and drink their surroundings;
-          the drinking runs through a second switch, RAC1, that a small molecule can reach. This is the
-          public evidence behind that argument, read in order.
+          the drinking runs through a second switch, RAC1, that a small molecule can reach, and a dozen
+          more genes carry the meal the rest of the way. This is the public evidence behind that argument,
+          read in order.
         </p>
         <dl class="ledger" data-reveal>
           <div><dt>Sources</dt><dd>Open Targets · UniProt · STRING · Europe PMC · ClinicalTrials.gov</dd></div>
@@ -206,10 +222,68 @@ interface Chapter { id: string; numeral: string; title: string; }
           } @else if (!error()) { <p class="loading">Loading the RAC1 dossier…</p> }
         </section>
 
-        <!-- IV · The indication -->
-        <section class="chapter" id="bladder">
+        <!-- IV · The machinery -->
+        <section class="chapter" id="machinery">
           <header class="chapter-head" data-reveal>
             <span class="numeral" aria-hidden="true">IV</span>
+            <div><p class="kicker">The machinery</p><h2>From ruffle to lysosome</h2></div>
+          </header>
+          @if (machinery(); as m) {
+            <p class="prose" data-reveal>
+              RAC1 throws the ruffle; ten more genes carry the meal the rest of the way. Four shape the ruffle and the
+              cup, two close it, two label the vesicle as it travels, and two decide what the cell makes of what it
+              swallowed. Europe PMC holds {{ m.macropinocytosisPapers | number }} papers that mention macropinocytosis;
+              the ledger below counts how many of them name each gene.
+            </p>
+            <figure class="pathway machinery-map" data-reveal>
+              <svg viewBox="0 0 960 200" role="img" aria-label="The stages of macropinocytosis with the genes at each: ruffle, cup closure, early and late macropinosome, lysosome, and the sensors mTOR and HIF1A." #machinerySvg>
+                <!-- Its own arrowhead: a marker borrowed from Fig. 3 inherits that figure's visibility, which is hidden until it scrolls in. -->
+                <defs><marker id="sci-arrow-b" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1l6 3-6 3" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" /></marker></defs>
+                <path class="edge" d="M126 120H188" /><path class="edge" d="M318 120H380" /><path class="edge" d="M492 120H554" /><path class="edge" d="M666 120H728" /><path class="edge" d="M840 120H872" />
+                <path class="edge direct" d="M842 60C860 75 878 92 886 108" />
+                <path class="edge direct" d="M120 48C160 30 210 44 234 82" />
+                <circle class="node rac1" cx="80" cy="120" r="44" /><text class="label big" x="80" y="116">RAC1</text><text class="label small" x="80" y="135">the switch</text>
+                <rect class="node" x="188" y="86" width="130" height="68" rx="8" /><text class="label" x="253" y="112">RUFFLE</text><text class="label small" x="253" y="130">PAK1 · CDC42</text><text class="label small" x="253" y="145">PIK3CA ⊣ PTEN</text>
+                <rect class="node" x="380" y="86" width="112" height="68" rx="8" /><text class="label" x="436" y="112">CUP</text><text class="label small" x="436" y="130">SLC9A1 · ARF6</text><text class="label small" x="436" y="145">pH · membrane</text>
+                <rect class="node" x="554" y="86" width="112" height="68" rx="8" /><text class="label" x="610" y="112">EARLY</text><text class="label small" x="610" y="130">RAB5A</text><text class="label small" x="610" y="145">macropinosome</text>
+                <rect class="node" x="728" y="86" width="112" height="68" rx="8" /><text class="label" x="784" y="112">LATE</text><text class="label small" x="784" y="130">RAB7A</text><text class="label small" x="784" y="145">to the lysosome</text>
+                <circle class="node vesicle" cx="906" cy="120" r="34" /><circle class="node vesicle inner" cx="906" cy="120" r="18" /><text class="label tiny" x="906" y="178">lysosome</text>
+                <rect class="node gef" x="70" y="18" width="100" height="40" rx="8" /><text class="label" x="120" y="36">HIF1A</text><text class="label small" x="120" y="50">hypoxia</text>
+                <rect class="node gef" x="790" y="18" width="104" height="40" rx="8" /><text class="label" x="842" y="36">MTOR</text><text class="label small" x="842" y="50">amino acids</text>
+                <text class="label tiny" x="436" y="180">amiloride · EIPA block here</text>
+              </svg>
+              <figcaption><b>Fig. 6</b> The route after the switch. HIF1A turns the programme up under hypoxia; MTOR reads what the lysosome releases. Drawn; the genes' own numbers follow.</figcaption>
+            </figure>
+            <figure data-reveal>
+              <div class="chart"><app-vega-chart [spec]="machineryPapers()" [fill]="true" /></div>
+              <figcaption><b>Fig. 7</b> Papers that mention both the gene and macropinocytosis, Europe PMC, all years, coloured by stage. PIK3CA counts its PI3K alias, SLC9A1 its NHE1 one.</figcaption>
+            </figure>
+            <div class="genes">
+              @for (g of m.genes; track g.id) {
+                <section class="gene" [id]="g.symbol.toLowerCase()" data-reveal>
+                  <header class="gene-head">
+                    <h3>{{ g.symbol }}</h3>
+                    <span class="stage-tag">{{ stageLabel(g.stage) }}</span>
+                    <span class="gene-name">{{ g.name }}</span>
+                  </header>
+                  <p class="prose small">{{ role(g.symbol) }}</p>
+                  <dl class="readout compact">
+                    <div><dt>Diseases</dt><dd>{{ g.diseaseCount | number }}<small>Open Targets</small></dd></div>
+                    <div><dt>With macropinocytosis</dt><dd>{{ g.macropinocytosisPapers | number }}<small>papers</small></dd></div>
+                    <div><dt>Candidates</dt><dd>{{ g.drugCount | number }}<small>{{ approvedOf(g) || (g.drugCount ? 'none approved' : 'none in the clinic') }}</small></dd></div>
+                    <div><dt>Small molecule</dt><dd>{{ g.smallMolecule.length }}<small>{{ g.smallMolecule.length ? g.smallMolecule.slice(0, 2).join(' · ') : 'no tractability flag' }}</small></dd></div>
+                  </dl>
+                  <div class="chart mini"><app-vega-chart [spec]="geneDiseases(g)" [height]="120" /></div>
+                </section>
+              }
+            </div>
+          } @else if (!error()) { <p class="loading">Loading the machinery snapshot…</p> }
+        </section>
+
+        <!-- V · The indication -->
+        <section class="chapter" id="bladder">
+          <header class="chapter-head" data-reveal>
+            <span class="numeral" aria-hidden="true">V</span>
             <div><p class="kicker">The indication</p><h2>Where RAS meets the clinic</h2></div>
           </header>
           @if (bladder(); as b) {
@@ -228,12 +302,12 @@ interface Chapter { id: string; numeral: string; title: string; }
             </dl>
             <figure data-reveal>
               <div class="chart tall"><app-vega-chart [spec]="bladderAssociations()" [fill]="true" /></div>
-              <figcaption><b>Fig. 6</b> Top {{ b.targets.length }} targets by aggregated evidence, the RAS genes and FGFR3 held bright. Somatic mutation dominating a bar means the case rests on tumour sequencing; genetic association means inherited data.</figcaption>
+              <figcaption><b>Fig. 8</b> Top {{ b.targets.length }} targets by aggregated evidence, the RAS genes and FGFR3 held bright. Somatic mutation dominating a bar means the case rests on tumour sequencing; genetic association means inherited data.</figcaption>
             </figure>
             <div class="split" data-reveal>
               <figure>
                 <div class="chart short"><app-vega-chart [spec]="stages()" [fill]="true" /></div>
-                <figcaption><b>Fig. 7</b> The {{ b.drugCount }} clinical candidates by the furthest stage each reached, not its current status.</figcaption>
+                <figcaption><b>Fig. 9</b> The {{ b.drugCount }} clinical candidates by the furthest stage each reached, not its current status.</figcaption>
               </figure>
               <div>
                 <p class="kicker">What an oral programme could reach</p>
@@ -268,10 +342,10 @@ interface Chapter { id: string; numeral: string; title: string; }
           } @else if (!error()) { <p class="loading">Loading the indication landscape…</p> }
         </section>
 
-        <!-- V · The field -->
+        <!-- VI · The field -->
         <section class="chapter" id="trials">
           <header class="chapter-head" data-reveal>
-            <span class="numeral" aria-hidden="true">V</span>
+            <span class="numeral" aria-hidden="true">VI</span>
             <div><p class="kicker">The field</p><h2>Who else is in these indications</h2></div>
           </header>
           @if (trials(); as t) {
@@ -288,11 +362,11 @@ interface Chapter { id: string; numeral: string; title: string; }
             </p>
             <figure data-reveal>
               <div class="chart"><app-vega-chart [spec]="phases()" [fill]="true" /></div>
-              <figcaption><b>Fig. 8</b> Phase as a share of each indication's phase-tagged studies. The denominator is neither the total above nor a clean partition of it: observational studies carry no phase, and a Phase 1/2 study counts under both.</figcaption>
+              <figcaption><b>Fig. 10</b> Phase as a share of each indication's phase-tagged studies. The denominator is neither the total above nor a clean partition of it: observational studies carry no phase, and a Phase 1/2 study counts under both.</figcaption>
             </figure>
             <figure data-reveal>
               <div class="chart short"><app-vega-chart [spec]="statuses()" [fill]="true" /></div>
-              <figcaption><b>Fig. 9</b> Status as a share of each indication, because a 739-study field and a 9,804-study one do not compare on raw counts.</figcaption>
+              <figcaption><b>Fig. 11</b> Status as a share of each indication, because a 739-study field and a 9,804-study one do not compare on raw counts.</figcaption>
             </figure>
             <p class="kicker" data-reveal>Recruiting · newest first</p>
             <table class="ledger-table wide" data-reveal>
@@ -399,6 +473,19 @@ interface Chapter { id: string; numeral: string; title: string; }
     .pathway .label.small { font-size: 10px; fill: var(--on-ink-dim); font-weight: 400; }
     .pathway .label.tiny { font-size: 9px; fill: var(--on-ink-faint); letter-spacing: 0.12em; text-transform: uppercase; }
 
+    /* Ten genes as a ledger of panels: symbol, stage, one sentence, four readouts, a six-bar chart. */
+    .genes { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 0 40px; margin-top: 16px; }
+    .gene { padding: 22px 0 18px; border-top: 1px solid var(--hairline); scroll-margin-top: calc(var(--nav-h) + 16px); }
+    .gene-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+    .gene-head h3 { font-family: var(--font-mono); font-size: 18px; font-weight: 600; letter-spacing: 0.02em; color: var(--on-ink); }
+    .stage-tag { font: 500 9px/1 var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--teal); padding: 4px 7px; border: 1px solid color-mix(in srgb, var(--teal) 40%, transparent); border-radius: 4px; }
+    .gene-name { font-size: 12px; color: var(--on-ink-faint); }
+    .readout.compact { gap: 10px 22px; margin: 6px 0 14px; padding: 10px 0; }
+    .readout.compact dd { font-size: 20px; }
+    .chart.mini { height: auto; }
+    .machinery-map svg { color: var(--on-ink-dim); }
+    .machinery-map .edge { marker-end: url(#sci-arrow-b); }
+    .machinery-map .edge.direct { marker-end: url(#sci-arrow-b); }
     .colophon { padding-top: 40px; border-top: 1px solid var(--hairline); max-width: 76ch; p { font: 400 12px/1.6 var(--font-mono); color: var(--on-ink-faint); } code { color: var(--teal); } }
 
     @media (max-width: 900px) {
@@ -416,14 +503,16 @@ export class SciencePageComponent {
     { id: 'ras', numeral: 'I', title: 'The oncogene' },
     { id: 'hungry', numeral: 'II', title: 'The hungry cell' },
     { id: 'rac1', numeral: 'III', title: 'The switch' },
-    { id: 'bladder', numeral: 'IV', title: 'The indication' },
-    { id: 'trials', numeral: 'V', title: 'The field' },
+    { id: 'machinery', numeral: 'IV', title: 'The machinery' },
+    { id: 'bladder', numeral: 'V', title: 'The indication' },
+    { id: 'trials', numeral: 'VI', title: 'The field' },
   ];
   readonly active = signal('ras');
   readonly ras = signal<RasSnapshot | null>(null);
   readonly rac1 = signal<Rac1Snapshot | null>(null);
   readonly bladder = signal<BladderSnapshot | null>(null);
   readonly trials = signal<TrialsSnapshot | null>(null);
+  readonly machinery = signal<MachinerySnapshot | null>(null);
   readonly error = signal('');
   readonly capturedOn = capturedOn;
 
@@ -458,6 +547,19 @@ export class SciencePageComponent {
   }
 
   // ── IV ──
+  readonly machineryPapers = computed(() => machineryPapersSpec(this.machinery()?.genes ?? []));
+  private readonly geneSpecs = new Map<string, Record<string, unknown>>();
+  /** Memoised per gene so the panel's chart is not re-embedded on every change-detection pass. */
+  geneDiseases(g: MachineryGene): Record<string, unknown> {
+    let spec = this.geneSpecs.get(g.id);
+    if (!spec) { spec = geneDiseaseSpec(g); this.geneSpecs.set(g.id, spec); }
+    return spec;
+  }
+  stageLabel(stage: MachineryStage): string { return STAGE_LABEL[stage]; }
+  role(symbol: string): string { return ROLES[symbol] ?? ''; }
+  approvedOf(g: MachineryGene): string { return g.drugs.filter((d) => /approv/i.test(d.stage)).map((d) => d.name).slice(0, 2).join(', '); }
+
+  // ── V ──
   readonly tractable = computed(() => (this.bladder()?.targets ?? []).filter((t) => t.smallMolecule.length > 0));
   readonly bladderAssociations = computed(() => {
     const t = this.bladder()?.targets ?? [];
@@ -471,7 +573,7 @@ export class SciencePageComponent {
   rank(symbol: string): number { return (this.bladder()?.targets.findIndex((t) => t.symbol === symbol) ?? -1) + 1; }
   score(symbol: string): string { const s = this.bladder()?.targets.find((t) => t.symbol === symbol)?.score; return s === undefined ? '—' : s.toFixed(3); }
 
-  // ── V ──
+  // ── VI ──
   readonly recruiting = computed(() => (this.trials()?.conditions ?? []).reduce((sum, c) => sum + (c.statuses.find((s) => s.status === 'Recruiting')?.count ?? 0), 0));
   readonly solidPhase1 = computed(() => this.trials()?.conditions.find((c) => c.key === 'solid')?.phases.find((p) => p.phase === 'Phase 1')?.count ?? 0);
   readonly phases = computed(() => phaseSpec((this.trials()?.conditions ?? []).flatMap((c) => c.phases.map((p) => ({ indication: c.label, phase: p.phase, count: p.count })))));
@@ -526,8 +628,7 @@ export class SciencePageComponent {
         if (!e.isIntersecting || seen.has(e.target)) continue;
         seen.add(e.target);
         this.gsap.reveal(e.target.querySelectorAll('[data-reveal]'), { delay: 0, stagger: MOTION.stagger / 2 });
-        const svg = e.target.querySelector<SVGSVGElement>('.pathway svg');
-        if (svg) this.draw(svg);
+        e.target.querySelectorAll<SVGSVGElement>('.pathway svg').forEach((svg) => this.draw(svg));
       }
     }, { rootMargin: '0px 0px -12% 0px' });
     sections.forEach((s) => this.revealer!.observe(s));
@@ -544,13 +645,14 @@ export class SciencePageComponent {
 
   private async load(): Promise<void> {
     const get = <T,>(file: string) => firstValueFrom(this.http.get<T>(`data/science/${file}.json`));
-    const results = await Promise.allSettled([get<RasSnapshot>('ras'), get<Rac1Snapshot>('rac1'), get<BladderSnapshot>('bladder'), get<TrialsSnapshot>('trials')]);
-    const [ras, rac1, bladder, trials] = results;
+    const results = await Promise.allSettled([get<RasSnapshot>('ras'), get<Rac1Snapshot>('rac1'), get<BladderSnapshot>('bladder'), get<TrialsSnapshot>('trials'), get<MachinerySnapshot>('machinery')]);
+    const [ras, rac1, bladder, trials, machinery] = results;
     if (ras.status === 'fulfilled') this.ras.set(ras.value);
     if (rac1.status === 'fulfilled') this.rac1.set(rac1.value);
     if (bladder.status === 'fulfilled') this.bladder.set(bladder.value);
     if (trials.status === 'fulfilled') this.trials.set(trials.value);
-    const failed = results.map((r, i) => (r.status === 'rejected' ? ['ras', 'rac1', 'bladder', 'trials'][i] : null)).filter(Boolean);
+    if (machinery.status === 'fulfilled') this.machinery.set(machinery.value);
+    const failed = results.map((r, i) => (r.status === 'rejected' ? ['ras', 'rac1', 'bladder', 'trials', 'machinery'][i] : null)).filter(Boolean);
     if (failed.length) this.error.set(`Could not load the ${failed.join(', ')} snapshot${failed.length > 1 ? 's' : ''}.`);
   }
 }
