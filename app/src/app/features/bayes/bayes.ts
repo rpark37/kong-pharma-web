@@ -77,12 +77,13 @@ export function clamp01(x: number): number {
   return Math.min(1, Math.max(0, isFinite(x) ? x : 0));
 }
 
-export interface TestPreset { id: string; name: string; note: string; inputs: TestInputs; }
+/** `short` is the code on the segmented preset rail; `name` is its tooltip and caption. */
+export interface TestPreset { id: string; name: string; short: string; note: string; inputs: TestInputs; }
 
 /** Illustrative presets (rounded textbook figures, not clinical guidance). */
 export const PRESETS: TestPreset[] = [
-  { id: 'mammography', name: 'Screening mammography', note: 'Roughly 1% prevalence in a screening population.', inputs: { prevalence: 0.01, sensitivity: 0.9, specificity: 0.91, population: 10000 } },
-  { id: 'rapid-antigen', name: 'Rapid antigen test', note: 'Symptomatic clinic, moderate prevalence.', inputs: { prevalence: 0.2, sensitivity: 0.8, specificity: 0.98, population: 10000 } },
-  { id: 'companion', name: 'Companion diagnostic', note: 'Biomarker gating a targeted therapy; prevalence of the marker.', inputs: { prevalence: 0.15, sensitivity: 0.95, specificity: 0.9, population: 10000 } },
-  { id: 'rare-disease', name: 'Rare disease screen', note: 'Very low prevalence: most positives are false even with a good test.', inputs: { prevalence: 0.001, sensitivity: 0.99, specificity: 0.99, population: 100000 } },
+  { id: 'mammography', name: 'Screening mammography', short: 'MAMMO', note: 'Roughly 1% prevalence in a screening population.', inputs: { prevalence: 0.01, sensitivity: 0.9, specificity: 0.91, population: 10000 } },
+  { id: 'rapid-antigen', name: 'Rapid antigen test', short: 'RAPID', note: 'Symptomatic clinic, moderate prevalence.', inputs: { prevalence: 0.2, sensitivity: 0.8, specificity: 0.98, population: 10000 } },
+  { id: 'companion', name: 'Companion diagnostic', short: 'CDx', note: 'Biomarker gating a targeted therapy; prevalence of the marker.', inputs: { prevalence: 0.15, sensitivity: 0.95, specificity: 0.9, population: 10000 } },
+  { id: 'rare-disease', name: 'Rare disease screen', short: 'RARE', note: 'Very low prevalence: most positives are false even with a good test.', inputs: { prevalence: 0.001, sensitivity: 0.99, specificity: 0.99, population: 100000 } },
 ];
