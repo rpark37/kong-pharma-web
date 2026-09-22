@@ -9,14 +9,32 @@ export function outcomeSpec(): Record<string, unknown> {
     width: 'container',
     height: 160,
     data: { name: 'outcomes' },
-    mark: { type: 'bar', cornerRadiusEnd: 3 },
+    // Normalised per result, so the diseased share of a positive test — the PPV, the point of the
+    // chart — is visible even at 1 % prevalence; the counts are written on the segments.
+    transform: [
+      { joinaggregate: [{ op: 'sum', field: 'people', as: 'total' }], groupby: ['result'] },
+      { calculate: 'datum.people / datum.total', as: 'share' },
+    ],
     encoding: {
       y: { field: 'result', type: 'nominal', title: null, sort: ['Test positive', 'Test negative'] },
-      x: { field: 'people', type: 'quantitative', title: 'People', stack: 'zero' },
+      x: { field: 'people', type: 'quantitative', title: 'Share of that result', stack: 'normalize', axis: { format: '.0%' } },
       color: { field: 'truth', type: 'nominal', title: null, scale: { domain: ['Diseased', 'Healthy'], range: [VEGA_COLORS.bad, VEGA_COLORS.teal] } },
       order: { field: 'order' },
-      tooltip: [{ field: 'result' }, { field: 'truth' }, { field: 'people', format: ',.0f' }, { field: 'label' }],
+      tooltip: [{ field: 'result' }, { field: 'truth' }, { field: 'people', format: ',.0f' }, { field: 'share', format: '.1%' }, { field: 'label' }],
     },
+    layer: [
+      { mark: { type: 'bar', cornerRadiusEnd: 3 } },
+      {
+        mark: { type: 'text', fontSize: 11, font: 'IBM Plex Mono, monospace' },
+        encoding: {
+          x: { field: 'people', type: 'quantitative', stack: 'normalize', bandPosition: 0.5 },
+          text: { field: 'people', format: ',.0f' },
+          color: { value: '#FAF9F7' },
+          // A label needs room: below 5 % of the bar it would spill over the neighbour.
+          opacity: { condition: { test: 'datum.share > 0.05', value: 1 }, value: 0 },
+        },
+      },
+    ],
   };
 }
 

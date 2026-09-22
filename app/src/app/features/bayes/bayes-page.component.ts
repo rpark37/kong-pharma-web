@@ -73,7 +73,11 @@ import { curveSpec, iconArraySpec, outcomeSpec } from './bayes-specs';
         </div>
         <div class="field">
           <span title="People in the synthetic population — one block each in the grid">Count <output>{{ form().count | number }}</output></span>
-          <input type="number" min="1" max="20000" step="1" [value]="form().count" (change)="setCount(+$any($event.target).value)" aria-label="Count">
+          <div class="stepper" role="group" aria-label="Count">
+            <button type="button" class="key" (click)="setCount(form().count - 100)" [disabled]="form().count <= 1" aria-label="100 fewer people" title="−100">−</button>
+            <input type="number" min="1" max="20000" step="1" [value]="form().count" (change)="setCount(+$any($event.target).value)" aria-label="Count">
+            <button type="button" class="key" (click)="setCount(form().count + 100)" [disabled]="form().count >= 20000" aria-label="100 more people" title="+100">+</button>
+          </div>
         </div>
         <div class="field">
           <span title="Prevalence — the pre-test probability of the condition">Prior <output>{{ form().prior | percent: '1.1-2' }}</output></span>
@@ -239,7 +243,12 @@ import { curveSpec, iconArraySpec, outcomeSpec } from './bayes-specs';
     .field { display: flex; flex-direction: column; gap: 4px; font-size: 12px; }
     .field > span { display: flex; justify-content: space-between; gap: 6px; color: var(--on-ink); cursor: help; }
     .field small { color: var(--on-ink-faint); font-size: 11px; line-height: 1.3; }
-    input[type=number] { font: inherit; font-size: 12px; color: var(--on-ink); background: rgba(0,0,0,0.05); border: 1px solid var(--hairline); border-radius: 4px; padding: 0 8px; height: 26px; width: 100%; box-sizing: border-box; text-align: right; font-variant-numeric: tabular-nums; }
+    /* Count as a stepper rail: the same segmented vocabulary as the transport and preset rails. */
+    .stepper { display: grid; grid-template-columns: 26px 1fr 26px; border: 1px solid var(--hairline); border-radius: 6px; overflow: hidden; background: rgba(0, 0, 0, 0.04); }
+    .stepper .key { height: 26px; font: 500 14px/1 var(--font-mono); }
+    .stepper input[type=number] { font: 500 12px/1 var(--font-mono); color: var(--on-ink); background: none; border: 0; border-left: 1px solid var(--hairline); border-right: 1px solid var(--hairline); border-radius: 0; padding: 0 4px; height: 26px; width: 100%; min-width: 0; box-sizing: border-box; text-align: center; font-variant-numeric: tabular-nums; -moz-appearance: textfield; appearance: textfield; }
+    .stepper input::-webkit-outer-spin-button, .stepper input::-webkit-inner-spin-button { appearance: none; margin: 0; }
+    .stepper input:focus-visible { outline: 2px solid var(--teal); outline-offset: -2px; }
     input[type=range] { width: 100%; margin: 0; }
     output { font-family: var(--font-mono); color: var(--teal); }
     .group { display: flex; flex-direction: column; gap: 10px; margin-top: 2px; padding-top: 10px; border-top: 1px solid var(--hairline); }
