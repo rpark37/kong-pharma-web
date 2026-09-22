@@ -10,6 +10,7 @@ import type { MorphChartsHost } from '../../shared/morphcharts/morphcharts-host'
 import { MorphchartsCanvasComponent } from '../../shared/morphcharts/morphcharts-canvas.component';
 import { WebGpuFallbackComponent } from '../../shared/webgpu/webgpu-fallback.component';
 import { curveSpec, iconArraySpec, outcomeSpec } from './bayes-specs';
+import { BayesIconComponent } from './bayes-icon.component';
 
 /**
  * Therapeutic Tests (Bayes' Theorem): the user's original MorphCharts morphing visualization,
@@ -17,7 +18,7 @@ import { curveSpec, iconArraySpec, outcomeSpec } from './bayes-specs';
  */
 @Component({
   selector: 'app-bayes-page',
-  imports: [DecimalPipe, PercentPipe, VegaChartComponent, MorphchartsCanvasComponent, WebGpuFallbackComponent],
+  imports: [DecimalPipe, PercentPipe, VegaChartComponent, MorphchartsCanvasComponent, WebGpuFallbackComponent, BayesIconComponent],
   template: `
     <section class="head">
       <p class="eyebrow" data-reveal>Therapeutic tests · Bayes' theorem</p>
@@ -72,7 +73,7 @@ import { curveSpec, iconArraySpec, outcomeSpec } from './bayes-specs';
           <p class="caption">{{ activePreset()?.name ?? 'Custom inputs' }}</p>
         </div>
         <div class="field">
-          <span title="People in the synthetic population — one block each in the grid">Count <output>{{ form().count | number }}</output></span>
+          <span title="People in the synthetic population — one block each in the grid"><i><app-bayes-icon name="count" />Count</i> <output>{{ form().count | number }}</output></span>
           <div class="stepper" role="group" aria-label="Count">
             <button type="button" class="key" (click)="setCount(form().count - 100)" [disabled]="form().count <= 1" aria-label="100 fewer people" title="−100">−</button>
             <input type="number" min="1" max="20000" step="1" [value]="form().count" (change)="setCount(+$any($event.target).value)" aria-label="Count">
@@ -80,26 +81,26 @@ import { curveSpec, iconArraySpec, outcomeSpec } from './bayes-specs';
           </div>
         </div>
         <div class="field">
-          <span title="Prevalence — the pre-test probability of the condition">Prior <output>{{ form().prior | percent: '1.1-2' }}</output></span>
+          <span title="Prevalence — the pre-test probability of the condition"><i><app-bayes-icon name="prior" />Prior</i> <output>{{ form().prior | percent: '1.1-2' }}</output></span>
           <input type="range" min="0" max="1" step="0.001" [value]="form().prior" (input)="set('prior', +$any($event.target).value)" aria-label="Prior">
           <small>1 in {{ 1 / (form().prior || 0.0001) | number: '1.0-0' }} have it</small>
         </div>
         <div class="field">
-          <span title="Of people with the condition, the share the test catches">Sensitivity <output>{{ form().sensitivity | percent: '1.0-1' }}</output></span>
+          <span title="Of people with the condition, the share the test catches"><i><app-bayes-icon name="sensitivity" />Sensitivity</i> <output>{{ form().sensitivity | percent: '1.0-1' }}</output></span>
           <input type="range" min="0" max="1" step="0.005" [value]="form().sensitivity" (input)="set('sensitivity', +$any($event.target).value)" aria-label="Sensitivity">
         </div>
         <div class="field">
-          <span title="Of people without it, the share the test clears">Specificity <output>{{ form().specificity | percent: '1.0-1' }}</output></span>
+          <span title="Of people without it, the share the test clears"><i><app-bayes-icon name="specificity" />Specificity</i> <output>{{ form().specificity | percent: '1.0-1' }}</output></span>
           <input type="range" min="0" max="1" step="0.005" [value]="form().specificity" (input)="set('specificity', +$any($event.target).value)" aria-label="Specificity">
         </div>
         <div class="group" role="group" aria-labelledby="bayes-motion">
-          <p class="group-label" id="bayes-motion">Motion</p>
+          <p class="group-label" id="bayes-motion"><app-bayes-icon name="motion" />Motion</p>
           <div class="field">
-            <span title="How long each block takes to travel between views">Duration <output>{{ form().transitionDuration }}ms</output></span>
+            <span title="How long each block takes to travel between views"><i><app-bayes-icon name="duration" />Duration</i> <output>{{ form().transitionDuration }}ms</output></span>
             <input type="range" min="0" max="10000" step="100" [value]="form().transitionDuration" (input)="set('transitionDuration', +$any($event.target).value)" aria-label="Transition duration">
           </div>
           <div class="field">
-            <span title="Blocks start one after another across this window; each eases with a cubic in-out">Stagger <output>{{ form().transitionStaggering }}ms</output></span>
+            <span title="Blocks start one after another across this window; each eases with a cubic in-out"><i><app-bayes-icon name="stagger" />Stagger</i> <output>{{ form().transitionStaggering }}ms</output></span>
             <input type="range" min="0" max="10000" step="100" [value]="form().transitionStaggering" (input)="set('transitionStaggering', +$any($event.target).value)" aria-label="Transition staggering">
           </div>
         </div>
@@ -110,7 +111,7 @@ import { curveSpec, iconArraySpec, outcomeSpec } from './bayes-specs';
           <div #morphchartsContainer class="morphcharts-container">
             @if (!fallback()) {
               <app-morphcharts-canvas (hostReady)="onHost($event)" (failed)="fallback.set($event)" />
-              <span class="hint">Drag to orbit · wheel to zoom · Reset returns the camera</span>
+              <span class="hint"><app-bayes-icon name="orbit" />Drag to orbit · wheel to zoom · Reset returns the camera</span>
             } @else {
               <div class="fallback-wrap"><app-webgpu-fallback title="The block views need WebGPU"><p class="fallback-text">{{ fallback() }} The Vega charts below show the same numbers.</p></app-webgpu-fallback></div>
             }
@@ -123,22 +124,22 @@ import { curveSpec, iconArraySpec, outcomeSpec } from './bayes-specs';
              reads as the numbers responding rather than swapping. -->
         <dl class="readout">
           <div class="cell primary" data-reveal>
-            <dt>Positive predictive value</dt>
+            <dt><app-bayes-icon name="ppv" />Positive predictive value</dt>
             <dd class="value">{{ shown().ppv | number: '1.1-1' }}<span class="unit">%</span></dd>
             <dd class="formula">P(disease | positive)</dd>
           </div>
           <div class="cell" data-reveal>
-            <dt>Negative predictive value</dt>
+            <dt><app-bayes-icon name="npv" />Negative predictive value</dt>
             <dd class="value">{{ shown().npv | number: '1.1-1' }}<span class="unit">%</span></dd>
             <dd class="formula">P(no disease | negative)</dd>
           </div>
           <div class="cell small" data-reveal>
-            <dt>LR+</dt>
+            <dt><app-bayes-icon name="lrPlus" />LR+</dt>
             <dd class="value">{{ shown().lrPlus | number: '1.1-1' }}</dd>
             <dd class="formula">Se / (1 − Sp)</dd>
           </div>
           <div class="cell small" data-reveal>
-            <dt>LR−</dt>
+            <dt><app-bayes-icon name="lrMinus" />LR−</dt>
             <dd class="value">{{ shown().lrMinus | number: '1.2-2' }}</dd>
             <dd class="formula">(1 − Se) / Sp</dd>
           </div>
@@ -146,7 +147,7 @@ import { curveSpec, iconArraySpec, outcomeSpec } from './bayes-specs';
         <p class="readout-note" data-reveal>PPV = Se·P / (Se·P + (1−Sp)·(1−P)) &nbsp;·&nbsp; post-test odds = pre-test odds × LR</p>
 
         <div class="tree glass" data-reveal>
-          <p class="eyebrow">Natural frequencies · {{ form().count | number }} people tested</p>
+          <p class="eyebrow"><app-bayes-icon name="flow" />Natural frequencies · {{ form().count | number }} people tested</p>
           <!-- Two stacked bars whose segments are the counts themselves (flex-grow), so the diagram is
                the data. Level 1 splits the population; level 2 splits each half by test result. -->
           <div class="flow">
@@ -178,15 +179,15 @@ import { curveSpec, iconArraySpec, outcomeSpec } from './bayes-specs';
         </div>
 
         <figure class="fig" data-reveal #fig>
-          <figcaption class="eyebrow">What a result means, in people</figcaption>
+          <figcaption class="eyebrow"><app-bayes-icon name="bars" />What a result means, in people</figcaption>
           <app-vega-chart [spec]="specs.outcome" [data]="{ outcomes: outcomes() }" [height]="170" />
         </figure>
         <figure class="fig" data-reveal #fig>
-          <figcaption class="eyebrow">Icon array · each dot is 1 in 100</figcaption>
+          <figcaption class="eyebrow"><app-bayes-icon name="dots" />Icon array · each dot is 1 in 100</figcaption>
           <app-vega-chart [spec]="specs.icons" [data]="{ icons: icons() }" [height]="210" />
         </figure>
         <figure class="fig wide" data-reveal #fig>
-          <figcaption class="eyebrow">Predictive values across prevalence</figcaption>
+          <figcaption class="eyebrow"><app-bayes-icon name="curve" />Predictive values across prevalence</figcaption>
           <app-vega-chart [spec]="specs.curve" [data]="{ curve: curve(), marker: marker() }" [height]="250" />
         </figure>
       </div>
@@ -245,6 +246,12 @@ import { curveSpec, iconArraySpec, outcomeSpec } from './bayes-specs';
     /* Fields: label row + input, help copy in the label's tooltip; only Prior keeps a data caption. */
     .field { display: flex; flex-direction: column; gap: 4px; font-size: 12px; }
     .field > span { display: flex; justify-content: space-between; gap: 6px; color: var(--on-ink); cursor: help; }
+    .field > span i { display: inline-flex; align-items: center; gap: 6px; font-style: normal; color: inherit; }
+    .field > span app-bayes-icon, .group-label app-bayes-icon { color: var(--on-ink-faint); }
+    app-bayes-icon { margin-right: 6px; }
+    .readout dt, .eyebrow, .hint, .group-label { display: inline-flex; align-items: center; }
+    .readout dt app-bayes-icon, .eyebrow app-bayes-icon { color: var(--teal); }
+    .hint app-bayes-icon { color: var(--on-ink-faint); }
     .field small { color: var(--on-ink-faint); font-size: 11px; line-height: 1.3; }
     /* Count as a stepper rail: the same segmented vocabulary as the transport and preset rails. */
     .stepper { display: grid; grid-template-columns: 26px 1fr 26px; border: 1px solid var(--hairline); border-radius: 6px; overflow: hidden; background: rgba(0, 0, 0, 0.04); }
