@@ -7,6 +7,7 @@ import { MorphchartsSceneComponent } from '../../shared/morphcharts/morphcharts-
 import { MorphchartsCameraComponent } from '../../shared/morphcharts/morphcharts-camera.component';
 import { CameraRig } from '../../shared/morphcharts/camera-rig';
 import type { MorphChartsHost } from '../../shared/morphcharts/morphcharts-host';
+import { ThemeService } from '../../shared/theme/theme.service';
 import { KpiTileComponent } from '../../shared/ui/kpi-tile.component';
 import { PURCHASES_FILE, salesSpec } from './google-specs';
 
@@ -122,10 +123,12 @@ export class GooglePageComponent {
     if (text) out[PURCHASES_FILE] = text;
     return out;
   });
-  readonly spec = computed(() => (this.csv() ? salesSpec() : null));
+  /** Rebuilt on theme change too: the spec bakes in the paper colour. */
+  readonly spec = computed(() => { this.theme.theme(); return this.csv() ? salesSpec() : null; });
 
   private readonly http = inject(HttpClient);
   private readonly gsap = inject(GsapService);
+  private readonly theme = inject(ThemeService);
   readonly rig = signal<CameraRig | null>(null);
 
   onHost(host: MorphChartsHost): void {

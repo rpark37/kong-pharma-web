@@ -12,7 +12,8 @@ import type { MorphChartsHost } from '../../shared/morphcharts/morphcharts-host'
 import { MorphchartsCanvasComponent } from '../../shared/morphcharts/morphcharts-canvas.component';
 import { WebGpuFallbackComponent } from '../../shared/webgpu/webgpu-fallback.component';
 import { curveSpec, iconArraySpec, outcomeSpec } from './bayes-specs';
-import { BayesIconComponent } from './bayes-icon.component';
+import { GlyphComponent } from '../../shared/ui/glyph.component';
+import { ThemeService } from '../../shared/theme/theme.service';
 
 /**
  * Therapeutic Tests (Bayes' Theorem): the user's original MorphCharts morphing visualization,
@@ -20,7 +21,7 @@ import { BayesIconComponent } from './bayes-icon.component';
  */
 @Component({
   selector: 'app-bayes-page',
-  imports: [DecimalPipe, PercentPipe, VegaChartComponent, MorphchartsCanvasComponent, WebGpuFallbackComponent, BayesIconComponent, MorphchartsCameraComponent],
+  imports: [DecimalPipe, PercentPipe, VegaChartComponent, MorphchartsCanvasComponent, WebGpuFallbackComponent, GlyphComponent, MorphchartsCameraComponent],
   template: `
     <section class="head">
       <p class="eyebrow" data-reveal>Therapeutic tests · Bayes' theorem</p>
@@ -43,7 +44,7 @@ import { BayesIconComponent } from './bayes-icon.component';
                 </li>
               }
             </ol>
-            <div class="keys">
+            <div class="keyrail keys">
             <button type="button" class="key" (click)="onPrev()" [disabled]="transitioning()" aria-label="Previous view" title="Previous view (←)">
               <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 3.5v9" /><path class="solid" d="M12 3.5 6 8l6 4.5z" /></svg>
             </button>
@@ -67,7 +68,7 @@ import { BayesIconComponent } from './bayes-icon.component';
         <!-- Scenario presets as a second segmented rail: short codes on the keys, the full name as
              the caption beneath (and the tooltip), so four wrapping pills become one row. -->
         <div class="presets" role="group" aria-label="Scenario preset">
-          <div class="rail">
+          <div class="keyrail">
             @for (p of presets; track p.id) {
               <button type="button" class="key code" [class.on]="preset() === p.id" [attr.aria-pressed]="preset() === p.id" (click)="apply(p.id)" [attr.aria-label]="p.name" [title]="p.name + ' — ' + p.note">{{ p.short }}</button>
             }
@@ -75,24 +76,24 @@ import { BayesIconComponent } from './bayes-icon.component';
           <p class="caption">{{ activePreset()?.name ?? 'Custom inputs' }}</p>
         </div>
         <div class="field">
-          <span title="People in the synthetic population — one block each in the grid"><i><app-bayes-icon name="count" />Count</i> <output>{{ form().count | number }}</output></span>
-          <div class="stepper" role="group" aria-label="Count">
+          <span title="People in the synthetic population — one block each in the grid"><i><app-glyph name="count" />Count</i> <output>{{ form().count | number }}</output></span>
+          <div class="keyrail stepper" role="group" aria-label="Count">
             <button type="button" class="key" (click)="setCount(form().count - 100)" [disabled]="form().count <= 1" aria-label="100 fewer people" title="−100">−</button>
             <input type="number" min="1" max="20000" step="1" [value]="form().count" (change)="setCount(+$any($event.target).value)" aria-label="Count">
             <button type="button" class="key" (click)="setCount(form().count + 100)" [disabled]="form().count >= 20000" aria-label="100 more people" title="+100">+</button>
           </div>
         </div>
         <div class="field">
-          <span title="Prevalence — the pre-test probability of the condition"><i><app-bayes-icon name="prior" />Prior</i> <output>{{ form().prior | percent: '1.1-2' }}</output></span>
+          <span title="Prevalence — the pre-test probability of the condition"><i><app-glyph name="prior" />Prior</i> <output>{{ form().prior | percent: '1.1-2' }}</output></span>
           <input type="range" min="0" max="1" step="0.001" [value]="form().prior" (input)="set('prior', +$any($event.target).value)" aria-label="Prior">
           <small>1 in {{ 1 / (form().prior || 0.0001) | number: '1.0-0' }} have it</small>
         </div>
         <div class="field">
-          <span title="Of people with the condition, the share the test catches"><i><app-bayes-icon name="sensitivity" />Sensitivity</i> <output>{{ form().sensitivity | percent: '1.0-1' }}</output></span>
+          <span title="Of people with the condition, the share the test catches"><i><app-glyph name="sensitivity" />Sensitivity</i> <output>{{ form().sensitivity | percent: '1.0-1' }}</output></span>
           <input type="range" min="0" max="1" step="0.005" [value]="form().sensitivity" (input)="set('sensitivity', +$any($event.target).value)" aria-label="Sensitivity">
         </div>
         <div class="field">
-          <span title="Of people without it, the share the test clears"><i><app-bayes-icon name="specificity" />Specificity</i> <output>{{ form().specificity | percent: '1.0-1' }}</output></span>
+          <span title="Of people without it, the share the test clears"><i><app-glyph name="specificity" />Specificity</i> <output>{{ form().specificity | percent: '1.0-1' }}</output></span>
           <input type="range" min="0" max="1" step="0.005" [value]="form().specificity" (input)="set('specificity', +$any($event.target).value)" aria-label="Specificity">
         </div>
         <!-- Camera controls are shared with every path-traced page; see shared/morphcharts/camera-rig.ts. -->
@@ -100,13 +101,13 @@ import { BayesIconComponent } from './bayes-icon.component';
           <app-morphcharts-camera [rig]="rig()" />
         </div>
         <div class="group" role="group" aria-labelledby="bayes-motion">
-          <p class="group-label" id="bayes-motion"><app-bayes-icon name="motion" />Motion</p>
+          <p class="group-label" id="bayes-motion"><app-glyph name="motion" />Motion</p>
           <div class="field">
-            <span title="How long each block takes to travel between views"><i><app-bayes-icon name="duration" />Duration</i> <output>{{ form().transitionDuration }}ms</output></span>
+            <span title="How long each block takes to travel between views"><i><app-glyph name="duration" />Duration</i> <output>{{ form().transitionDuration }}ms</output></span>
             <input type="range" min="0" max="10000" step="100" [value]="form().transitionDuration" (input)="set('transitionDuration', +$any($event.target).value)" aria-label="Transition duration">
           </div>
           <div class="field">
-            <span title="Blocks start one after another across this window; each eases with a cubic in-out"><i><app-bayes-icon name="stagger" />Stagger</i> <output>{{ form().transitionStaggering }}ms</output></span>
+            <span title="Blocks start one after another across this window; each eases with a cubic in-out"><i><app-glyph name="stagger" />Stagger</i> <output>{{ form().transitionStaggering }}ms</output></span>
             <input type="range" min="0" max="10000" step="100" [value]="form().transitionStaggering" (input)="set('transitionStaggering', +$any($event.target).value)" aria-label="Transition staggering">
           </div>
         </div>
@@ -117,7 +118,7 @@ import { BayesIconComponent } from './bayes-icon.component';
           <div #morphchartsContainer class="morphcharts-container">
             @if (!fallback()) {
               <app-morphcharts-canvas (hostReady)="onHost($event)" (failed)="fallback.set($event)" />
-              <span class="hint"><app-bayes-icon name="orbit" />Drag to orbit · wheel to zoom · Reset returns the camera</span>
+              <span class="hint"><app-glyph name="orbit" />Drag to orbit · wheel to zoom · Reset returns the camera</span>
             } @else {
               <div class="fallback-wrap"><app-webgpu-fallback title="The block views need WebGPU"><p class="fallback-text">{{ fallback() }} The Vega charts below show the same numbers.</p></app-webgpu-fallback></div>
             }
@@ -130,22 +131,22 @@ import { BayesIconComponent } from './bayes-icon.component';
              reads as the numbers responding rather than swapping. -->
         <dl class="readout">
           <div class="cell primary" data-reveal>
-            <dt><app-bayes-icon name="ppv" />Positive predictive value</dt>
+            <dt><app-glyph name="ppv" />Positive predictive value</dt>
             <dd class="value">{{ shown().ppv | number: '1.1-1' }}<span class="unit">%</span></dd>
             <dd class="formula">P(disease | positive)</dd>
           </div>
           <div class="cell" data-reveal>
-            <dt><app-bayes-icon name="npv" />Negative predictive value</dt>
+            <dt><app-glyph name="npv" />Negative predictive value</dt>
             <dd class="value">{{ shown().npv | number: '1.1-1' }}<span class="unit">%</span></dd>
             <dd class="formula">P(no disease | negative)</dd>
           </div>
           <div class="cell small" data-reveal>
-            <dt><app-bayes-icon name="lrPlus" />LR+</dt>
+            <dt><app-glyph name="lrPlus" />LR+</dt>
             <dd class="value">{{ shown().lrPlus | number: '1.1-1' }}</dd>
             <dd class="formula">Se / (1 − Sp)</dd>
           </div>
           <div class="cell small" data-reveal>
-            <dt><app-bayes-icon name="lrMinus" />LR−</dt>
+            <dt><app-glyph name="lrMinus" />LR−</dt>
             <dd class="value">{{ shown().lrMinus | number: '1.2-2' }}</dd>
             <dd class="formula">(1 − Se) / Sp</dd>
           </div>
@@ -153,7 +154,7 @@ import { BayesIconComponent } from './bayes-icon.component';
         <p class="readout-note" data-reveal>PPV = Se·P / (Se·P + (1−Sp)·(1−P)) &nbsp;·&nbsp; post-test odds = pre-test odds × LR</p>
 
         <div class="tree glass" data-reveal>
-          <p class="eyebrow"><app-bayes-icon name="flow" />Natural frequencies · {{ form().count | number }} people tested</p>
+          <p class="eyebrow"><app-glyph name="flow" />Natural frequencies · {{ form().count | number }} people tested</p>
           <!-- Two stacked bars whose segments are the counts themselves (flex-grow), so the diagram is
                the data. Level 1 splits the population; level 2 splits each half by test result. -->
           <div class="flow">
@@ -185,15 +186,15 @@ import { BayesIconComponent } from './bayes-icon.component';
         </div>
 
         <figure class="fig" data-reveal #fig>
-          <figcaption class="eyebrow"><app-bayes-icon name="bars" />What a result means, in people</figcaption>
+          <figcaption class="eyebrow"><app-glyph name="bars" />What a result means, in people</figcaption>
           <app-vega-chart [spec]="specs.outcome" [data]="{ outcomes: outcomes() }" [height]="170" />
         </figure>
         <figure class="fig" data-reveal #fig>
-          <figcaption class="eyebrow"><app-bayes-icon name="dots" />Icon array · each dot is 1 in 100</figcaption>
+          <figcaption class="eyebrow"><app-glyph name="dots" />Icon array · each dot is 1 in 100</figcaption>
           <app-vega-chart [spec]="specs.icons" [data]="{ icons: icons() }" [height]="210" />
         </figure>
         <figure class="fig wide" data-reveal #fig>
-          <figcaption class="eyebrow"><app-bayes-icon name="curve" />Predictive values across prevalence</figcaption>
+          <figcaption class="eyebrow"><app-glyph name="curve" />Predictive values across prevalence</figcaption>
           <app-vega-chart [spec]="specs.curve" [data]="{ curve: curve(), marker: marker() }" [height]="250" />
         </figure>
       </div>
@@ -211,33 +212,23 @@ import { BayesIconComponent } from './bayes-icon.component';
     .transport-title { margin: 0; line-height: 1; }
     .transport-label { font: 500 10px/1 var(--font-mono); letter-spacing: 0.1em; color: var(--teal); }
     .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
-    .deck { border: 1px solid var(--hairline); border-radius: 6px; overflow: hidden; background: rgba(0, 0, 0, 0.04); }
+    .deck { border: 1px solid var(--hairline); border-radius: 6px; overflow: hidden; background: var(--well); }
     /* Four segments, one per view. The active one is teal; while a morph runs it fills left to
        right over --fill-ms, the real duration + stagger the scene was given. */
     .segments { list-style: none; margin: 0; padding: 3px 3px 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; }
     .segments button { display: block; position: relative; width: 100%; height: 10px; padding: 0; border: 0; background: none; cursor: pointer; border-radius: 1px; }
     .segments button::before { content: ''; position: absolute; inset: 3px 0; border-radius: 1px; background: var(--hairline); transition: background var(--dur-fast) var(--ease-out); }
-    .segments button:hover::before { background: rgba(0, 112, 93, 0.35); }
+    .segments button:hover::before { background: color-mix(in srgb, var(--teal) 35%, transparent); }
     .segments button:focus-visible { outline: 2px solid var(--teal); outline-offset: 1px; }
     .fill { position: absolute; inset: 3px 0; border-radius: 1px; background: var(--teal); transform: scaleX(0); transform-origin: left; }
     .active .fill { transform: scaleX(1); }
     .filling .fill { animation: fill var(--fill-ms, 1000ms) linear both; }
     @keyframes fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-    /* Segmented rails: hairline dividers, one filled key (play, or the active preset). */
-    .keys, .rail { display: grid; }
-    .keys { grid-template-columns: 1fr 1.5fr 1fr 1fr; }
-    .rail { grid-template-columns: repeat(4, 1fr); border: 1px solid var(--hairline); border-radius: 6px; overflow: hidden; background: rgba(0, 0, 0, 0.04); }
-    .key { display: flex; align-items: center; justify-content: center; height: 30px; padding: 0; border: 0; background: none; color: var(--on-ink-dim); cursor: pointer; transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out); }
-    .key + .key { border-left: 1px solid var(--hairline); }
-    .key:hover { background: rgba(0, 112, 93, 0.08); color: var(--on-ink); }
-    .key:active { background: rgba(0, 112, 93, 0.16); }
-    .key:focus-visible { outline: 2px solid var(--teal); outline-offset: -2px; }
-    .key:disabled { opacity: 0.35; cursor: not-allowed; background: none; color: var(--on-ink-dim); }
-    .key.play, .key.on { background: var(--teal); color: var(--ink); }
-    .key.play:hover, .key.on:hover { background: rgba(0, 112, 93, 0.9); color: var(--ink); }
-    .key svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
-    .key svg .solid { fill: currentColor; stroke: none; }
-    .key.code { height: 26px; padding: 0 2px; font: 500 9px/1 var(--font-mono); letter-spacing: 0.02em; }
+    /* The transport deck: four keys, the wide one is play. Key chrome is the global .keyrail. */
+    .keys { grid-template-columns: 1fr 1.5fr 1fr 1fr; border: 0; border-radius: 0; background: none; }
+    .keys .key { height: 30px; }
+    .key.play { background: var(--teal); color: var(--ink); }
+    .key.play:hover { background: color-mix(in srgb, var(--teal) 90%, transparent); color: var(--ink); }
     .presets { display: flex; flex-direction: column; gap: 4px; }
     .caption { margin: 0; font-size: 11px; line-height: 1.3; color: var(--on-ink-dim); }
     @media (prefers-reduced-motion: reduce) { .filling .fill { animation: none; transform: scaleX(1); } }
@@ -253,15 +244,15 @@ import { BayesIconComponent } from './bayes-icon.component';
     .field { display: flex; flex-direction: column; gap: 4px; font-size: 12px; }
     .field > span { display: flex; justify-content: space-between; gap: 6px; color: var(--on-ink); cursor: help; }
     .field > span i { display: inline-flex; align-items: center; gap: 6px; font-style: normal; color: inherit; }
-    .field > span app-bayes-icon, .group-label app-bayes-icon { color: var(--on-ink-faint); }
-    app-bayes-icon { margin-right: 6px; }
+    .field > span app-glyph, .group-label app-glyph { color: var(--on-ink-faint); }
+    app-glyph { margin-right: 6px; }
     .readout dt, .eyebrow, .hint, .group-label { display: inline-flex; align-items: center; }
-    .readout dt app-bayes-icon, .eyebrow app-bayes-icon { color: var(--teal); }
-    .hint app-bayes-icon { color: var(--on-ink-faint); }
+    .readout dt app-glyph, .eyebrow app-glyph { color: var(--teal); }
+    .hint app-glyph { color: var(--on-ink-faint); }
     .field small { color: var(--on-ink-faint); font-size: 11px; line-height: 1.3; }
     /* Count as a stepper rail: the same segmented vocabulary as the transport and preset rails. */
-    .stepper { display: grid; grid-template-columns: 26px 1fr 26px; border: 1px solid var(--hairline); border-radius: 6px; overflow: hidden; background: rgba(0, 0, 0, 0.04); }
-    .stepper .key { height: 26px; font: 500 14px/1 var(--font-mono); }
+    .stepper { grid-template-columns: 26px 1fr 26px; }
+    .stepper .key { font: 500 14px/1 var(--font-mono); }
     .stepper input[type=number] { font: 500 12px/1 var(--font-mono); color: var(--on-ink); background: none; border: 0; border-left: 1px solid var(--hairline); border-right: 1px solid var(--hairline); border-radius: 0; padding: 0 4px; height: 26px; width: 100%; min-width: 0; box-sizing: border-box; text-align: center; font-variant-numeric: tabular-nums; -moz-appearance: textfield; appearance: textfield; }
     .stepper input::-webkit-outer-spin-button, .stepper input::-webkit-inner-spin-button { appearance: none; margin: 0; }
     .stepper input:focus-visible { outline: 2px solid var(--teal); outline-offset: -2px; }
@@ -364,6 +355,7 @@ export class BayesPageComponent {
 
   private readonly container = viewChild.required<ElementRef<HTMLElement>>('morphchartsContainer');
   private readonly gsap = inject(GsapService);
+  private readonly theme = inject(ThemeService);
   private readonly el = inject<ElementRef<HTMLElement>>(ElementRef);
   private scene: BayesScene | null = null;
   private host: MorphChartsHost | null = null;
@@ -372,6 +364,11 @@ export class BayesPageComponent {
   private dwell: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
+    // The plates and backdrop are spec colours, so a theme change re-lays the current view.
+    effect(() => {
+      this.theme.theme();
+      untracked(() => { const scene = this.scene; if (scene) void this.queue(() => scene.layout(this.layoutIndex(), this.data(), this.form(), false)); });
+    });
     afterNextRender(() => {
       this.gsap.reveal(this.el.nativeElement.querySelectorAll('[data-reveal]'), { delay: this.gsap.MOTION.delay.medium });
     });

@@ -29,6 +29,35 @@ export const PALETTE_LIGHT = {
   success: '#1E6B3A',
 } as const;
 
+/**
+ * The dark theme. Neutrals are tinted a touch toward the teal hue (a green-grey, not a blue-grey)
+ * and the accents are lifted so they clear 4.5:1 on the dark panel; the same assertions in
+ * palette.spec.ts run over both palettes. `styles/_tokens.scss` mirrors these under
+ * `[data-theme="dark"]`.
+ */
+export const PALETTE_DARK = {
+  paper: '#111413',
+  panel: '#171C1A',
+  chrome: '#1F2523',
+  border: '#2E3532',
+
+  ink: '#E7E5E0',
+  inkDim: '#B7B5B0',
+  inkMuted: '#8F8D88',
+
+  teal: '#4CC2A6',
+  tealBright: '#7FE0C9',
+  tealDeep: '#2E9C83',
+  orange: '#F0A050',
+  orangeLight: '#F5B978',
+
+  warning: '#E2B44A',
+  error: '#F07A72',
+  success: '#6FCB86',
+} as const;
+
+export type Theme = 'light' | 'dark';
+
 function channelToLinear(value: number): number {
   const c = value / 255;
   return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);

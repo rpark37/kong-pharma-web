@@ -35,10 +35,6 @@ interface SandDanceSpecsUmd {
   selector: 'app-sanddance-specs-page',
   imports: [SpecEditorComponent, VegaChartComponent],
   template: `
-    <section class="head">
-      <p class="eyebrow" data-reveal>sanddance-specs · insight compiler · demovote.tsv</p>
-    </section>
-
     <div class="client chart-shell">
       <div class="chart-column">
         <div class="chart-toolbar">
@@ -82,7 +78,6 @@ interface SandDanceSpecsUmd {
   `,
   styles: `
     :host { display: block; height: calc(100vh - var(--nav-h)); display: flex; flex-direction: column; }
-    .head { padding: clamp(0.75rem, 2vh, 1.1rem) var(--pad-x) 0; }
     /* Shell, column, toolbar, stage and panes come from styles.scss, shared with the MorphCharts
        and Vega Charts clients. This page has no divider, so it sets its own column widths. */
     .client { grid-template-columns: 1fr 460px; }

@@ -6,6 +6,7 @@ import { MorphchartsSceneComponent } from '../../shared/morphcharts/morphcharts-
 import { MorphchartsCameraComponent } from '../../shared/morphcharts/morphcharts-camera.component';
 import { CameraRig } from '../../shared/morphcharts/camera-rig';
 import type { MorphChartsHost } from '../../shared/morphcharts/morphcharts-host';
+import { ThemeService } from '../../shared/theme/theme.service';
 import { KpiTileComponent } from '../../shared/ui/kpi-tile.component';
 import { VegaChartComponent } from '../../shared/vega/vega-chart.component';
 import { countrySpec, dailySpec, deviceSpec, funnelSpec, itemsSpec, revenueCubeSpec, sourceSpec } from './merchandise-specs';
@@ -83,6 +84,7 @@ import { countrySpec, dailySpec, deviceSpec, funnelSpec, itemsSpec, revenueCubeS
 export class MerchandisePageComponent {
   readonly api = inject(ApiService);
   private readonly gsap = inject(GsapService);
+  private readonly theme = inject(ThemeService);
   private readonly el = inject<ElementRef<HTMLElement>>(ElementRef);
 
   readonly from = signal('');
@@ -96,7 +98,8 @@ export class MerchandisePageComponent {
   readonly items = signal<M.ItemRow[]>([]);
   readonly cube = signal<M.RevenueCubeRow[]>([]);
   readonly error = signal<string | null>(null);
-  readonly cubeSpec = computed(() => (this.cube().length ? revenueCubeSpec(this.cube()) : null));
+  /** Rebuilt on theme change too: the spec bakes in the paper colour. */
+  readonly cubeSpec = computed(() => { this.theme.theme(); return this.cube().length ? revenueCubeSpec(this.cube()) : null; });
   readonly cubeRig = signal<CameraRig | null>(null);
 
   onCubeHost(host: MorphChartsHost): void {

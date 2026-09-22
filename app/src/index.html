@@ -7,6 +7,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Interactive visualization labs: MorphCharts ray-traced charts, Ares-style Vega reports, Google Merchandise analytics and a data-driven Human Atlas.">
   <meta name="theme-color" content="#F5F5F3">
+  <!-- The remembered theme, applied before first paint so a dark session never flashes paper. -->
+  <script>try{var t=localStorage.getItem('richos-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.dataset.theme=t;if(t==='dark')document.querySelector('meta[name="theme-color"]').content='#171C1A';}catch(e){}</script>
   <link rel="icon" type="image/png" href="favicon.png">
   <!-- Self-hosted; see public/fonts/fonts.css for how it was generated from the Google stylesheet. -->
   <link rel="stylesheet" href="fonts/fonts.css">

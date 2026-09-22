@@ -4,6 +4,7 @@
  */
 import type * as M from '../../shared/api/models';
 import { VEGA_COLORS } from '../../shared/vega/theme';
+import { sceneSurface } from '../../shared/theme/surface';
 
 const VL = 'https://vega.github.io/schema/vega-lite/v6.json';
 
@@ -108,15 +109,16 @@ export function itemsSpec(): Record<string, unknown> {
   };
 }
 
-/** MorphCharts matrix bar chart: revenue by country (x) and month (z), path-traced. */
+/** MorphCharts matrix bar chart: revenue by country (x) and month (z), path-traced. Surface colours follow the theme at build time. */
 export function revenueCubeSpec(rows: M.RevenueCubeRow[]): Record<string, unknown> {
+  const paper = sceneSurface();
   const values = rows.map((r) => ({ country: r.country, month: r.month, revenue: Math.round(r.revenue) }));
   return {
     title: 'Revenue by country and month',
     width: 640,
     height: 220,
     depth: 200,
-    background: '#F5F5F3',
+    background: paper.background,
     camera: { position: [0.15, 0.55, 1.25], target: [0, -0.05, 0] },
     lights: [{ type: 'rect', position: [-0.6, 1.2, 0.8], brightness: 6 }, { type: 'sphere', position: [0.8, 0.9, -0.6], brightness: 2, color: '#44e0cc' }],
     config: { range: { category: { scheme: 'set2' } } },
@@ -128,14 +130,14 @@ export function revenueCubeSpec(rows: M.RevenueCubeRow[]): Record<string, unknow
       { name: 'color', type: 'ordinal', range: 'category', domain: { data: 'table', field: 'month' } },
     ],
     axes: [
-      { orient: 'bottom', orientZ: 'front', scale: 'xscale', labelBaseline: 'top', labelOffsetY: 0.1, labelAngleX: 90, labelFontSize: 9, labelColor: '#2D2D2D', title: 'Country', titleColor: '#2D2D2D', titleOffsetZ: 28, titleOffsetY: 0.1, titleAngleX: 90, gridZ: true, gridWidth: 0.4, gridColor: '#D4D4D2', domain: false },
-      { orient: 'left', orientZ: 'bottom', scale: 'zscale', labelAlign: 'right', labelOffsetY: 0.1, labelAngleX: 90, labelColor: '#2D2D2D', title: 'Month', titleColor: '#2D2D2D', titleOffsetX: -40, titleOffsetY: 0.1, titleAngleX: 90, titleAngleZ: 90, grid: true, gridWidth: 0.4, gridColor: '#D4D4D2', domain: false },
-      { orient: 'right', orientZ: 'back', scale: 'yscale', labelAlign: 'left', labelOffsetX: 2, labelColor: '#2D2D2D', tickCount: 4, title: 'Revenue', titleColor: '#2D2D2D', titleOffsetX: 32, grid: true, gridWidth: 0.3, gridColor: '#D4D4D2' },
+      { orient: 'bottom', orientZ: 'front', scale: 'xscale', labelBaseline: 'top', labelOffsetY: 0.1, labelAngleX: 90, labelFontSize: 9, labelColor: paper.text, title: 'Country', titleColor: paper.text, titleOffsetZ: 28, titleOffsetY: 0.1, titleAngleX: 90, gridZ: true, gridWidth: 0.4, gridColor: paper.grid, domain: false },
+      { orient: 'left', orientZ: 'bottom', scale: 'zscale', labelAlign: 'right', labelOffsetY: 0.1, labelAngleX: 90, labelColor: paper.text, title: 'Month', titleColor: paper.text, titleOffsetX: -40, titleOffsetY: 0.1, titleAngleX: 90, titleAngleZ: 90, grid: true, gridWidth: 0.4, gridColor: paper.grid, domain: false },
+      { orient: 'right', orientZ: 'back', scale: 'yscale', labelAlign: 'left', labelOffsetX: 2, labelColor: paper.text, tickCount: 4, title: 'Revenue', titleColor: paper.text, titleOffsetX: 32, grid: true, gridWidth: 0.3, gridColor: paper.grid },
     ],
     marks: [
-      { type: 'rect', geometry: 'xzrect', material: 'glossy', encode: { enter: { xc: { signal: 'width/2' }, zc: { signal: 'depth/2' }, width: { signal: 'width*2' }, depth: { signal: 'width*2' }, fuzz: { value: 0.15 }, fill: { value: '#E8E8E6' } } } },
+      { type: 'rect', geometry: 'xzrect', material: 'glossy', encode: { enter: { xc: { signal: 'width/2' }, zc: { signal: 'depth/2' }, width: { signal: 'width*2' }, depth: { signal: 'width*2' }, fuzz: { value: 0.15 }, fill: { value: paper.backdrop } } } },
       { from: { data: 'table' }, type: 'rect', geometry: 'cuboid', material: 'glossy', encode: { enter: { x: { scale: 'xscale', field: 'country' }, width: { scale: 'xscale', band: 1 }, y: { scale: 'yscale', value: 0 }, y2: { scale: 'yscale', field: 'revenue' }, z: { scale: 'zscale', field: 'month' }, depth: { scale: 'zscale', band: 1 }, rounding: { scale: 'xscale', band: 0.08 }, fill: { scale: 'color', field: 'month' } } } },
-      { from: { data: 'table' }, type: 'text', encode: { enter: { x: { scale: 'xscale', field: 'country', band: 0.5 }, y: { scale: 'yscale', field: 'revenue', offset: 0.1 }, z: { scale: 'zscale', field: 'month', band: 0.5 }, align: { value: 'center' }, baseline: { value: 'center' }, angleX: { value: 90 }, fontSize: { value: 9 }, fill: { value: '#2D2D2D' }, text: { field: 'revenue' } } } },
+      { from: { data: 'table' }, type: 'text', encode: { enter: { x: { scale: 'xscale', field: 'country', band: 0.5 }, y: { scale: 'yscale', field: 'revenue', offset: 0.1 }, z: { scale: 'zscale', field: 'month', band: 0.5 }, align: { value: 'center' }, baseline: { value: 'center' }, angleX: { value: 90 }, fontSize: { value: 9 }, fill: { value: paper.text }, text: { field: 'revenue' } } } },
     ],
   };
 }

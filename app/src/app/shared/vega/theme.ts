@@ -1,4 +1,4 @@
-import { PALETTE_LIGHT } from '../theme/palette';
+import { PALETTE_DARK, PALETTE_LIGHT, type Theme } from '../theme/palette';
 
 /** Vega config for the labs app light theme. Colours come from shared/theme/palette.ts. */
 export const VEGA_COLORS = {
@@ -50,31 +50,50 @@ export const CATEGORY_RANGE = [
   VEGA_COLORS.green,
 ];
 
-export const VEGA_CONFIG: Record<string, unknown> = {
-  background: 'transparent',
-  padding: 8,
-  font: 'IBM Plex Sans, system-ui, sans-serif',
-  axis: {
-    domainColor: VEGA_COLORS.faint,
-    gridColor: VEGA_COLORS.grid,
-    tickColor: VEGA_COLORS.faint,
-    labelColor: VEGA_COLORS.dim,
-    titleColor: VEGA_COLORS.dim,
-    labelFontSize: 11,
-    titleFontSize: 11,
-    titleFontWeight: 'normal',
-    titlePadding: 8,
-  },
-  legend: { labelColor: VEGA_COLORS.dim, titleColor: VEGA_COLORS.dim, labelFontSize: 11, titleFontSize: 11, symbolSize: 80 },
-  title: { color: VEGA_COLORS.onInk, fontSize: 13, fontWeight: 600, anchor: 'start', font: 'Rajdhani, IBM Plex Sans, sans-serif' },
-  view: { stroke: null },
-  range: { category: CATEGORY_RANGE, ordinal: { scheme: 'teals' }, ramp: { scheme: 'teals' } },
-  mark: { color: VEGA_COLORS.teal },
-  bar: { color: VEGA_COLORS.teal, cornerRadiusEnd: 2 },
-  line: { color: VEGA_COLORS.teal, strokeWidth: 2 },
-  area: { color: VEGA_COLORS.teal, opacity: 0.25 },
-  point: { color: VEGA_COLORS.teal, filled: true },
-  arc: { stroke: '#F5F5F3', strokeWidth: 1 },
-  text: { color: VEGA_COLORS.onInk },
-  rect: { color: VEGA_COLORS.teal },
-};
+/** The same six slots lifted for the dark panel: every hue 6.7–9.6:1 on #171C1A, worst ΔE76 29. */
+export const CATEGORY_RANGE_DARK = ['#3FC2A5', '#A99BF5', '#F5924A', '#F27BA8', '#6CB4F5', '#8ED27A'];
+
+interface VegaInk { onInk: string; dim: string; faint: string; grid: string; teal: string; surface: string; range: string[]; }
+
+function buildConfig(ink: VegaInk): Record<string, unknown> {
+  return {
+    background: 'transparent',
+    padding: 8,
+    font: 'IBM Plex Sans, system-ui, sans-serif',
+    axis: {
+      domainColor: ink.faint,
+      gridColor: ink.grid,
+      tickColor: ink.faint,
+      labelColor: ink.dim,
+      titleColor: ink.dim,
+      labelFontSize: 11,
+      titleFontSize: 11,
+      titleFontWeight: 'normal',
+      titlePadding: 8,
+    },
+    legend: { labelColor: ink.dim, titleColor: ink.dim, labelFontSize: 11, titleFontSize: 11, symbolSize: 80 },
+    title: { color: ink.onInk, fontSize: 13, fontWeight: 600, anchor: 'start', font: 'Rajdhani, IBM Plex Sans, sans-serif' },
+    view: { stroke: null },
+    range: { category: ink.range, ordinal: { scheme: 'teals' }, ramp: { scheme: 'teals' } },
+    mark: { color: ink.teal },
+    bar: { color: ink.teal, cornerRadiusEnd: 2 },
+    line: { color: ink.teal, strokeWidth: 2 },
+    area: { color: ink.teal, opacity: 0.25 },
+    point: { color: ink.teal, filled: true },
+    arc: { stroke: ink.surface, strokeWidth: 1 },
+    text: { color: ink.onInk },
+    rect: { color: ink.teal },
+  };
+}
+
+export const VEGA_CONFIG: Record<string, unknown> = buildConfig({
+  onInk: VEGA_COLORS.onInk, dim: VEGA_COLORS.dim, faint: VEGA_COLORS.faint, grid: VEGA_COLORS.grid, teal: VEGA_COLORS.teal, surface: PALETTE_LIGHT.panel, range: CATEGORY_RANGE,
+});
+
+export const VEGA_CONFIG_DARK: Record<string, unknown> = buildConfig({
+  onInk: PALETTE_DARK.ink, dim: PALETTE_DARK.inkDim, faint: PALETTE_DARK.inkMuted, grid: 'rgba(231, 229, 224, 0.12)', teal: CATEGORY_RANGE_DARK[0], surface: PALETTE_DARK.panel, range: CATEGORY_RANGE_DARK,
+});
+
+export function vegaConfig(theme: Theme): Record<string, unknown> {
+  return theme === 'dark' ? VEGA_CONFIG_DARK : VEGA_CONFIG;
+}

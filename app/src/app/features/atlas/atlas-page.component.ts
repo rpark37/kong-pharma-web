@@ -5,7 +5,10 @@ import { firstValueFrom } from 'rxjs';
 import { GsapService } from '../../shared/animation/gsap.service';
 import type { MorphChartsHost } from '../../shared/morphcharts/morphcharts-host';
 import { MorphchartsCanvasComponent } from '../../shared/morphcharts/morphcharts-canvas.component';
-import { SwitchComponent } from '../../shared/ui/switch.component';
+import { MorphchartsCameraComponent } from '../../shared/morphcharts/morphcharts-camera.component';
+import type { CameraRig } from '../../shared/morphcharts/camera-rig';
+import { GlyphComponent } from '../../shared/ui/glyph.component';
+import { ThemeService } from '../../shared/theme/theme.service';
 import { VegaChartComponent } from '../../shared/vega/vega-chart.component';
 import { WebGpuFallbackComponent } from '../../shared/webgpu/webgpu-fallback.component';
 import { environment } from '../../../environments/environment';
@@ -19,18 +22,21 @@ const DEFAULT_SEARCH = ['heart', 'brain', 'liver', 'stomach', 'spleen', 'pancrea
 
 /**
  * Human Atlas, reinterpreted as data: 2,234 BodyParts3D structures rendered by MorphCharts as
- * spec-driven primitives. UI mirrors ashemag/human-atlas: systems panel, search, view controls,
- * explode slider, detail and about sheets.
+ * spec-driven primitives. The controls follow ashemag/human-atlas — systems, search, views,
+ * explode, detail and about sheets — in the app's instrument vocabulary: a mixer-style systems
+ * panel (row toggles, solo keys), a command-palette search, and the shared camera panel in
+ * Data mode. Anatomy mode keeps its own three.js camera and view keys.
  */
 @Component({
   selector: 'app-atlas-page',
-  imports: [DecimalPipe, MorphchartsCanvasComponent, WebGpuFallbackComponent, SwitchComponent, VegaChartComponent],
+  imports: [DecimalPipe, MorphchartsCanvasComponent, MorphchartsCameraComponent, WebGpuFallbackComponent, GlyphComponent, VegaChartComponent],
   templateUrl: './atlas-page.component.html',
   styleUrl: './atlas-page.component.scss',
 })
 export class AtlasPageComponent {
   private readonly http = inject(HttpClient);
   private readonly gsap = inject(GsapService);
+  private readonly theme = inject(ThemeService);
   private readonly el = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly destroyRef = inject(DestroyRef);
   readonly stage = viewChild<ElementRef<HTMLDivElement>>('stage');
@@ -60,7 +66,11 @@ export class AtlasPageComponent {
   readonly details = signal(false);
   readonly about = signal(false);
   readonly query = signal('');
+  /** Keyboard cursor in the search results. */
+  readonly cursor = signal(0);
   readonly chosen = signal<Concept | null>(null);
+  /** Data mode's camera controls, once the scene exists. */
+  readonly rig = signal<CameraRig | null>(null);
 
   readonly partsById = computed(() => new Map(this.parts().map((p) => [p.id, p])));
   readonly counts = computed(() => { const c: Record<string, number> = {}; for (const p of this.parts()) c[p.system] = (c[p.system] ?? 0) + 1; return c; });
@@ -85,10 +95,24 @@ export class AtlasPageComponent {
   readonly explanationText = computed(() => { const c = this.chosen(); const p = this.selectedPart(); return c && p ? explanation(c.name, p.system) : ''; });
   readonly hasExplanation = computed(() => !!EXPLANATIONS[(this.chosen()?.name ?? '').toLowerCase()]);
   readonly allVisible = computed(() => this.activeSystems().every((s) => this.visible().includes(s.id)));
+  /** The one system showing alone, if any: its solo key lights. */
+  readonly soloed = computed(() => (this.visible().length === 1 ? this.visible()[0] : null));
+  /** Bounding box of the selection in centimetres, the only size the catalogue knows. */
+  readonly selectedExtent = computed(() => {
+    const parts = this.selectedParts();
+    if (!parts.length) return '';
+    const min = [Infinity, Infinity, Infinity], max = [-Infinity, -Infinity, -Infinity];
+    for (const p of parts) {
+      const c = [p.cx, p.cy, p.cz], h = [p.sx / 2, p.sy / 2, p.sz / 2];
+      for (let i = 0; i < 3; i++) { min[i] = Math.min(min[i], c[i] - h[i]); max[i] = Math.max(max[i], c[i] + h[i]); }
+    }
+    const cm = (i: number) => Math.max(1, Math.round((max[i] - min[i]) * 100));
+    return `${cm(0)} × ${cm(1)} × ${cm(2)} cm`;
+  });
   readonly skeletonOnly = computed(() => this.visible().length === 1 && this.visible()[0] === 'skeletal');
   readonly organsOnly = computed(() => this.visible().length === ORGANS.length && ORGANS.every((id) => this.visible().includes(id)));
   readonly fallbackSpec = computed(() => (this.parts().length ? atlasTreemapSpec(this.parts()) : null));
-  readonly views: Array<{ id: View; glyph: string }> = [{ id: 'three-quarter', glyph: '¾' }, { id: 'front', glyph: 'F' }, { id: 'side', glyph: 'S' }, { id: 'back', glyph: 'B' }];
+  readonly views: Array<{ id: View; code: string; name: string }> = [{ id: 'three-quarter', code: '¾', name: 'Three-quarter' }, { id: 'front', code: 'FRONT', name: 'Front' }, { id: 'side', code: 'SIDE', name: 'Side' }, { id: 'back', code: 'BACK', name: 'Back' }];
 
   private host: MorphChartsHost | null = null;
   private scene: AtlasScene | null = null;
@@ -124,10 +148,15 @@ export class AtlasPageComponent {
       const state = { visible: this.visible(), selected: this.selected(), isolate: this.isolate(), view: this.view(), rotate: this.rotate(), reset: this.resetCounter(), inspectorOpen: this.details() && this.selectedParts().length > 0 };
       untracked(() => this.viewer?.setState(state));
     });
+    // The data view bakes the paper colour into its spec, so a theme change rebuilds the scene.
+    effect(() => {
+      this.theme.theme();
+      untracked(() => { if (this.scene) { this.scene.dispose(); this.scene = null; void this.buildScene(); } });
+    });
     // Scene reactions
     effect(() => { const ids = this.visibleIds(); untracked(() => { if (this.scene) { this.scene.setVisibility(ids); this.scene.updateLayout(ids); } }); });
     effect(() => { const sel = new Set(this.selected()); untracked(() => this.scene?.setSelection(sel)); });
-    effect(() => { const rot = this.rotate(); untracked(() => this.scene?.setAutoRotate(rot)); });
+    effect(() => { const rot = this.rotate(); untracked(() => this.scene?.rig.setOrbit(rot)); });
     effect(() => {
       const open = this.details() && this.selectedParts().length > 0;
       untracked(() => { const sheet = this.el.nativeElement.querySelector('.detail-sheet'); if (sheet) open ? this.gsap.slideIn(sheet, 'right') : this.gsap.slideOut(sheet, 'right'); });
@@ -211,9 +240,13 @@ export class AtlasPageComponent {
       const { AtlasScene } = await import('./atlas-scene');
       this.scene = new AtlasScene(this.host, { geometry: 'sphere', reducedMotion: this.gsap.reducedMotion });
       this.scene.aspect = this.aspect();
+      const stage = this.stage()?.nativeElement;
+      if (stage) this.scene.stage = { width: stage.clientWidth, height: stage.clientHeight };
       await this.scene.load(this.parts(), this.view(), this.explode());
       this.scene.setVisibility(this.visibleIds());
       this.scene.updateLayout(this.visibleIds());
+      this.scene.setSelection(new Set(this.selected()));
+      this.rig.set(this.scene.rig);
       this.progress.set(100);
       this.ready.set(true);
     } catch (e) {
@@ -235,7 +268,7 @@ export class AtlasPageComponent {
     host.resize(w, h);
     host.canvas.style.width = `${w}px`;
     host.canvas.style.height = `${h}px`;
-    if (this.scene) this.scene.aspect = w / h;
+    if (this.scene) { this.scene.aspect = w / h; this.scene.stage = { width: w, height: h }; }
   }
 
   // Pointer taps select a structure (drags orbit the camera, handled by the host).
@@ -284,20 +317,21 @@ export class AtlasPageComponent {
     const iso = !this.isolate();
     this.isolate.set(iso);
     this.setExplodeValue(0, true);
-    if (iso) this.scene?.frame(this.selectedParts()); else this.scene?.goToView(this.view(), 0);
+    if (iso) this.scene?.frame(this.selectedParts()); else this.scene?.goToView(0);
   }
 
+  /** Anatomy mode's view keys; Data mode's live on the camera rig, which turns about the same body. */
   setView(v: View): void {
     this.view.set(v);
     this.rotate.set(false);
-    this.scene?.goToView(v, this.explode());
+    this.scene?.rig.setView(v === 'three-quarter' ? 'quarter' : v);
   }
   toggleRotate(): void { this.rotate.set(!this.rotate()); }
 
   onExplodeInput(value: number, commit: boolean): void {
     const t = value / 100;
     this.rotate.set(false);
-    if (t > 0.8) this.view.set('front');
+    if (t > 0.8 && this.view() !== 'front') this.setView('front');
     this.setExplodeValue(t, commit);
   }
   private setExplodeValue(t: number, animate: boolean): void {
@@ -307,7 +341,7 @@ export class AtlasPageComponent {
     else this.gsap.tweenObject(this.explodeAnim, { t, duration: this.gsap.MOTION.duration.slow, onUpdate: () => this.viewer?.setExplode(this.explodeAnim.t) });
     if (!this.scene) return;
     this.scene.setExplode(t, this.visibleIds(), animate);
-    if (!this.isolate()) this.scene.goToView(t > 0.5 ? 'front' : this.view(), t, animate);
+    if (!this.isolate()) this.scene.goToView(t, animate);
   }
 
   reset(): void {
@@ -321,10 +355,25 @@ export class AtlasPageComponent {
     this.details.set(false);
     this.panel.set(null);
     this.setExplodeValue(0, true);
-    this.scene?.goToView('three-quarter', 0);
+    this.scene?.rig.reset();
+    this.scene?.goToView(0);
   }
 
-  openPanel(next: 'layers' | 'search'): void { this.details.set(false); this.panel.set(this.panel() === next ? null : next); }
+  openPanel(next: 'layers' | 'search'): void { this.details.set(false); this.cursor.set(0); this.panel.set(this.panel() === next ? null : next); }
+  onQuery(value: string): void { this.query.set(value); this.cursor.set(0); }
+  /** Arrow keys walk the results, Enter picks; Escape is handled at the window. */
+  onSearchKey(e: KeyboardEvent): void {
+    const n = this.results().length;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (!n) return;
+      this.cursor.set((this.cursor() + (e.key === 'ArrowDown' ? 1 : n - 1)) % n);
+      requestAnimationFrame(() => this.el.nativeElement.querySelector('.search-results .active')?.scrollIntoView({ block: 'nearest' }));
+    } else if (e.key === 'Enter') {
+      const c = this.results()[this.cursor()];
+      if (c) { e.preventDefault(); this.choose(c); }
+    }
+  }
   openAbout(): void { this.details.set(false); this.panel.set(null); this.about.set(true); }
   count(id: SystemId): number { return this.counts()[id] ?? 0; }
   reload(): void { location.reload(); }

@@ -3,6 +3,7 @@ import { Component, DestroyRef, ElementRef, afterNextRender, computed, inject, s
 import { ActivatedRoute } from '@angular/router';
 import { GsapService } from '../../shared/animation/gsap.service';
 import { MorphchartsCameraComponent } from '../../shared/morphcharts/morphcharts-camera.component';
+import { GlyphComponent } from '../../shared/ui/glyph.component';
 import { CameraRig } from '../../shared/morphcharts/camera-rig';
 import type { DebugSnapshot, MorphChartsHost, SignalInfo } from '../../shared/morphcharts/morphcharts-host';
 import { MorphchartsCanvasComponent } from '../../shared/morphcharts/morphcharts-canvas.component';
@@ -11,12 +12,14 @@ import { DataTabComponent } from './data-tab.component';
 import { DebugOverlayComponent } from './debug-overlay.component';
 import { useVendoredData } from './gallery-data';
 import { RenderTabComponent, ResizeRequest } from './render-tab.component';
-import { SAMPLE_SPEC_FOLDER, SamplePlot, SamplesDialogComponent } from './samples-dialog.component';
+import { SAMPLE_SPEC_FOLDER, SamplePlot, SamplesDialogComponent, type SampleCategory } from './samples-dialog.component';
 import { SignalsTabComponent } from './signals-tab.component';
 import { SpecEditorComponent } from '../../shared/ui/spec-editor.component';
 import { TileSettings, TilesTabComponent } from './tiles-tab.component';
 
 const PANEL_MIN = 320;
+/** How long play leaves each example up: long enough for the path tracer to settle. */
+const DEMO_DWELL_MS = 7000;
 const DEFAULT_SAMPLE = 'line4'; // "Multi Series Line Chart" — generated in-spec, so it needs no data file
 
 /**
@@ -25,12 +28,8 @@ const DEFAULT_SAMPLE = 'line4'; // "Multi Series Line Chart" — generated in-sp
  */
 @Component({
   selector: 'app-morphcharts-page',
-  imports: [MorphchartsCanvasComponent, WebGpuFallbackComponent, DataTabComponent, DebugOverlayComponent, RenderTabComponent, SamplesDialogComponent, SignalsTabComponent, SpecEditorComponent, TilesTabComponent, MorphchartsCameraComponent],
+  imports: [MorphchartsCanvasComponent, WebGpuFallbackComponent, DataTabComponent, DebugOverlayComponent, RenderTabComponent, SamplesDialogComponent, SignalsTabComponent, SpecEditorComponent, TilesTabComponent, MorphchartsCameraComponent, GlyphComponent],
   template: `
-    <section class="head">
-      <p class="eyebrow">morphcharts · webgpu path tracer</p>
-    </section>
-
     <div class="client chart-shell" [style.gridTemplateColumns]="'1fr 6px ' + panelWidth() + 'px'">
       <div class="chart-column">
         <div class="chart-toolbar">
@@ -39,6 +38,13 @@ const DEFAULT_SAMPLE = 'line4'; // "Multi Series Line Chart" — generated in-sp
           <button type="button" class="btn small" [disabled]="!host() || !hasScene()" (click)="capture()" title="Capture current frame">Capture</button>
           <h1>MorphCharts</h1>
           <span class="spacer"></span>
+          <!-- Walks the example set: ⏮ ⏵ ⏭, or ← → on the keyboard. Play dwells long enough for each render to converge. -->
+          <div class="keyrail keys" role="group" aria-label="Example transport">
+            <button type="button" class="key" (click)="step(-1)" [disabled]="!samples().length" aria-label="Previous example" title="Previous example (←)"><app-glyph name="prev" /></button>
+            <button type="button" class="key play" (click)="togglePlay()" [attr.aria-pressed]="playing()" [attr.aria-label]="playing() ? 'Pause' : 'Play every example'" [title]="playing() ? 'Pause' : 'Play every example'" [disabled]="!samples().length"><app-glyph [name]="playing() ? 'pause' : 'play'" /></button>
+            <button type="button" class="key" (click)="step(1)" [disabled]="!samples().length" aria-label="Next example" title="Next example (→)"><app-glyph name="next" /></button>
+          </div>
+          <output class="counter" [attr.aria-label]="'Example ' + (sampleIndex() + 1) + ' of ' + samples().length">{{ sampleIndex() + 1 }}<i>/</i>{{ samples().length }}<b>{{ currentSample()?.title }}</b></output>
           <a href="#" (click)="$event.preventDefault(); showSamples.set(true)">Show examples</a>
         </div>
         <!-- Render mode lives in the Render tab, so the shared panel shows only the pose controls. -->
@@ -99,9 +105,11 @@ const DEFAULT_SAMPLE = 'line4'; // "Multi Series Line Chart" — generated in-sp
   `,
   styles: `
     .toolbar-camera { margin: -4px 0 12px; }
+    .keys .key { width: 30px; height: 28px; }
+    .key.play { background: var(--teal); color: var(--ink); }
+    .counter { font: 500 10px/1 var(--font-mono); color: var(--on-ink-dim); font-variant-numeric: tabular-nums; i { margin: 0 3px; color: var(--hairline); } b { font-weight: 500; color: var(--on-ink); margin-left: 8px; } }
     /* Shell, stage, panes, toolbar and divider come from styles.scss. */
     :host { display: block; height: calc(100vh - var(--nav-h)); display: flex; flex-direction: column; }
-    .head { padding: clamp(0.75rem, 2vh, 1.1rem) var(--pad-x) 0; }
     app-morphcharts-canvas { position: absolute; inset: 0; }
     .fallback-wrap { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 24px; overflow: auto; }
     .small { font-size: 12px; color: var(--on-ink-faint); }
@@ -138,6 +146,13 @@ export class MorphchartsPageComponent {
   readonly panelWidth = signal(480);
   readonly tiles = signal<TileSettings>({ tilesX: 1, tilesY: 1, tileOffsetX: 0, tileOffsetY: 0, autoTile: true });
   readonly hasScene = signal(false);
+  /** Every example, flattened from the samples index; the transport walks it. */
+  readonly samples = signal<SamplePlot[]>([]);
+  readonly currentName = signal('');
+  readonly playing = signal(false);
+  readonly sampleIndex = computed(() => Math.max(0, this.samples().findIndex((s) => s.plot.replace(/\.json$/, '') === this.currentName())));
+  readonly currentSample = computed(() => this.samples()[this.sampleIndex()] ?? null);
+  private playTimer: ReturnType<typeof setTimeout> | null = null;
 
   readonly running = computed(() => this.host()?.running() ?? false);
   readonly frameCount = computed(() => this.host()?.frameCount() ?? 0);
@@ -162,6 +177,8 @@ export class MorphchartsPageComponent {
 
   constructor() {
     this.pendingSample = this.route.snapshot.queryParamMap.get('plot') ?? this.route.snapshot.queryParamMap.get('spec') ?? DEFAULT_SAMPLE;
+    this.currentName.set(this.pendingSample.replace(/\.json$/, ''));
+    this.http.get<SampleCategory[]>(`${SAMPLE_SPEC_FOLDER}/index.json`).subscribe({ next: (cats) => this.samples.set(cats.flatMap((c) => c.plots)), error: () => this.samples.set([]) });
     afterNextRender(() => {
       this.gsap.slideIn(this.right().nativeElement, 'right', this.gsap.MOTION.delay.medium);
       void this.loadSampleFile(this.pendingSample!).then((ok) => { if (ok) { this.specReady = true; this.maybeAutoStart(); } });
@@ -177,8 +194,18 @@ export class MorphchartsPageComponent {
     };
     window.addEventListener('resize', onWindowResize);
 
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
+      if (e.key === 'ArrowLeft') { e.preventDefault(); this.step(-1); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); this.step(1); }
+    };
+    window.addEventListener('keydown', onKey);
+
     this.destroyRef.onDestroy(() => {
       window.removeEventListener('resize', onWindowResize);
+      window.removeEventListener('keydown', onKey);
+      this.stopPlay();
       if (refit) clearTimeout(refit);
       this.host()?.dispose();
     });
@@ -278,7 +305,40 @@ export class MorphchartsPageComponent {
 
   loadSample(plot: SamplePlot): void {
     this.showSamples.set(false);
+    this.stopPlay();
     void this.pickSample(plot.plot);
+  }
+
+  /** Neighbouring example; a manual step pauses play. */
+  step(delta: number): void {
+    const all = this.samples();
+    if (!all.length) return;
+    this.stopPlay();
+    void this.pickSample(all[(this.sampleIndex() + delta + all.length) % all.length].plot);
+  }
+
+  togglePlay(): void {
+    if (this.playing()) { this.stopPlay(); return; }
+    this.playing.set(true);
+    this.scheduleNext();
+  }
+
+  private stopPlay(): void {
+    this.playing.set(false);
+    if (this.playTimer) { clearTimeout(this.playTimer); this.playTimer = null; }
+  }
+
+  /** Path tracing needs a few seconds to converge, so each example gets DEMO_DWELL_MS on screen. */
+  private scheduleNext(): void {
+    if (this.playTimer) clearTimeout(this.playTimer);
+    this.playTimer = setTimeout(async () => {
+      this.playTimer = null;
+      if (!this.playing()) return;
+      const all = this.samples();
+      if (!all.length) return;
+      await this.pickSample(all[(this.sampleIndex() + 1) % all.length].plot);
+      if (this.playing()) this.scheduleNext();
+    }, DEMO_DWELL_MS);
   }
 
   /**
@@ -288,6 +348,7 @@ export class MorphchartsPageComponent {
    */
   private async pickSample(name: string): Promise<void> {
     const token = ++this.pickToken;
+    this.currentName.set(name.replace(/\.json$/, ''));
     this.host()?.stop();
     const ok = await this.loadSampleFile(name);
     if (!ok || token !== this.pickToken) return;

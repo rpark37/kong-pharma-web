@@ -1,7 +1,8 @@
 import { Component, ElementRef, OnDestroy, afterNextRender, effect, inject, input, output, signal, untracked } from '@angular/core';
 import type { View } from 'vega';
 import { VEGA_DATA_BASE, patchLoader } from './data-uri';
-import { VEGA_CONFIG } from './theme';
+import { ThemeService } from '../theme/theme.service';
+import { vegaConfig } from './theme';
 
 export type VegaSpecInput = Record<string, unknown>;
 
@@ -43,6 +44,7 @@ export class VegaChartComponent implements OnDestroy {
   readonly error = signal<string | null>(null);
 
   private readonly el = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly theme = inject(ThemeService);
   private view: View | null = null;
   private resize: ResizeObserver | null = null;
   private embedToken = 0;
@@ -58,6 +60,11 @@ export class VegaChartComponent implements OnDestroy {
     effect(() => {
       const data = this.data();
       untracked(() => this.applyData(data));
+    });
+    // Axis and text colours are baked in at embed time, so a theme change is a re-embed.
+    effect(() => {
+      this.theme.theme();
+      untracked(() => { if (this.view) void this.embed(this.spec()); });
     });
   }
 
@@ -76,8 +83,8 @@ export class VegaChartComponent implements OnDestroy {
       const result = await vegaEmbed(container, spec as never, {
         actions: false,
         renderer: this.renderer(),
-        config: VEGA_CONFIG as never,
-        tooltip: { theme: 'light' },
+        config: vegaConfig(this.theme.theme()) as never,
+        tooltip: { theme: this.theme.theme() },
         loader: patchLoader(loader({ baseURL: VEGA_DATA_BASE })),
       });
       if (token !== this.embedToken) { result.finalize(); return; }

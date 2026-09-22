@@ -17,6 +17,12 @@ body {
 }
 
 h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.02em; margin: 0; }
+
+/* Theme switch: the whole page crossfades between its two snapshots (ThemeService). */
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 0.5s; animation-timing-function: var(--ease-out); }
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+}
 p { margin: 0; }
 a { color: var(--teal); text-decoration: none; }
 button { font: inherit; color: inherit; }
@@ -52,7 +58,7 @@ code, kbd, .mono { font-family: var(--font-mono); }
   color: var(--on-ink);
   cursor: pointer;
   transition: background var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
-  &:hover { background: rgba(0, 112, 93, 0.1); border-color: rgba(0, 112, 93, 0.4); }
+  &:hover { background: color-mix(in srgb, var(--teal) 10%, transparent); border-color: color-mix(in srgb, var(--teal) 40%, transparent); }
   &.active, &[aria-pressed="true"] { background: var(--teal); color: var(--ink); border-color: var(--teal); }
   &:disabled { opacity: 0.4; cursor: not-allowed; }
   &.small { padding: 5px 10px; font-size: 13px; }
@@ -77,6 +83,52 @@ code, kbd, .mono { font-family: var(--font-mono); }
 
 input[type="range"] { accent-color: var(--teal); }
 input[type="checkbox"], input[type="radio"] { accent-color: var(--teal); }
+
+/* ------------------------------------------------------------------------------------------------
+ * Instrument keys, shared by the Bayes panel, the camera module and the atlas.
+ *
+ * A .keyrail is a segmented strip of .key buttons with hairline dividers; one key may be .on. A
+ * .key.lone is a single key with its own border. Keys are 26 px, mono codes or 16 px glyphs, and
+ * never rounded individually: the rail is the shape.
+ * ---------------------------------------------------------------------------------------------- */
+.keyrail {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--well);
+  &.column { grid-auto-flow: row; grid-auto-columns: auto; }
+  .key + .key { border-left: 1px solid var(--hairline); }
+  &.column .key + .key { border-left: 0; border-top: 1px solid var(--hairline); }
+}
+.keyrail .key, .key.lone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 2px;
+  border: 0;
+  background: none;
+  color: var(--on-ink-dim);
+  cursor: pointer;
+  font: 500 9px/1 var(--font-mono);
+  letter-spacing: 0.02em;
+  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+  &:hover { background: color-mix(in srgb, var(--teal) 8%, transparent); color: var(--on-ink); }
+  &:active { background: color-mix(in srgb, var(--teal) 16%, transparent); }
+  &:focus-visible { outline: 2px solid var(--teal); outline-offset: -2px; }
+  &:disabled { opacity: 0.35; cursor: not-allowed; background: none; color: var(--on-ink-dim); }
+  &.on, &[aria-pressed="true"] { background: var(--teal); color: var(--ink); }
+  &.on:hover, &[aria-pressed="true"]:hover { background: color-mix(in srgb, var(--teal) 90%, transparent); color: var(--ink); }
+  svg { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  svg .solid, svg .fill { fill: currentColor; stroke: none; }
+  app-glyph { width: 14px; height: 14px; vertical-align: 0; }
+}
+.key.lone { border: 1px solid var(--hairline); border-radius: 6px; background: var(--well); }
+.key.wide { padding: 0 10px; }
 
 /* ------------------------------------------------------------------------------------------------
  * Chart-client paneling, shared by /morphcharts, /vega-charts and /sanddance-specs.

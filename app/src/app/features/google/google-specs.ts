@@ -1,3 +1,4 @@
+import { sceneSurface } from '../../shared/theme/surface';
 /** The CSV name the spec asks for; the page supplies its text through the scene's `datasets` input. */
 export const PURCHASES_FILE = 'google_purchases.csv';
 
@@ -8,12 +9,13 @@ export const PURCHASES_FILE = 'google_purchases.csv';
  * `public/samples/specs/bar10.json` for the pattern).
  */
 export function salesSpec(): Record<string, unknown> {
+  const paper = sceneSurface();
   return {
     title: 'Google Merchandise Sales',
     width: 900,
     height: 180,
     depth: 420,
-    background: '#F5F5F3',
+    background: paper.background,
     camera: { position: [0.05, 0.6, 0.95], target: [0, -0.04, 0] },
     lights: [
       { type: 'rect', position: [-0.6, 1.4, 0.9], brightness: 6 },
@@ -48,9 +50,9 @@ export function salesSpec(): Record<string, unknown> {
         labelAngleX: 90,
         labelAngle: -90,
         labelFontSize: 9,
-        labelColor: '#2D2D2D',
+        labelColor: paper.text,
         title: 'Purchase date',
-        titleColor: '#2D2D2D',
+        titleColor: paper.text,
         titleOffsetZ: 70,
         titleOffsetY: 0.1,
         titleAngleX: 90,
@@ -65,16 +67,16 @@ export function salesSpec(): Record<string, unknown> {
         labelOffsetY: 0.1,
         labelAngleX: 90,
         labelFontSize: 8,
-        labelColor: '#2D2D2D',
+        labelColor: paper.text,
         title: 'Category',
-        titleColor: '#2D2D2D',
+        titleColor: paper.text,
         titleOffsetX: -120,
         titleOffsetY: 0.1,
         titleAngleX: 90,
         titleAngleZ: 90,
         grid: true,
         gridWidth: 0.3,
-        gridColor: '#D4D4D2',
+        gridColor: paper.grid,
         domain: false,
       },
       {
@@ -83,14 +85,14 @@ export function salesSpec(): Record<string, unknown> {
         scale: 'yscale',
         labelAlign: 'left',
         labelOffsetX: 2,
-        labelColor: '#2D2D2D',
+        labelColor: paper.text,
         tickCount: 4,
         title: 'Purchases',
-        titleColor: '#2D2D2D',
+        titleColor: paper.text,
         titleOffsetX: 30,
         grid: true,
         gridWidth: 0.3,
-        gridColor: '#D4D4D2',
+        gridColor: paper.grid,
       },
     ],
     marks: [
@@ -105,7 +107,7 @@ export function salesSpec(): Record<string, unknown> {
             width: { signal: 'width*1.25' },
             depth: { signal: 'depth*1.6' },
             fuzz: { value: 0.15 },
-            fill: { value: '#E8E8E6' },
+            fill: { value: paper.backdrop },
           },
         },
       },

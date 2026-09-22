@@ -3,23 +3,33 @@ import { gsap } from 'gsap';
 import { EASE, MOTION } from '../animation/motion';
 import type { MorphChartsHost, RenderMode } from './morphcharts-host';
 
-export type CameraView = 'front' | 'quarter' | 'top' | 'low';
-
 /**
- * Yaw and pitch for each view preset as fractions of the canvas height: the camera's `rotate()`
- * maps one canvas height of drag to π radians, so these are resolution-independent.
+ * A view preset: yaw and pitch as fractions of a half turn (the camera's `rotate()` maps one
+ * canvas height of drag to π radians, so these are resolution-independent), with the code the
+ * key shows and the name its tooltip gives.
  */
-export const VIEW_DELTAS: Record<CameraView, [number, number]> = {
-  front: [0, 0],
-  quarter: [0.13, 0.07],
-  top: [0, 0.3],
-  low: [0.07, -0.09],
-};
+export interface ViewPreset { id: string; code: string; name: string; yaw: number; pitch: number; }
+
+/** The presets a chart wants: a front view and three ways to look at its relief. */
+export const CHART_VIEWS: ViewPreset[] = [
+  { id: 'front', code: 'FRONT', name: 'Front', yaw: 0, pitch: 0 },
+  { id: 'quarter', code: '¾', name: 'Three-quarter', yaw: 0.13, pitch: 0.07 },
+  { id: 'top', code: 'TOP', name: 'Top-down', yaw: 0, pitch: 0.3 },
+  { id: 'low', code: 'LOW', name: 'Low angle', yaw: 0.07, pitch: -0.09 },
+];
 
 /** Turns per second while orbiting — one full turn in about 35 s. */
 const ORBIT_RATE = 0.03;
 
 export interface CameraRigOptions {
+  /** View presets for this scene; `CHART_VIEWS` unless the subject wants its own (a body has a side and a back). */
+  views?: ViewPreset[];
+  /**
+   * Own the pose: given yaw and pitch (half-turn fractions) and the zoom factor, place the camera.
+   * Without it the rig resets to the spec camera and rotates about the plot origin, which is right
+   * for a chart but not for a scene whose subject is off-centre or moves.
+   */
+  pose?: (yaw: number, pitch: number, zoom: number) => void;
   /** Read at use, so a page can flip it after construction. */
   reducedMotion?: () => boolean;
   /** While true the orbit holds still (a morph is writing the scene). */
@@ -37,7 +47,8 @@ export interface CameraRigOptions {
  * State is exposed as signals so a control panel can bind to it; the rig owns no DOM.
  */
 export class CameraRig {
-  readonly view = signal<CameraView>('front');
+  readonly views: ViewPreset[];
+  readonly view = signal<string>('front');
   readonly zoom = signal(1);
   readonly orbiting = signal(false);
   readonly renderMode = signal<RenderMode>('raytrace');
@@ -47,18 +58,24 @@ export class CameraRig {
   private orbitTick: ((time: number, deltaTime: number) => void) | null = null;
 
   constructor(readonly host: MorphChartsHost, private readonly options: CameraRigOptions = {}) {
+    this.views = options.views ?? CHART_VIEWS;
+    this.view.set(this.views[0].id);
     this.renderMode.set(host.renderer.renderMode as RenderMode);
   }
 
-  /** Re-pose the camera from the spec's reset pose. */
+  /** Re-pose the camera: the scene's own pose hook, or the spec's reset pose rotated and dollied. */
   apply(): void {
     const host = this.host;
-    const cam = host.camera;
-    const h = cam.height;
-    host.resetCamera();
-    cam.rotate((this.pose.yaw + this.pose.orbit) * h, this.pose.pitch * h);
     const zoom = this.zoom();
-    if (zoom !== 1) cam.zoom(1 - 1 / zoom, cam.width / 2, h / 2);
+    if (this.options.pose) {
+      this.options.pose(this.pose.yaw + this.pose.orbit, this.pose.pitch, zoom);
+    } else {
+      const cam = host.camera;
+      const h = cam.height;
+      host.resetCamera();
+      cam.rotate((this.pose.yaw + this.pose.orbit) * h, this.pose.pitch * h);
+      if (zoom !== 1) cam.zoom(1 - 1 / zoom, cam.width / 2, h / 2);
+    }
     host.renderer.frameCount = 0;
     if (!host.running() && host.hasMarks()) host.start();
   }
@@ -70,9 +87,10 @@ export class CameraRig {
     this.host.renderer.frameCount = 0;
   }
 
-  setView(preset: CameraView): void {
-    this.view.set(preset);
-    const [yaw, pitch] = VIEW_DELTAS[preset];
+  setView(id: string): void {
+    const preset = this.views.find((v) => v.id === id) ?? this.views[0];
+    this.view.set(preset.id);
+    const { yaw, pitch } = preset;
     this.tween?.kill();
     if (this.options.reducedMotion?.()) {
       this.pose.yaw = yaw;
@@ -116,12 +134,12 @@ export class CameraRig {
     this.applyRenderMode();
   }
 
-  /** Front view at 1x, orbit off. */
+  /** First view at 1x, orbit off. */
   reset(): void {
     this.setOrbit(false);
     this.zoom.set(1);
     this.pose.orbit = 0;
-    this.setView('front');
+    this.setView(this.views[0].id);
   }
 
   dispose(): void {

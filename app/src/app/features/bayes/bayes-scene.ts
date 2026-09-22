@@ -9,6 +9,7 @@
  */
 import { type MorphChartsHost } from '../../shared/morphcharts/morphcharts-host';
 import { CameraRig } from '../../shared/morphcharts/camera-rig';
+import { sceneSurface } from '../../shared/theme/surface';
 import { MorphController } from '../../shared/morphcharts/morph-controller';
 import { LAYOUT_NAMES, type BayesData, type FormConfig } from './bayes-data.model';
 
@@ -261,6 +262,7 @@ function describeFacets(index: number, data: BayesData, config: FormConfig): Fac
 
 /** MorphCharts spec for a layout: blocks, facet plates, headings and titles. */
 export function buildSpec(layout: LayoutResult, count: number): Record<string, unknown> {
+  const paper = sceneSurface();
   const values = [];
   for (let i = 0; i < count; i++) {
     values.push({ id: i, xc: layout.positions[i * 3], yc: layout.positions[i * 3 + 1], zc: layout.positions[i * 3 + 2], size: layout.visible[i] ? layout.size : 0.001, r: Math.round(layout.colors[i * 3] * 255), g: Math.round(layout.colors[i * 3 + 1] * 255), b: Math.round(layout.colors[i * 3 + 2] * 255) });
@@ -272,7 +274,7 @@ export function buildSpec(layout: LayoutResult, count: number): Record<string, u
   return {
     title: LAYOUT_NAMES[0],
     width: W, height: H, depth: D,
-    background: '#F5F5F3',
+    background: paper.background,
     // No lights: ambient-only (the spec's default, white) gives flat, even illumination with no cast
     // shadows, so the blocks read as an icon array rather than as lit objects.
     camera: { worldPosition: [W / 2, H / 2, D / 2 + distance], worldTarget: [W / 2, H / 2, D / 2], fov },
@@ -283,9 +285,9 @@ export function buildSpec(layout: LayoutResult, count: number): Record<string, u
     ],
     marks: [
       { name: 'units', type: 'rect', geometry: 'box', material: 'glossy', from: { data: 'units' }, encode: { enter: { xc: { field: 'xc' }, yc: { field: 'yc' }, zc: { field: 'zc' }, width: { field: 'size' }, height: { field: 'size' }, depth: { value: depth }, fuzz: { value: 0.1 }, fill: { color: { r: { field: 'r' }, g: { field: 'g' }, b: { field: 'b' } } } } } },
-      { type: 'rect', geometry: 'xyrect', material: 'diffuse', from: { data: 'plates' }, encode: { enter: { xc: { field: 'xc' }, yc: { field: 'yc' }, zc: { value: D / 2 - depth }, width: { field: 'width' }, height: { field: 'height' }, fill: { value: '#E4E4E1' } } } },
-      { type: 'text', from: { data: 'texts' }, encode: { enter: { x: { field: 'x' }, y: { field: 'y' }, z: { value: D / 2 + 2 }, text: { field: 'text' }, fontSize: { field: 'size' }, font: { value: 'Rajdhani' }, fontWeight: { value: 600 }, align: { value: 'center' }, baseline: { value: 'middle' }, fill: { value: '#2D2D2D' } } } },
-      { type: 'rect', geometry: 'xyrect', material: 'diffuse', encode: { enter: { xc: { value: W / 2 }, yc: { value: H / 2 }, zc: { value: -D }, width: { value: W * 10 }, height: { value: H * 10 }, fill: { value: '#E8E8E6' } } } },
+      { type: 'rect', geometry: 'xyrect', material: 'diffuse', from: { data: 'plates' }, encode: { enter: { xc: { field: 'xc' }, yc: { field: 'yc' }, zc: { value: D / 2 - depth }, width: { field: 'width' }, height: { field: 'height' }, fill: { value: paper.plate } } } },
+      { type: 'text', from: { data: 'texts' }, encode: { enter: { x: { field: 'x' }, y: { field: 'y' }, z: { value: D / 2 + 2 }, text: { field: 'text' }, fontSize: { field: 'size' }, font: { value: 'Rajdhani' }, fontWeight: { value: 600 }, align: { value: 'center' }, baseline: { value: 'middle' }, fill: { value: paper.text } } } },
+      { type: 'rect', geometry: 'xyrect', material: 'diffuse', encode: { enter: { xc: { value: W / 2 }, yc: { value: H / 2 }, zc: { value: -D }, width: { value: W * 10 }, height: { value: H * 10 }, fill: { value: paper.backdrop } } } },
     ],
   };
 }

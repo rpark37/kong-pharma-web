@@ -2,6 +2,7 @@ import { Component, ElementRef, HostListener, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { RouteTransitionDirective } from './shared/animation/route-transition.directive';
 import { NavIconComponent, type NavIconName } from './shared/ui/nav-icon.component';
+import { ThemeService } from './shared/theme/theme.service';
 
 /** A nav entry: either a direct link (`path`) or a labelled group of them (`children`). */
 export interface NavItem {
@@ -71,6 +72,7 @@ export class App {
   ];
 
   private readonly el = inject<ElementRef<HTMLElement>>(ElementRef);
+  readonly theme = inject(ThemeService);
 
   /** <details> stays open on its own, so close any menu the click landed outside of. */
   @HostListener('document:click', ['$event'])

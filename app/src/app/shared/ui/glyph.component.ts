@@ -1,11 +1,12 @@
 import { Component, computed, input } from '@angular/core';
 
 /**
- * The Bayes page's glyphs, drawn on a 16-unit grid in the same hand as the transport keys:
- * 1.5 px strokes, round caps, `currentColor`. Each is one `d` string (subpaths allowed), so an
- * icon is a table row rather than a component. `fill` ones are dot patterns, painted not stroked.
+ * The app's instrument glyphs, drawn on a 16-unit grid in one hand: 1.5 px strokes, round caps,
+ * `currentColor`. Each is one `d` string (subpaths allowed), so an icon is a table row rather than
+ * a component. `fill` ones are dot patterns, painted not stroked. Nav entries have their own
+ * animated set in nav-icon.component.ts.
  */
-export const BAYES_ICONS = {
+export const GLYPHS = {
   count: { d: 'M2.5 2.5h4.5v4.5H2.5zM9 2.5h4.5v4.5H9zM2.5 9h4.5v4.5H2.5zM9 9h4.5v4.5H9z' },
   /** One filled block among nine: a prior. */
   prior: { d: 'M2 2h3v3H2zM6.5 2h3v3h-3zM11 2h3v3h-3zM2 6.5h3v3H2zM11 6.5h3v3h-3zM2 11h3v3H2zM6.5 11h3v3h-3zM11 11h3v3h-3z', fill: 'M6.5 6.5h3v3h-3z' },
@@ -30,12 +31,32 @@ export const BAYES_ICONS = {
   render: { d: 'M2 2h5v5H2zM9 2h5v5H9zM2 9h5v5H2zM9 9h5v5H9z', fill: 'M9 9h5v5H9z' },
   /** A globe with an orbit line: drag to look around. */
   orbit: { d: 'M8 3.5a4.5 4.5 0 1 0 0 9 4.5 4.5 0 1 0 0-9zM1.5 9.5c2.5-1 10.5-1 13 0' },
+  search: { d: 'M7 2.5a4.5 4.5 0 1 0 0 9 4.5 4.5 0 1 0 0-9zM10.3 10.3 14 14' },
+  info: { d: 'M8 2a6 6 0 1 0 0 12A6 6 0 1 0 8 2zM8 7.2v4M8 4.9v.2' },
+  close: { d: 'M4 4l8 8M12 4l-8 8' },
+  /** Counter-clockwise arc with an arrowhead: back to the start. */
+  reset: { d: 'M3.6 6.2A4.8 4.8 0 1 1 3.4 9.8M3 3.2v3.3h3.3' },
+  pause: { d: 'M5.5 3.5v9M10.5 3.5v9' },
+  /** Four arrows from the centre: parts flying apart. */
+  explode: { d: 'M6.3 6.3 3 3M3 6V3h3M9.7 6.3 13 3M10 3h3v3M6.3 9.7 3 13M3 10v3h3M9.7 9.7 13 13M13 10v3h-3' },
+  /** Three stacked plates: the system layers. */
+  layers: { d: 'M8 2l6 3.2L8 8.4 2 5.2zM2 8.2l6 3.2 6-3.2M2 11.2l6 3.2 6-3.2' },
+  /** Reticle with a centre dot: one structure, framed. */
+  isolate: { d: 'M8 4.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 1 0 0-7zM8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2', fill: 'M8 6.9a1.1 1.1 0 1 0 .01 0z' },
+  chevron: { d: 'M6 3.5 10.5 8 6 12.5' },
+  external: { d: 'M6.5 3H3v10h10V9.5M9 3h4v4M13 3 7.5 8.5' },
+  body: { d: 'M8 1.5a1.5 1.5 0 1 0 .01 0zM4.5 6h7M8 6v4M8 10l-2.5 4.5M8 10l2.5 4.5' },
+  /** Transport: the same keys the Bayes deck draws inline. */
+  prev: { d: 'M4 3.5v9', fill: 'M12 3.5 6 8l6 4.5z' },
+  next: { d: 'M12 3.5v9', fill: 'M4 3.5 10 8l-6 4.5z' },
+  play: { d: '', fill: 'M5 3.5v9l8-4.5z' },
+  shuffle: { d: 'M2 4h2.5l6 8H14M2 12h2.5l1.6-2.1M9.2 6.1 10.5 4H14M12 2l2 2-2 2M12 10l2 2-2 2' },
 } as const;
 
-export type BayesIconName = keyof typeof BAYES_ICONS;
+export type GlyphName = keyof typeof GLYPHS;
 
 @Component({
-  selector: 'app-bayes-icon',
+  selector: 'app-glyph',
   template: `
     <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
       @if (icon().d) { <path [attr.d]="icon().d" /> }
@@ -48,7 +69,7 @@ export type BayesIconName = keyof typeof BAYES_ICONS;
     .fill { fill: currentColor; stroke: none; }
   `,
 })
-export class BayesIconComponent {
-  readonly name = input.required<BayesIconName>();
-  readonly icon = computed(() => BAYES_ICONS[this.name()] as { d: string; fill?: string });
+export class GlyphComponent {
+  readonly name = input.required<GlyphName>();
+  readonly icon = computed(() => GLYPHS[this.name()] as { d: string; fill?: string });
 }

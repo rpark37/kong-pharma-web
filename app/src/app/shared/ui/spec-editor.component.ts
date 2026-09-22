@@ -36,7 +36,7 @@ import { Component, ElementRef, afterNextRender, model, output, signal, viewChil
     .editor { display: flex; height: 100%; border: 1px solid var(--hairline); border-radius: var(--radius-sm); overflow: hidden; background: var(--ink-3); font-family: var(--font-mono); font-size: 12px; line-height: 18px; }
     .lines { width: 44px; padding: 8px 0; text-align: right; color: var(--on-ink-faint); overflow: hidden; user-select: none; border-right: 1px solid var(--hairline); }
     .lines div { padding-right: 8px; }
-    .lines .current { color: var(--teal); background: rgba(0,112,93,0.08); }
+    .lines .current { color: var(--teal); background: color-mix(in srgb, var(--teal) 8%, transparent); }
     .lines .error { color: var(--rose); background: rgba(179,38,30,0.18); }
     .content { flex: 1; margin: 0; padding: 8px; border: 0; outline: none; resize: none; background: transparent; color: var(--on-ink); font: inherit; white-space: pre; overflow: auto; tab-size: 2; }
     /* The rule above suppresses the default ring; a textarea must still show focus.

@@ -23,6 +23,8 @@
   --panel: #F5F5F3;
   --panel-solid: #F5F5F3;
   --glow: rgba(0, 112, 93, 0.14);
+  --well: rgba(0, 0, 0, 0.04);
+  --nav-bg: rgba(245, 245, 243, 0.82);
   --shadow-sm: 0 1px 2px rgba(45, 45, 45, 0.06), 0 1px 3px rgba(45, 45, 45, 0.10);
   --shadow-md: 0 2px 8px rgba(45, 45, 45, 0.08);
 
@@ -38,4 +40,34 @@
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --dur-fast: 0.25s;
   --dur: 0.55s;
+}
+
+// The dark theme, switched from the nav and remembered in localStorage (`richos-theme`).
+// Mirrors PALETTE_DARK in app/src/app/shared/theme/palette.ts — keep the two in step.
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --teal: #4CC2A6;
+  --teal-bright: #7FE0C9;
+  --teal-deep: #2E9C83;
+  --teal-ink: #0F2B25;
+  --orange: #F0A050;
+  --orange-light: #F5B978;
+  --violet: #A99BF5;
+  --green: #6FCB86;
+  --amber: #E2B44A;
+  --rose: #F07A72;
+  --ink: #111413;
+  --ink-2: #171C1A;
+  --ink-3: #1F2523;
+  --on-ink: #E7E5E0;
+  --on-ink-dim: #B7B5B0;
+  --on-ink-faint: #8F8D88;
+  --hairline: #2E3532;
+  --panel: #171C1A;
+  --panel-solid: #171C1A;
+  --glow: rgba(76, 194, 166, 0.22);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.5);
+  --well: rgba(255, 255, 255, 0.05);
+  --nav-bg: rgba(23, 28, 26, 0.82);
 }

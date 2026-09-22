@@ -4,13 +4,20 @@
  * poses, and does CPU ray picking. Imported lazily (it pulls the MorphCharts runtime).
  */
 import { gsap } from 'gsap';
-import { Core, Spec, type MorphChartsHost } from '../../shared/morphcharts/morphcharts-host';
+import { Core, Spec, type MorphChartsHost, type RenderMode } from '../../shared/morphcharts/morphcharts-host';
+import { CameraRig } from '../../shared/morphcharts/camera-rig';
+import { sceneSurface } from '../../shared/theme/surface';
 import { EASE, MOTION } from '../../shared/animation/motion';
 import type { Part, View } from './anatomy';
-import { PLOT, assembledPosition, buildAtlasSpec, cameraPose, explodedPositions, framePose, partSize, type CameraPose, type Geometry } from './atlas-spec';
+import { ATLAS_VIEWS, PLOT, assembledPosition, buildAtlasSpec, cameraPose, explodedPositions, framePose, orbitPose, partSize, type CameraPose, type Geometry, type Stage } from './atlas-spec';
 
 const SETTLE_MS = 300;
 const HIGHLIGHT: Core.Vector3 = [0.42, 0.85, 0.78];
+/** The page's paper as a unit RGB: what unselected parts fade toward. */
+function paper(): Core.Vector3 {
+  const n = parseInt(sceneSurface().background.slice(1), 16);
+  return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
+}
 
 export interface AtlasSceneOptions {
   geometry?: Geometry;
@@ -29,17 +36,29 @@ export class AtlasScene {
   private scaling = 1;
   private explodeState = { t: 0 };
   private settleTimer: ReturnType<typeof setTimeout> | null = null;
-  private rotateTicker: ((time: number, dt: number) => void) | null = null;
-  private cameraState: { px: number; py: number; pz: number; tx: number; ty: number; tz: number } | null = null;
+  /** The pose the camera rig orbits about: the front view for this explode amount, or a framed structure. Tweened. */
+  private readonly base = { px: 0, py: 0, pz: 0, tx: 0, ty: 0, tz: 0 };
   private layout = { width: 0, height: 0 };
   readonly geometry: Geometry;
   readonly reducedMotion: boolean;
+  /** View, dolly, orbit and render mode; the page binds the shared camera panel to it. */
+  readonly rig: CameraRig;
+  /** What a motion settles back to; the rig sets it. */
+  stillMode: RenderMode = 'raytrace';
   aspect = 1.6;
+  /** Stage size in pixels; lets the exploded inventory clear the panels. */
+  stage: Stage | null = null;
   parts: Part[] = [];
 
   constructor(readonly host: MorphChartsHost, options: AtlasSceneOptions = {}) {
     this.geometry = options.geometry ?? 'sphere';
     this.reducedMotion = options.reducedMotion ?? false;
+    this.rig = new CameraRig(host, {
+      views: ATLAS_VIEWS,
+      pose: (yaw, pitch, zoom) => this.setCamera(orbitPose(this.basePose(), yaw, pitch, zoom)),
+      reducedMotion: () => this.reducedMotion,
+      onStillMode: (mode) => { this.stillMode = mode; },
+    });
   }
 
   get plot(): Spec.Plot | null { return this.host.plot; }
@@ -72,9 +91,10 @@ export class AtlasScene {
     this.current = new Float32Array(this.assembled);
     this.target = new Float32Array(this.assembled);
     this.explodeState.t = explode;
-    this.host.renderer.renderMode = 'raytrace';
+    this.host.renderer.renderMode = this.stillMode;
     this.host.maxSamplesPerPixel = 800;
-    this.ensureRunning();
+    this.writeBase(cameraPose('front', explode, this.aspect));
+    this.rig.apply();
   }
 
   /** Recompute exploded targets for the currently visible parts (layout depends on the visible set). */
@@ -144,11 +164,16 @@ export class AtlasScene {
     this.writeTranslations();
   }
 
-  /** Highlight selected parts by tinting their fill. */
+  /**
+   * Highlight selected parts by tinting their fill teal; while anything is selected the rest
+   * recedes halfway into the paper, so a structure inside the torso still reads through the gaps.
+   */
   setSelection(selectedIds: ReadonlySet<string>): void {
     if (!this.buffer) return;
     const dv = this.buffer.dataView;
     const v: Core.Vector3 = [0, 0, 0];
+    const dim = selectedIds.size ? 0.55 : 0;
+    const PAPER = paper();
     for (let i = 0; i < this.parts.length; i++) {
       const sel = selectedIds.has(this.parts[i].id);
       if (sel) {
@@ -156,7 +181,9 @@ export class AtlasScene {
         v[1] = this.baseFill[i * 3 + 1] * 0.35 + HIGHLIGHT[1] * 0.65;
         v[2] = this.baseFill[i * 3 + 2] * 0.35 + HIGHLIGHT[2] * 0.65;
       } else {
-        v[0] = this.baseFill[i * 3]; v[1] = this.baseFill[i * 3 + 1]; v[2] = this.baseFill[i * 3 + 2];
+        v[0] = this.baseFill[i * 3] * (1 - dim) + PAPER[0] * dim;
+        v[1] = this.baseFill[i * 3 + 1] * (1 - dim) + PAPER[1] * dim;
+        v[2] = this.baseFill[i * 3 + 2] * (1 - dim) + PAPER[2] * dim;
       }
       Core.UnitVertex.setFill(dv, i, v);
       Core.UnitVertex.setSelected(dv, i, sel ? 1 : 0);
@@ -164,46 +191,38 @@ export class AtlasScene {
     this.flag();
   }
 
-  /** Move the camera to a preset (three-quarter/front/side/back) for the current explode amount. */
-  goToView(view: View, explode: number, animate = true): void {
-    const pose = cameraPose(view, explode, this.aspect, this.layout.width ? this.layout : undefined);
-    this.applyPose(pose, animate);
+  /** Re-frame the body for this explode amount; the rig's view preset turns about it. */
+  goToView(explode: number, animate = true): void {
+    this.goToPose(cameraPose('front', explode, this.aspect, this.layout.width ? this.layout : undefined, 45, this.stage ?? undefined), animate);
   }
 
   /** Frame the given parts (isolate). */
   frame(parts: Part[], animate = true): void {
-    if (parts.length) this.applyPose(framePose(parts), animate);
+    if (parts.length) this.goToPose(framePose(parts), animate);
   }
 
-  applyPose(pose: CameraPose, animate: boolean): void {
-    const plot = this.host.plot;
-    if (!plot) return;
-    if (this.cameraState) gsap.killTweensOf(this.cameraState);
-    const from = this.currentPose();
-    const state = { px: from.worldPosition[0], py: from.worldPosition[1], pz: from.worldPosition[2], tx: from.worldTarget[0], ty: from.worldTarget[1], tz: from.worldTarget[2] };
-    this.cameraState = state;
-    const write = () => this.setCamera({ worldPosition: [state.px, state.py, state.pz], worldTarget: [state.tx, state.ty, state.tz] });
+  private goToPose(pose: CameraPose, animate: boolean): void {
+    if (!this.host.plot) return;
+    gsap.killTweensOf(this.base);
     if (!animate || this.reducedMotion) {
-      Object.assign(state, { px: pose.worldPosition[0], py: pose.worldPosition[1], pz: pose.worldPosition[2], tx: pose.worldTarget[0], ty: pose.worldTarget[1], tz: pose.worldTarget[2] });
-      write();
+      this.writeBase(pose);
+      this.rig.apply();
       return;
     }
     this.startMotion();
-    gsap.to(state, {
+    gsap.to(this.base, {
       px: pose.worldPosition[0], py: pose.worldPosition[1], pz: pose.worldPosition[2], tx: pose.worldTarget[0], ty: pose.worldTarget[1], tz: pose.worldTarget[2],
-      duration: MOTION.duration.slow, ease: EASE.inOut, onUpdate: write, onComplete: () => this.settle(),
+      duration: MOTION.duration.slow, ease: EASE.inOut, onUpdate: () => this.rig.apply(), onComplete: () => this.settle(),
     });
   }
 
-  /** Current camera as world (mm) position/target. */
-  currentPose(): CameraPose {
-    const plot = this.host.plot!;
-    const cam = this.host.camera;
-    const pos: Core.Vector3 = [0, 0, 0];
-    const tgt: Core.Vector3 = [0, 0, 0];
-    plot.cameraToWorldPosition(cam.position, pos);
-    plot.cameraToWorldPosition(cam.manipulationOrigin, tgt);
-    return { worldPosition: [pos[0], pos[1], pos[2]], worldTarget: [tgt[0], tgt[1], tgt[2]] };
+  private writeBase(pose: CameraPose): void {
+    Object.assign(this.base, { px: pose.worldPosition[0], py: pose.worldPosition[1], pz: pose.worldPosition[2], tx: pose.worldTarget[0], ty: pose.worldTarget[1], tz: pose.worldTarget[2] });
+  }
+
+  private basePose(): CameraPose {
+    const b = this.base;
+    return { worldPosition: [b.px, b.py, b.pz], worldTarget: [b.tx, b.ty, b.tz] };
   }
 
   private setCamera(pose: CameraPose): void {
@@ -217,16 +236,6 @@ export class AtlasScene {
     const origin: Core.Vector3 = [0, 0, 0];
     plot.worldToCameraPosition(pose.worldTarget, origin);
     cam.manipulationOrigin = origin;
-    this.host.renderer.frameCount = 0;
-    this.ensureRunning();
-  }
-
-  setAutoRotate(on: boolean): void {
-    if (this.rotateTicker) { gsap.ticker.remove(this.rotateTicker); this.rotateTicker = null; }
-    if (!on) { this.settle(); return; }
-    this.startMotion();
-    this.rotateTicker = (_time, dt) => { this.host.camera.rotate(-dt * 0.12, 0); this.host.renderer.frameCount = 0; this.ensureRunning(); };
-    gsap.ticker.add(this.rotateTicker);
   }
 
   /** Ray/sphere pick in camera space. Returns the part index or -1. */
@@ -262,9 +271,9 @@ export class AtlasScene {
   }
 
   dispose(): void {
-    this.setAutoRotate(false);
+    this.rig.dispose();
     gsap.killTweensOf(this.explodeState);
-    if (this.cameraState) gsap.killTweensOf(this.cameraState);
+    gsap.killTweensOf(this.base);
     if (this.settleTimer) clearTimeout(this.settleTimer);
   }
 
@@ -306,7 +315,7 @@ export class AtlasScene {
   private settle(): void {
     if (this.settleTimer) clearTimeout(this.settleTimer);
     this.settleTimer = setTimeout(() => {
-      if (!this.rotateTicker) { this.host.renderer.renderMode = 'raytrace'; this.host.renderer.frameCount = 0; this.ensureRunning(); }
+      if (!this.rig.orbiting()) { this.host.renderer.renderMode = this.stillMode; this.host.renderer.frameCount = 0; this.ensureRunning(); }
     }, SETTLE_MS);
   }
 
