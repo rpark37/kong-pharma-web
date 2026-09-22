@@ -29,6 +29,8 @@ UA = {'User-Agent': 'kong-atlas-labs/1.0 (science snapshot)'}
 
 # XTL-152 targets Rac1; K-119 is a bladder-cancer programme; CR-067 treats ED.
 RAC1 = 'ENSG00000136238'
+# The story opens on RAS: the oncogene family whose tumours scavenge nutrients by macropinocytosis.
+RAS = [('KRAS', 'ENSG00000133703'), ('HRAS', 'ENSG00000174775'), ('NRAS', 'ENSG00000213281')]
 BLADDER = 'MONDO_0004986'  # urinary bladder carcinoma
 CONDITIONS = [
     {'key': 'bladder', 'label': 'Bladder cancer', 'cond': 'bladder cancer', 'programme': 'K-119'},
@@ -243,10 +245,62 @@ def fetch_bladder() -> dict:
     }
 
 
+def fetch_ras() -> dict:
+    genes = []
+    for symbol, ensg in RAS:
+        print(f'  Open Targets {symbol}…')
+        t = gql(f'''{{
+          target(ensemblId:"{ensg}") {{
+            id approvedSymbol approvedName
+            tractability {{ label modality value }}
+            associatedDiseases(page:{{index:0,size:12}}) {{
+              count
+              rows {{ score disease {{ id name }} datatypeScores {{ id score }} }}
+            }}
+            drugAndClinicalCandidates {{
+              count
+              rows {{ id maxClinicalStage drug {{ id name drugType }} }}
+            }}
+          }}
+        }}''')['target']
+        genes.append({
+            'id': t['id'], 'symbol': t['approvedSymbol'], 'name': t['approvedName'],
+            'smallMolecule': sorted({x['label'] for x in (t.get('tractability') or [])
+                                     if x.get('value') and x.get('modality') == 'SM'}),
+            'diseaseCount': t['associatedDiseases']['count'],
+            'diseases': [{
+                'id': r['disease']['id'], 'name': r['disease']['name'], 'score': r['score'],
+                'evidence': {d['id']: d['score'] for d in r['datatypeScores']},
+            } for r in t['associatedDiseases']['rows']],
+            'drugCount': t['drugAndClinicalCandidates']['count'],
+            'drugs': _collapse_drugs(t['drugAndClinicalCandidates']['rows'])[:12],
+        })
+
+    # KRAS against RAC1, the same 20-year window the RAC1 dossier draws, so the two series compare.
+    print('  Europe PMC…')
+    years = []
+    now = datetime.now(timezone.utc).year
+    for y in range(now - 19, now + 1):
+        q = urllib.parse.quote(f'(KRAS) AND (FIRST_PDATE:[{y}-01-01 TO {y}-12-31])')
+        url = f'https://www.ebi.ac.uk/europepmc/webservices/rest/search?query={q}&format=json&pageSize=1'
+        hits = _get(url)
+        if 'hitCount' not in hits:  # Europe PMC answers a burst with an error document, not a 429
+            time.sleep(2)
+            hits = _get(url)
+        years.append({'year': y, 'count': hits['hitCount']})
+        time.sleep(0.3)
+
+    return {'genes': genes, 'literature': years}
+
+
 def main() -> int:
     OUT.mkdir(parents=True, exist_ok=True)
     captured = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
-    jobs = [('trials', fetch_trials), ('rac1', fetch_rac1), ('bladder', fetch_bladder)]
+    jobs = [('trials', fetch_trials), ('rac1', fetch_rac1), ('bladder', fetch_bladder), ('ras', fetch_ras)]
+    # `--only ras` refreshes one snapshot and leaves the others' capture dates alone.
+    only = sys.argv[sys.argv.index('--only') + 1] if '--only' in sys.argv else None
+    if only:
+        jobs = [j for j in jobs if j[0] == only]
     failed = []
     for name, fn in jobs:
         print(f'{name}:')
@@ -262,7 +316,7 @@ def main() -> int:
     if failed:
         print(f'\nFAILED: {", ".join(failed)} — rerun; the others are written.', file=sys.stderr)
         return 1
-    print(f'\nAll three captured at {captured}.')
+    print(f'\n{len(jobs)} snapshot(s) captured at {captured}.')
     return 0
 
 

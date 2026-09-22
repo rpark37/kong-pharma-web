@@ -27,6 +27,8 @@ export const NAV_ICONS = {
   siteMap: { motion: 'pulse', d: 'M4 12 8 4l4 8M4 12h8', fill: 'M8 4a1.4 1.4 0 1 0 .01 0zM4 12a1.4 1.4 0 1 0 .01 0zM12 12a1.4 1.4 0 1 0 .01 0z' },
   controls: { motion: 'slide', d: 'M2 4h12M2 8h12M2 12h12', b: 'M10 2.5v3M5 6.5v3M11 10.5v3' },
   science: { motion: 'draw', d: 'M4 2c0 4 8 4 8 8s-8 4-8 4M12 2c0 4-8 4-8 8s8 4 8 4', b: 'M5.5 5h5M5.5 11h5' },
+  /** A GTP switch: the pill and its knob, which slides on. */
+  ras: { motion: 'slide', d: 'M5 5h6a3 3 0 0 1 0 6H5a3 3 0 0 1 0-6z', b: 'M11 6.6a1.4 1.4 0 1 0 .01 0z' },
   rac1: { motion: 'focus', d: 'M8 5a3 3 0 1 0 0 6 3 3 0 1 0 0-6', b: 'M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2' },
   bladder: { motion: 'draw', d: 'M8 2c4 0 6 3 6 6s-2 6-6 6-6-3-6-6 2-6 6-6z', b: 'M8 6a2 2 0 1 0 0 4 2 2 0 1 0 0-4' },
   trials: { motion: 'draw', d: 'M2 14h12', b: 'M2 12c3-6 5-2 7-6s3 1 5-2' },

@@ -1,4 +1,8 @@
-import { Routes } from '@angular/router';
+import { inject } from '@angular/core';
+import { Router, Routes } from '@angular/router';
+
+/** The old per-topic science routes are chapters of one dossier now; keep the links alive. */
+const chapter = (fragment: string) => () => inject(Router).createUrlTree(['/science'], { fragment });
 
 // Every path is a single segment on purpose. angular.json sets baseHref "./" for the GitHub Pages
 // subfolder deploy, so a two-segment route like science/rac1 makes the browser resolve main.js
@@ -17,9 +21,10 @@ export const routes: Routes = [
   { path: 'gev', loadComponent: () => import('./features/gev/gev-page.component').then((m) => m.GevPageComponent), title: "God's eye view" },
   { path: 'sanddance-specs', loadComponent: () => import('./features/sanddance-specs/sanddance-specs-page.component').then((m) => m.SanddanceSpecsPageComponent), title: 'Sanddance Specs' },
   { path: 'transition', loadComponent: () => import('./features/transition/transition-page.component').then((m) => m.TransitionPageComponent), title: 'Transition - Deck.gl' },
-  { path: 'science-rac1', loadComponent: () => import('./features/science/rac1-page.component').then((m) => m.Rac1PageComponent), title: 'RAC1 target dossier' },
-  { path: 'science-trials', loadComponent: () => import('./features/science/trials-page.component').then((m) => m.TrialsPageComponent), title: 'Trial landscape' },
-  { path: 'science-bladder', loadComponent: () => import('./features/science/bladder-page.component').then((m) => m.BladderPageComponent), title: 'Bladder carcinoma targets' },
+  { path: 'science', loadComponent: () => import('./features/science/science-page.component').then((m) => m.SciencePageComponent), title: 'Science · the RAS dossier' },
+  { path: 'science-rac1', redirectTo: chapter('rac1') },
+  { path: 'science-trials', redirectTo: chapter('trials') },
+  { path: 'science-bladder', redirectTo: chapter('bladder') },
   { path: 'controls', loadComponent: () => import('./features/athena/athena-page.component').then((m) => m.AthenaPageComponent), title: 'Network console' },
   { path: 'osiris', loadComponent: () => import('./features/osiris/osiris-page.component').then((m) => m.OsirisPageComponent), title: 'Osiris board' },
   { path: '**', redirectTo: '' },

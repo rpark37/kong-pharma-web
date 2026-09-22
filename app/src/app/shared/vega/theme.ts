@@ -72,6 +72,7 @@ function buildConfig(ink: VegaInk): Record<string, unknown> {
       titlePadding: 8,
     },
     legend: { labelColor: ink.dim, titleColor: ink.dim, labelFontSize: 11, titleFontSize: 11, symbolSize: 80 },
+    header: { labelColor: ink.onInk, titleColor: ink.dim, labelFontSize: 12 },
     title: { color: ink.onInk, fontSize: 13, fontWeight: 600, anchor: 'start', font: 'Rajdhani, IBM Plex Sans, sans-serif' },
     view: { stroke: null },
     range: { category: ink.range, ordinal: { scheme: 'teals' }, ramp: { scheme: 'teals' } },

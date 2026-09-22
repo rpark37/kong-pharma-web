@@ -9,7 +9,7 @@ export interface NavItem {
   label: string;
   icon: NavIconName;
   path?: string;
-  children?: { path: string; label: string; icon: NavIconName }[];
+  children?: { path: string; label: string; icon: NavIconName; fragment?: string }[];
 }
 
 @Component({
@@ -57,15 +57,16 @@ export class App {
       ],
     },
     {
-      // Public evidence for the pipeline: XTL-152's target, K-119's indication, and the
-      // competitive field around all three programmes. Snapshots, refreshed by
-      // app/scripts/fetch-science.py.
+      // One dossier in five chapters — RAS, macropinocytosis, RAC1, the bladder indication, the
+      // trial field — built from public snapshots refreshed by app/scripts/fetch-science.py.
+      // The entries are chapters of /science, not pages.
       label: 'Science',
       icon: 'science',
       children: [
-        { path: '/science-rac1', label: 'RAC1 target', icon: 'rac1' },
-        { path: '/science-bladder', label: 'Bladder targets', icon: 'bladder' },
-        { path: '/science-trials', label: 'Trial landscape', icon: 'trials' },
+        { path: '/science', fragment: 'ras', label: 'I · The oncogene', icon: 'ras' },
+        { path: '/science', fragment: 'rac1', label: 'III · The switch', icon: 'rac1' },
+        { path: '/science', fragment: 'bladder', label: 'IV · The indication', icon: 'bladder' },
+        { path: '/science', fragment: 'trials', label: 'V · The field', icon: 'trials' },
       ],
     },
     { path: '/atlas', label: 'Human Atlas', icon: 'atlas' },

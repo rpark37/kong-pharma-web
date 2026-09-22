@@ -10,8 +10,8 @@
         <details class="group" routerLinkActive="open-route" #menu>
           <summary><app-nav-icon [name]="link.icon" />{{ link.label }}</summary>
           <div class="menu glass">
-            @for (child of link.children; track child.path) {
-              <a [routerLink]="child.path" routerLinkActive="active" (click)="menu.open = false"><app-nav-icon [name]="child.icon" />{{ child.label }}</a>
+            @for (child of link.children; track child.path + (child.fragment ?? "")) {
+              <a [routerLink]="child.path" [fragment]="child.fragment" routerLinkActive="active" [routerLinkActiveOptions]="child.fragment ? { paths: 'exact', queryParams: 'ignored', fragment: 'exact', matrixParams: 'ignored' } : { exact: false }" (click)="menu.open = false"><app-nav-icon [name]="child.icon" />{{ child.label }}</a>
             }
           </div>
         </details>

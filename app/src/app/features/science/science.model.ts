@@ -64,6 +64,28 @@ export interface Rac1Snapshot extends Captured {
   literature: { year: number; count: number }[];
 }
 
+// ── RAS, the opening chapter ─────────────────────────────────────────────────────────────────
+export interface RasGene {
+  id: string; symbol: string; name: string;
+  /** Small-molecule tractability buckets Open Targets flags for the gene. */
+  smallMolecule: string[];
+  diseaseCount: number;
+  diseases: DiseaseAssociation[];
+  drugCount: number;
+  drugs: { id: string; name: string; type: string; stage: string }[];
+}
+
+export interface RasSnapshot extends Captured {
+  /** KRAS, HRAS, NRAS in that order. */
+  genes: RasGene[];
+  /** KRAS publications per year over the same window as the RAC1 dossier, so the two compare. */
+  literature: { year: number; count: number }[];
+}
+
+/** Is this Open Targets disease name a malignancy? Coarse, by name, for colouring only. */
+export const isCancer = (name: string): boolean =>
+  /cancer|carcinoma|melanoma|leuk[ae]mia|tumou?r|lymphoma|neoplasm|sarcoma|glioma|myeloma|adenoma|blastoma/i.test(name);
+
 // ── /science/bladder ─────────────────────────────────────────────────────────────────────────
 export interface TargetAssociation {
   id: string;

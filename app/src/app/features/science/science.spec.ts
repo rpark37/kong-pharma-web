@@ -1,5 +1,5 @@
 /**
- * Guards the contract between `app/scripts/fetch-science.py` and the three /science pages.
+ * Guards the contract between `app/scripts/fetch-science.py` and the /science dossier.
  *
  * The snapshots are committed JSON fetched from public APIs, so the pages cannot type-check their
  * own inputs at runtime. These read the real committed files: if a re-run of the script changes a
@@ -8,9 +8,10 @@
  */
 import bladderJson from '../../../../public/data/science/bladder.json';
 import rac1Json from '../../../../public/data/science/rac1.json';
+import rasJson from '../../../../public/data/science/ras.json';
 import trialsJson from '../../../../public/data/science/trials.json';
-import { associationSpec, literatureSpec, phaseSpec, stageSpec, statusSpec } from './science-specs';
-import { capturedOn, evidenceRows, type BladderSnapshot, type Rac1Snapshot, type TrialsSnapshot } from './science.model';
+import { associationSpec, literatureRaceSpec, phaseSpec, rasDiseaseSpec, stageSpec, statusSpec } from './science-specs';
+import { capturedOn, evidenceRows, isCancer, type BladderSnapshot, type Rac1Snapshot, type RasSnapshot, type TrialsSnapshot } from './science.model';
 
 // Imported rather than read from disk: the spec tsconfig exposes only vitest globals, and adding
 // @types/node for two calls is not worth a dependency. Vite resolves the JSON at build time, so
@@ -18,10 +19,11 @@ import { capturedOn, evidenceRows, type BladderSnapshot, type Rac1Snapshot, type
 const trials = trialsJson as unknown as TrialsSnapshot;
 const rac1 = rac1Json as unknown as Rac1Snapshot;
 const bladder = bladderJson as unknown as BladderSnapshot;
+const ras = rasJson as unknown as RasSnapshot;
 
 describe('science snapshots', () => {
   it('every snapshot records when it was captured', () => {
-    for (const [name, snap] of [['trials', trials], ['rac1', rac1], ['bladder', bladder]] as const) {
+    for (const [name, snap] of [['trials', trials], ['rac1', rac1], ['bladder', bladder], ['ras', ras]] as const) {
       expect(snap.captured, name).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/);
       expect(new Date(snap.captured).valueOf(), name).not.toBeNaN();
     }
@@ -111,7 +113,6 @@ describe('RAC1 snapshot', () => {
   });
 
   it('builds its specs', () => {
-    expect(literatureSpec(rac1.literature)['data']).toBeDefined();
     const spec = associationSpec(evidenceRows(rac1.diseases, (d) => d.name), rac1.diseases.map((d) => d.name), 'Score');
     expect((spec['data'] as { values: unknown[] }).values.length).toBeGreaterThan(0);
   });
@@ -143,5 +144,38 @@ describe('bladder snapshot', () => {
     const spec = stageSpec(rows, []);
     const values = (spec['data'] as { values: { count: number }[] }).values;
     expect(values.reduce((n, v) => n + v.count, 0)).toBe(bladder.drugs.length);
+  });
+});
+
+describe('RAS snapshot', () => {
+  it('carries KRAS, HRAS and NRAS in that order, each with ranked diseases', () => {
+    expect(ras.genes.map((g) => g.symbol)).toEqual(['KRAS', 'HRAS', 'NRAS']);
+    for (const g of ras.genes) {
+      expect(g.diseaseCount, g.symbol).toBeGreaterThanOrEqual(g.diseases.length);
+      const scores = g.diseases.map((d) => d.score);
+      expect(scores, g.symbol).toEqual([...scores].sort((a, b) => b - a));
+    }
+  });
+
+  it('ties HRAS to the bladder indication the dossier ends on', () => {
+    const hras = ras.genes.find((g) => g.symbol === 'HRAS')!;
+    expect(hras.diseases.some((d) => /bladder/i.test(d.name))).toBe(true);
+    expect(bladder.targets.some((t) => t.symbol === 'HRAS')).toBe(true);
+  });
+
+  it('shares the RAC1 literature window so the two series compare', () => {
+    expect(ras.literature.map((l) => l.year)).toEqual(rac1.literature.map((l) => l.year));
+  });
+
+  it('tells malignancies from the RASopathies by name', () => {
+    expect(isCancer('non-small cell lung carcinoma')).toBe(true);
+    expect(isCancer('Noonan syndrome')).toBe(false);
+  });
+
+  it('builds the chapter I figures', () => {
+    const facets = rasDiseaseSpec(ras.genes);
+    expect((facets['data'] as { values: unknown[] }).values.length).toBe(ras.genes.length * 8);
+    const race = literatureRaceSpec([...ras.literature.map((l) => ({ gene: 'KRAS', ...l })), ...rac1.literature.map((l) => ({ gene: 'RAC1', ...l }))]);
+    expect((race['data'] as { values: unknown[] }).values.length).toBe(40);
   });
 });
