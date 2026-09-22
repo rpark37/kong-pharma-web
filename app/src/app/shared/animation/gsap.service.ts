@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { gsap } from 'gsap';
-import { MOTION, QUAD } from './motion';
+import { MOTION, EASE } from './motion';
 
 export interface RevealOptions {
   delay?: number;
@@ -13,11 +13,11 @@ export interface RevealOptions {
 /**
  * Thin wrapper over GreenSock so components never pick eases or timings ad hoc.
  * Think of it as the choreographer: components say "reveal these" or "slide that in",
- * and the service decides the Quad ease, delay and stagger.
+ * and the service decides the ease, delay and stagger.
  */
 @Injectable({ providedIn: 'root' })
 export class GsapService {
-  readonly QUAD = QUAD;
+  readonly EASE = EASE;
   readonly MOTION = MOTION;
 
   get reducedMotion(): boolean {
@@ -46,7 +46,7 @@ export class GsapService {
         duration: this.dur(options.duration ?? MOTION.duration.base),
         delay: this.delay(options.delay ?? MOTION.delay.short),
         stagger: this.reducedMotion ? 0 : (options.stagger ?? MOTION.stagger),
-        ease: QUAD.out,
+        ease: EASE.out,
         overwrite: 'auto',
         clearProps: 'transform',
       },
@@ -61,7 +61,7 @@ export class GsapService {
       duration: this.dur(options.duration ?? MOTION.duration.fast),
       delay: this.delay(options.delay ?? 0),
       stagger: this.reducedMotion ? 0 : (options.stagger ?? MOTION.stagger / 2),
-      ease: QUAD.in,
+      ease: EASE.in,
       overwrite: 'auto',
     });
   }
@@ -73,20 +73,20 @@ export class GsapService {
     return gsap.fromTo(
       target,
       { autoAlpha: 0, [axis]: sign * 32 },
-      { autoAlpha: 1, [axis]: 0, duration: this.dur(MOTION.duration.base), delay: this.delay(delay), ease: QUAD.out, overwrite: 'auto' },
+      { autoAlpha: 1, [axis]: 0, duration: this.dur(MOTION.duration.base), delay: this.delay(delay), ease: EASE.out, overwrite: 'auto' },
     );
   }
 
   slideOut(target: gsap.TweenTarget, to: 'right' | 'left' | 'bottom' | 'top' = 'right'): gsap.core.Tween {
     const axis = to === 'left' || to === 'right' ? 'x' : 'y';
     const sign = to === 'right' || to === 'bottom' ? 1 : -1;
-    return gsap.to(target, { autoAlpha: 0, [axis]: sign * 32, duration: this.dur(MOTION.duration.fast), ease: QUAD.in, overwrite: 'auto' });
+    return gsap.to(target, { autoAlpha: 0, [axis]: sign * 32, duration: this.dur(MOTION.duration.fast), ease: EASE.in, overwrite: 'auto' });
   }
 
   /** Tween arbitrary numeric properties on a plain object (camera state, explode factor...). */
   tweenObject<T extends object>(target: T, vars: gsap.TweenVars): gsap.core.Tween {
     return gsap.to(target, {
-      ease: QUAD.inOut,
+      ease: EASE.inOut,
       ...vars,
       duration: this.dur((vars['duration'] as number | undefined) ?? MOTION.duration.slow),
       delay: this.delay((vars['delay'] as number | undefined) ?? 0),
@@ -95,7 +95,7 @@ export class GsapService {
   }
 
   timeline(vars?: gsap.TimelineVars): gsap.core.Timeline {
-    return gsap.timeline({ defaults: { ease: QUAD.out }, ...vars });
+    return gsap.timeline({ defaults: { ease: EASE.out }, ...vars });
   }
 
   kill(targets: gsap.TweenTarget): void {

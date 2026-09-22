@@ -9,7 +9,7 @@ import * as T from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { QUAD } from '../../shared/animation/motion';
+import { EASE, MOTION } from '../../shared/animation/motion';
 import { SYSTEMS, type ChunkInfo, type Part, type SystemId, type View } from './anatomy';
 import { createExplosionLayout } from './explosion-layout';
 
@@ -272,7 +272,7 @@ export class AnatomyViewer {
     }
   }
 
-  /** Camera preset. Discrete changes tween with quad.inOut; continuous explode updates set directly. */
+  /** Camera preset. Discrete changes tween with power3.inOut; continuous explode updates set directly. */
   private fit(view: string, extent = 0, animate = true): void {
     const el = this.el, camera = this.camera, controls = this.controls;
     if (!controls) return;
@@ -296,7 +296,7 @@ export class AnatomyViewer {
     const from = { px: camera.position.x, py: camera.position.y, pz: camera.position.z, tx: controls.target.x, ty: controls.target.y, tz: controls.target.z };
     this.cameraTween = gsap.to(from, {
       px: position.x, py: position.y, pz: position.z, tx: target.x, ty: target.y, tz: target.z,
-      duration: 0.8, ease: QUAD.inOut, overwrite: 'auto',
+      duration: MOTION.duration.slow, ease: EASE.inOut, overwrite: 'auto',
       onUpdate: () => { camera.position.set(from.px, from.py, from.pz); controls.target.set(from.tx, from.ty, from.tz); controls.update(); this.dirty = true; },
     });
   }

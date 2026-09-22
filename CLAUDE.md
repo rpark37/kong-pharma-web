@@ -80,7 +80,7 @@ Commands are in `README.md`. The traps:
   upstream commit. To update, change `COMMIT` in `scripts/vendor-morphcharts.sh`,
   re-run it, review the diff, then `npm run vendor:build`.
 - **Motion constants are centralised** in `src/app/shared/animation/motion.ts`
-  (Quad eases, shared durations/delays/staggers). Components call `GsapService`
+  (`expo.out`/`power3` eases, ≤0.3 s durations, 0.1 s staggers). Components call `GsapService`
   rather than choosing eases ad hoc. `GsapService.reveal()` uses `autoAlpha`, so
   `[data-reveal]` elements are genuinely hidden until the tween runs — a
   screenshot taken mid-reveal looks like a blank page.

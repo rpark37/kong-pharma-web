@@ -56,7 +56,7 @@ import { curveSpec, iconArraySpec, outcomeSpec } from './bayes-specs';
         <label>
           <span>Transition staggering <output>{{ form().transitionStaggering }}ms</output></span>
           <input type="range" min="0" max="10000" step="100" [value]="form().transitionStaggering" (input)="set('transitionStaggering', +$any($event.target).value)">
-          <small>Blocks start moving one after another; GSAP eases the whole morph with quad.inOut</small>
+          <small>Blocks start moving one after another; GSAP eases the whole morph with a cubic in-out</small>
         </label>
         <p class="formula mono">PPV = Se·P / (Se·P + (1−Sp)·(1−P))</p>
         <p class="formula mono">post-test odds = pre-test odds × LR</p>
@@ -177,7 +177,7 @@ export class BayesPageComponent {
   readonly presets = PRESETS;
   readonly layoutNames = LAYOUT_NAMES;
   readonly preset = signal<string>('mammography');
-  readonly form = signal<FormConfig>({ count: 1000, sensitivity: 0.9, specificity: 0.91, prior: 0.01, transitionDuration: 2000, transitionStaggering: 1000 });
+  readonly form = signal<FormConfig>({ count: 1000, sensitivity: 0.9, specificity: 0.91, prior: 0.01, transitionDuration: 1000, transitionStaggering: 300 });
   readonly layoutIndex = signal(0);
   readonly transitioning = signal(false);
   readonly morphError = signal<string | null>(null);

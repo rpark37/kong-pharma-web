@@ -5,7 +5,7 @@
  */
 import { gsap } from 'gsap';
 import { Core, Spec, type MorphChartsHost } from '../../shared/morphcharts/morphcharts-host';
-import { QUAD, MOTION } from '../../shared/animation/motion';
+import { EASE, MOTION } from '../../shared/animation/motion';
 import type { Part, View } from './anatomy';
 import { PLOT, assembledPosition, buildAtlasSpec, cameraPose, explodedPositions, framePose, partSize, type CameraPose, type Geometry } from './atlas-spec';
 
@@ -118,7 +118,7 @@ export class AtlasScene {
     return gsap.to(this.explodeState, {
       t,
       duration: MOTION.duration.slow,
-      ease: QUAD.inOut,
+      ease: EASE.inOut,
       onUpdate: apply,
       onComplete: () => this.settle(),
     });
@@ -191,7 +191,7 @@ export class AtlasScene {
     this.startMotion();
     gsap.to(state, {
       px: pose.worldPosition[0], py: pose.worldPosition[1], pz: pose.worldPosition[2], tx: pose.worldTarget[0], ty: pose.worldTarget[1], tz: pose.worldTarget[2],
-      duration: 0.8, ease: QUAD.inOut, onUpdate: write, onComplete: () => this.settle(),
+      duration: MOTION.duration.slow, ease: EASE.inOut, onUpdate: write, onComplete: () => this.settle(),
     });
   }
 

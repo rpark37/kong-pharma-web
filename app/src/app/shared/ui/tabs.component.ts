@@ -1,7 +1,7 @@
 import { Component, ElementRef, effect, inject, input, model } from '@angular/core';
 import { GsapService } from '../animation/gsap.service';
 
-/** Horizontal tab strip. The active tab's underline slides with a Quad ease. */
+/** Horizontal tab strip. The active tab's underline slides with the shared ease. */
 @Component({
   selector: 'app-tabs',
   template: `
@@ -44,6 +44,6 @@ export class TabsComponent {
     const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>('.tab'));
     const target = buttons.find((b) => b.textContent?.trim() === active);
     if (!ink || !target) return;
-    this.gsap.tweenObject(ink, { x: target.offsetLeft, width: target.offsetWidth, duration: this.gsap.MOTION.duration.fast, ease: this.gsap.QUAD.out });
+    this.gsap.tweenObject(ink, { x: target.offsetLeft, width: target.offsetWidth, duration: this.gsap.MOTION.duration.fast, ease: this.gsap.EASE.out });
   }
 }

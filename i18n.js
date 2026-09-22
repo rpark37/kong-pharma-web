@@ -299,9 +299,9 @@
       delay,
       onComplete: () => { unlock(el); gsap.set(el, { clearProps: "opacity,transform" }); el._i18nTl = null; },
     });
-    tl.to(el, { duration: 0.28, opacity: 0, y: -4, ease: "power2.in" })
+    tl.to(el, { duration: 0.15, opacity: 0, y: -4, ease: "power3.in" })
       .add(() => { el.textContent = t; })
-      .fromTo(el, { opacity: 0, y: 6 }, { duration: 0.55, opacity: 1, y: 0, ease: "power2.out" });
+      .fromTo(el, { opacity: 0, y: 6 }, { duration: 0.3, opacity: 1, y: 0, ease: "expo.out" });
     el._i18nTl = tl;
   }
 

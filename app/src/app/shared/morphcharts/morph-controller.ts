@@ -50,7 +50,8 @@ export interface MorphOptions {
   depthOf?: (size: number) => number;
 }
 
-const quadInOut = (t: number): number => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
+/** Cubic in-out — the same curve as GSAP's `power3.inOut`, which every other tween in the app uses. */
+const cubicInOut = (t: number): number => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const defaultDepth = (size: number): number => Math.max(2, size * 0.35);
 /** How long the scene must hold still before it is worth re-entering the path tracer. */
 const SETTLE_MS = 250;
@@ -113,7 +114,7 @@ export class MorphController {
     gsap.to(this.progress, {
       t: 1,
       duration: (options.durationMs + staggerMs) / 1000,
-      ease: 'none', // each block applies its own quadInOut inside its staggered window
+      ease: 'none', // each block applies its own cubicInOut inside its staggered window
       onUpdate: () => this.write(start, frame, this.progress.t, count, options),
       onComplete: () => { this.settle(); this.onTransitionEnd?.(); },
     });
@@ -145,7 +146,7 @@ export class MorphController {
 
     for (let i = 0; i < count; i++) {
       const delay = (options.stagger?.[i] ?? 0) * staggerSpan;
-      const p = t >= 1 ? 1 : window > 0 ? quadInOut(Math.min(1, Math.max(0, (t - delay) / window))) : 1;
+      const p = t >= 1 ? 1 : window > 0 ? cubicInOut(Math.min(1, Math.max(0, (t - delay) / window))) : 1;
       const sv = start.visible[i], tv = target.visible[i];
       const sx = start.positions[i * 3], sy = start.positions[i * 3 + 1], sz = start.positions[i * 3 + 2];
       const tx = target.positions[i * 3], ty = target.positions[i * 3 + 1], tz = target.positions[i * 3 + 2];
