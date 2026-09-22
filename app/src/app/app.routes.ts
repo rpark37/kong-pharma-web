@@ -21,5 +21,6 @@ export const routes: Routes = [
   { path: 'science-trials', loadComponent: () => import('./features/science/trials-page.component').then((m) => m.TrialsPageComponent), title: 'Trial landscape' },
   { path: 'science-bladder', loadComponent: () => import('./features/science/bladder-page.component').then((m) => m.BladderPageComponent), title: 'Bladder carcinoma targets' },
   { path: 'controls', loadComponent: () => import('./features/athena/athena-page.component').then((m) => m.AthenaPageComponent), title: 'Network console' },
+  { path: 'osiris', loadComponent: () => import('./features/osiris/osiris-page.component').then((m) => m.OsirisPageComponent), title: 'Osiris board' },
   { path: '**', redirectTo: '' },
 ];
