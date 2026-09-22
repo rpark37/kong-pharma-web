@@ -1,7 +1,7 @@
 /**
  * The therapeutic-tests visualization on the current MorphCharts (spec-driven, WebGPU path
  * traced). Every person is a block; the four views are layouts computed here and written to the
- * mark buffer, so a view change morphs blocks with a GSAP Quad ease and per-block staggering
+ * mark buffer, so a view change morphs blocks with a GSAP cubic ease and per-block staggering
  * (like the original MorphCharts transition buffers, but under our control).
  *
  * Analogy: the spec describes the stage and the props; this class is the choreographer telling
@@ -189,12 +189,9 @@ export function buildSpec(layout: LayoutResult, count: number): Record<string, u
     title: LAYOUT_NAMES[0],
     width: W, height: H, depth: D,
     background: '#F5F5F3',
-    ambient: '#1a2731',
+    // No lights: ambient-only (the spec's default, white) gives flat, even illumination with no cast
+    // shadows, so the blocks read as an icon array rather than as lit objects.
     camera: { worldPosition: [W / 2, H / 2, D / 2 + distance], worldTarget: [W / 2, H / 2, D / 2], fov },
-    lights: [
-      { type: 'directional', direction: [-0.3, -0.6, -1], brightness: 2.0, color: '#f4f8ff' },
-      { type: 'rect', position: [W * 0.2, H * 1.3, D + 900], brightness: 2.2, size: 700, color: '#e6f6f3' },
-    ],
     data: [
       { name: 'units', values },
       { name: 'plates', values: layout.plates.map((p) => ({ xc: p.x, yc: p.y, width: p.w, height: p.h })) },
