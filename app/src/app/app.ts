@@ -39,6 +39,7 @@ export class App {
         { path: '/bayes', label: 'Clinical (Bayes Theorem)' },
         { path: '/google', label: 'Google Merchandise' },
         { path: '/gev', label: "God's Eye" },
+        { path: '/osiris', label: 'Osiris' },
       ],
     },
     {
