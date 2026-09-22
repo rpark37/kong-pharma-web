@@ -3,13 +3,16 @@ import { GsapService } from '../../shared/animation/gsap.service';
 import { ApiService } from '../../shared/api/api.service';
 import type * as M from '../../shared/api/models';
 import { MorphchartsSceneComponent } from '../../shared/morphcharts/morphcharts-scene.component';
+import { MorphchartsCameraComponent } from '../../shared/morphcharts/morphcharts-camera.component';
+import { CameraRig } from '../../shared/morphcharts/camera-rig';
+import type { MorphChartsHost } from '../../shared/morphcharts/morphcharts-host';
 import { KpiTileComponent } from '../../shared/ui/kpi-tile.component';
 import { VegaChartComponent } from '../../shared/vega/vega-chart.component';
 import { countrySpec, dailySpec, deviceSpec, funnelSpec, itemsSpec, revenueCubeSpec, sourceSpec } from './merchandise-specs';
 
 @Component({
   selector: 'app-merchandise-page',
-  imports: [VegaChartComponent, KpiTileComponent, MorphchartsSceneComponent],
+  imports: [VegaChartComponent, KpiTileComponent, MorphchartsSceneComponent, MorphchartsCameraComponent],
   template: `
     <section class="head">
       <div>
@@ -49,8 +52,9 @@ import { countrySpec, dailySpec, deviceSpec, funnelSpec, itemsSpec, revenueCubeS
       <div class="card glass wide cube" data-reveal>
         <div class="card-head"><span class="eyebrow">MorphCharts · path traced</span><h3>Revenue by country and month</h3></div>
         <div class="cube-scene">
-          <app-morphcharts-scene [spec]="cubeSpec()" fallbackTitle="Revenue cube needs WebGPU" fallbackImage="samples/images/bar7_raytrace_640x360.jpg" />
+          <app-morphcharts-scene [spec]="cubeSpec()" fallbackTitle="Revenue cube needs WebGPU" fallbackImage="samples/images/bar7_raytrace_640x360.jpg" (hostReady)="onCubeHost($event)" (loaded)="cubeRig()?.apply(); cubeRig()?.applyRenderMode()" />
         </div>
+        <app-morphcharts-camera class="cube-camera" [rig]="cubeRig()" layout="row" />
       </div>
     </section>
     @if (error()) { <p class="error">{{ error() }}</p> }
@@ -71,6 +75,7 @@ import { countrySpec, dailySpec, deviceSpec, funnelSpec, itemsSpec, revenueCubeS
     .wide { grid-column: 1 / -1; }
     .card-head { margin-bottom: 10px; h3 { font-size: 18px; } }
     .cube-scene { height: 460px; }
+    .cube-camera { margin-top: 12px; }
     .error { color: var(--rose); margin-top: 12px; }
     @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
   `,
@@ -92,6 +97,11 @@ export class MerchandisePageComponent {
   readonly cube = signal<M.RevenueCubeRow[]>([]);
   readonly error = signal<string | null>(null);
   readonly cubeSpec = computed(() => (this.cube().length ? revenueCubeSpec(this.cube()) : null));
+  readonly cubeRig = signal<CameraRig | null>(null);
+
+  onCubeHost(host: MorphChartsHost): void {
+    this.cubeRig.set(new CameraRig(host, { reducedMotion: () => this.gsap.reducedMotion }));
+  }
 
   readonly specs = { daily: dailySpec(), funnel: funnelSpec(), country: countrySpec(), device: deviceSpec(), source: sourceSpec(), items: itemsSpec() };
 

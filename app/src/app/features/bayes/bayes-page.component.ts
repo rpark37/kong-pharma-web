@@ -5,8 +5,9 @@ import { VegaChartComponent } from '../../shared/vega/vega-chart.component';
 import { PRESETS, bayes, predictiveCurve } from './bayes';
 import { LAYOUT_NAMES, type FormConfig } from './bayes-data.model';
 import { generateBayesData } from './bayes-data-generator';
-import type { BayesScene, CameraView } from './bayes-scene';
-import type { RenderMode } from '../../shared/morphcharts/morphcharts-host';
+import type { BayesScene } from './bayes-scene';
+import type { CameraRig } from '../../shared/morphcharts/camera-rig';
+import { MorphchartsCameraComponent } from '../../shared/morphcharts/morphcharts-camera.component';
 import type { MorphChartsHost } from '../../shared/morphcharts/morphcharts-host';
 import { MorphchartsCanvasComponent } from '../../shared/morphcharts/morphcharts-canvas.component';
 import { WebGpuFallbackComponent } from '../../shared/webgpu/webgpu-fallback.component';
@@ -19,7 +20,7 @@ import { BayesIconComponent } from './bayes-icon.component';
  */
 @Component({
   selector: 'app-bayes-page',
-  imports: [DecimalPipe, PercentPipe, VegaChartComponent, MorphchartsCanvasComponent, WebGpuFallbackComponent, BayesIconComponent],
+  imports: [DecimalPipe, PercentPipe, VegaChartComponent, MorphchartsCanvasComponent, WebGpuFallbackComponent, BayesIconComponent, MorphchartsCameraComponent],
   template: `
     <section class="head">
       <p class="eyebrow" data-reveal>Therapeutic tests · Bayes' theorem</p>
@@ -94,27 +95,9 @@ import { BayesIconComponent } from './bayes-icon.component';
           <span title="Of people without it, the share the test clears"><i><app-bayes-icon name="specificity" />Specificity</i> <output>{{ form().specificity | percent: '1.0-1' }}</output></span>
           <input type="range" min="0" max="1" step="0.005" [value]="form().specificity" (input)="set('specificity', +$any($event.target).value)" aria-label="Specificity">
         </div>
-        <!-- Camera: view presets, dolly, a slow orbit and the render mode. Every control re-poses the
-             camera from its reset pose, so they compose; a pointer drag in between is fine-tuning. -->
-        <div class="group" role="group" aria-labelledby="bayes-camera">
-          <p class="group-label" id="bayes-camera" title="Controls set the camera from its reset pose; drag the view to fine-tune"><app-bayes-icon name="camera" />Camera</p>
-          <div class="rail" role="group" aria-label="View">
-            @for (v of views; track v.id) {
-              <button type="button" class="key code" [class.on]="cameraView() === v.id" [attr.aria-pressed]="cameraView() === v.id" [title]="v.name" (click)="setView(v.id)">{{ v.code }}</button>
-            }
-          </div>
-          <div class="field">
-            <span title="Dolly the camera in or out"><i><app-bayes-icon name="zoom" />Zoom</i> <output>{{ cameraZoom() | number: '1.2-2' }}×</output></span>
-            <input type="range" min="0.6" max="1.6" step="0.02" [value]="cameraZoom()" (input)="setZoom(+$any($event.target).value)" aria-label="Zoom">
-          </div>
-          <div class="camera-row">
-            <button type="button" class="key orbit" [class.on]="orbiting()" [attr.aria-pressed]="orbiting()" (click)="toggleOrbit()" aria-label="Orbit slowly" title="Orbit slowly"><app-bayes-icon name="orbit" /></button>
-            <div class="rail" role="group" aria-label="Render mode">
-              @for (m of renderModes; track m.id) {
-                <button type="button" class="key code" [class.on]="renderMode() === m.id" [attr.aria-pressed]="renderMode() === m.id" [title]="m.name" (click)="setRenderMode(m.id)">{{ m.code }}</button>
-              }
-            </div>
-          </div>
+        <!-- Camera controls are shared with every path-traced page; see shared/morphcharts/camera-rig.ts. -->
+        <div class="group">
+          <app-morphcharts-camera [rig]="rig()" />
         </div>
         <div class="group" role="group" aria-labelledby="bayes-motion">
           <p class="group-label" id="bayes-motion"><app-bayes-icon name="motion" />Motion</p>
@@ -256,9 +239,6 @@ import { BayesIconComponent } from './bayes-icon.component';
     .key svg .solid { fill: currentColor; stroke: none; }
     .key.code { height: 26px; padding: 0 2px; font: 500 9px/1 var(--font-mono); letter-spacing: 0.02em; }
     .presets { display: flex; flex-direction: column; gap: 4px; }
-    .camera-row { display: grid; grid-template-columns: 26px 1fr; gap: 6px; }
-    .camera-row .key.orbit { height: 26px; border: 1px solid var(--hairline); border-radius: 6px; background: rgba(0, 0, 0, 0.04); }
-    .camera-row .key.orbit app-bayes-icon { margin: 0; }
     .caption { margin: 0; font-size: 11px; line-height: 1.3; color: var(--on-ink-dim); }
     @media (prefers-reduced-motion: reduce) { .filling .fill { animation: none; transform: scaleX(1); } }
     .morphcharts-container { position: relative; width: 100%; height: 620px; overflow: hidden; background: var(--ink-2); }
@@ -335,23 +315,8 @@ import { BayesIconComponent } from './bayes-icon.component';
 export class BayesPageComponent {
   readonly presets = PRESETS;
   readonly layoutNames = LAYOUT_NAMES;
-  readonly views: { id: CameraView; code: string; name: string }[] = [
-    { id: 'front', code: 'FRONT', name: 'Front' },
-    { id: 'quarter', code: '¾', name: 'Three-quarter' },
-    { id: 'top', code: 'TOP', name: 'Top-down' },
-    { id: 'low', code: 'LOW', name: 'Low angle' },
-  ];
-  /** Depth and segment are omitted: nothing to read on a flat scene. */
-  readonly renderModes: { id: RenderMode; code: string; name: string }[] = [
-    { id: 'raytrace', code: 'RAY', name: 'Path traced' },
-    { id: 'color', code: 'FLAT', name: 'Flat colour' },
-    { id: 'normal', code: 'NORM', name: 'Surface normals' },
-    { id: 'edge', code: 'EDGE', name: 'Edges' },
-  ];
-  readonly cameraView = signal<CameraView>('front');
-  readonly cameraZoom = signal(1);
-  readonly orbiting = signal(false);
-  readonly renderMode = signal<RenderMode>('raytrace');
+  /** The 3D view's camera controls, once the scene exists. */
+  readonly rig = signal<CameraRig | null>(null);
   readonly preset = signal<string>('mammography');
   /** The preset the sliders currently match, or null once any slider has been moved by hand. */
   readonly activePreset = computed(() => PRESETS.find((p) => p.id === this.preset()) ?? null);
@@ -444,6 +409,7 @@ export class BayesPageComponent {
       scene.reducedMotion = this.gsap.reducedMotion;
       scene.onTransitionEnd = () => this.settle();
       this.scene = scene;
+      this.rig.set(scene.rig);
       await this.queue(() => scene.layout(this.layoutIndex(), this.data(), this.form(), false));
     } catch (err) {
       this.morphError.set(`The 3D view could not start: ${err instanceof Error ? err.message : String(err)}`);
@@ -497,16 +463,7 @@ export class BayesPageComponent {
     this.form.set({ ...this.form(), count: p.inputs.population, prior: p.inputs.prevalence, sensitivity: p.inputs.sensitivity, specificity: p.inputs.specificity });
   }
 
-  onReset(): void {
-    this.cameraView.set('front');
-    this.cameraZoom.set(1);
-    this.orbiting.set(false);
-    this.scene?.resetCamera();
-  }
-  setView(v: CameraView): void { this.cameraView.set(v); this.scene?.setView(v); }
-  setZoom(z: number): void { this.cameraZoom.set(z); this.scene?.setZoom(z); }
-  toggleOrbit(): void { const on = !this.orbiting(); this.orbiting.set(on); this.scene?.setOrbit(on); }
-  setRenderMode(m: RenderMode): void { this.renderMode.set(m); this.scene?.setRenderMode(m); }
+  onReset(): void { this.scene?.resetCamera(); }
   /** Manual steps take the transport back from the player, as scrubbing a video does. */
   onPrev(): void { this.jump((this.layoutIndex() + 3) % 4); }
   onNext(): void { this.jump((this.layoutIndex() + 1) % 4); }

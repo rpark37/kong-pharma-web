@@ -2,6 +2,8 @@ import { HttpClient } from '@angular/common/http';
 import { Component, DestroyRef, ElementRef, afterNextRender, computed, inject, signal, viewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { GsapService } from '../../shared/animation/gsap.service';
+import { MorphchartsCameraComponent } from '../../shared/morphcharts/morphcharts-camera.component';
+import { CameraRig } from '../../shared/morphcharts/camera-rig';
 import type { DebugSnapshot, MorphChartsHost, SignalInfo } from '../../shared/morphcharts/morphcharts-host';
 import { MorphchartsCanvasComponent } from '../../shared/morphcharts/morphcharts-canvas.component';
 import { WebGpuFallbackComponent } from '../../shared/webgpu/webgpu-fallback.component';
@@ -23,7 +25,7 @@ const DEFAULT_SAMPLE = 'line4'; // "Multi Series Line Chart" — generated in-sp
  */
 @Component({
   selector: 'app-morphcharts-page',
-  imports: [MorphchartsCanvasComponent, WebGpuFallbackComponent, DataTabComponent, DebugOverlayComponent, RenderTabComponent, SamplesDialogComponent, SignalsTabComponent, SpecEditorComponent, TilesTabComponent],
+  imports: [MorphchartsCanvasComponent, WebGpuFallbackComponent, DataTabComponent, DebugOverlayComponent, RenderTabComponent, SamplesDialogComponent, SignalsTabComponent, SpecEditorComponent, TilesTabComponent, MorphchartsCameraComponent],
   template: `
     <section class="head">
       <p class="eyebrow">morphcharts · webgpu path tracer</p>
@@ -39,6 +41,8 @@ const DEFAULT_SAMPLE = 'line4'; // "Multi Series Line Chart" — generated in-sp
           <span class="spacer"></span>
           <a href="#" (click)="$event.preventDefault(); showSamples.set(true)">Show examples</a>
         </div>
+        <!-- Render mode lives in the Render tab, so the shared panel shows only the pose controls. -->
+        <app-morphcharts-camera class="toolbar-camera" [rig]="rig()" layout="row" [showRender]="false" />
         <div class="chart-stage" #left>
           <app-morphcharts-canvas (hostReady)="onHostReady($event)" (failed)="onFailed($event)" />
           @if (debug() && debugSnapshot()) { <app-debug-overlay [snapshot]="debugSnapshot()" /> }
@@ -94,6 +98,7 @@ const DEFAULT_SAMPLE = 'line4'; // "Multi Series Line Chart" — generated in-sp
     }
   `,
   styles: `
+    .toolbar-camera { margin: -4px 0 12px; }
     /* Shell, stage, panes, toolbar and divider come from styles.scss. */
     :host { display: block; height: calc(100vh - var(--nav-h)); display: flex; flex-direction: column; }
     .head { padding: clamp(0.75rem, 2vh, 1.1rem) var(--pad-x) 0; }
@@ -122,6 +127,7 @@ export class MorphchartsPageComponent {
   readonly tabs = ['Plot', 'Render', 'Data', 'Signals', 'Tiles'] as const;
   readonly activeTab = signal<string>('Plot');
   readonly host = signal<MorphChartsHost | null>(null);
+  readonly rig = signal<CameraRig | null>(null);
   readonly fallback = signal<string | null>(null);
   readonly specText = signal('{}');
   readonly includeCamera = signal(true);
@@ -179,6 +185,7 @@ export class MorphchartsPageComponent {
   }
 
   onHostReady(host: MorphChartsHost): void {
+    this.rig.set(new CameraRig(host, { reducedMotion: () => this.gsap.reducedMotion }));
     host.onFrame = () => { if (this.debug()) this.debugSnapshot.set(host.debugSnapshot()); };
     host.onCapture = (blob, filename) => this.download(blob, filename);
     this.host.set(host);
@@ -247,7 +254,7 @@ export class MorphchartsPageComponent {
   }
 
   resetCamera(): void {
-    this.host()?.resetCamera();
+    this.rig()?.reset();
     this.renderTab().syncFromHost();
   }
 

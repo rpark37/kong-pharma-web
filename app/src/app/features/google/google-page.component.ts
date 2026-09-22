@@ -4,6 +4,9 @@ import { Component, ElementRef, afterNextRender, computed, inject, signal } from
 import { firstValueFrom } from 'rxjs';
 import { GsapService } from '../../shared/animation/gsap.service';
 import { MorphchartsSceneComponent } from '../../shared/morphcharts/morphcharts-scene.component';
+import { MorphchartsCameraComponent } from '../../shared/morphcharts/morphcharts-camera.component';
+import { CameraRig } from '../../shared/morphcharts/camera-rig';
+import type { MorphChartsHost } from '../../shared/morphcharts/morphcharts-host';
 import { KpiTileComponent } from '../../shared/ui/kpi-tile.component';
 import { PURCHASES_FILE, salesSpec } from './google-specs';
 
@@ -35,7 +38,7 @@ function parseCsv(text: string): Purchase[] {
  */
 @Component({
   selector: 'app-google-page',
-  imports: [DecimalPipe, KpiTileComponent, MorphchartsSceneComponent],
+  imports: [DecimalPipe, KpiTileComponent, MorphchartsSceneComponent, MorphchartsCameraComponent],
   template: `
     <div class="scene-bg">
       <app-morphcharts-scene
@@ -43,10 +46,13 @@ function parseCsv(text: string): Purchase[] {
         [datasets]="datasets()"
         fallbackTitle="The sales landscape needs WebGPU"
         fallbackImage="samples/images/bar10_raytrace_640x360.jpg"
+        (hostReady)="onHost($event)"
+        (loaded)="rig()?.apply(); rig()?.applyRenderMode()"
       >
         <p class="small">{{ rows().length | number }} purchases across {{ categories() }} categories.</p>
       </app-morphcharts-scene>
     </div>
+    <app-morphcharts-camera class="scene-camera glass" [rig]="rig()" layout="row" />
 
     <div class="overlay">
       <section class="head">
@@ -65,6 +71,8 @@ function parseCsv(text: string): Purchase[] {
     </div>
   `,
   styles: `
+    /* Sits on the landscape opposite the scene's drag hint, on the same glass as the tiles. */
+    .scene-camera { position: absolute; right: var(--pad-x); bottom: 12px; z-index: 1; padding: 8px 12px; border: 1px solid var(--hairline); border-radius: 8px; }
     /* The landscape is the page: it fills the viewport under the nav and everything else sits on it. */
     :host { display: block; position: relative; width: 100%; height: calc(100vh - var(--nav-h)); overflow: hidden; }
     .scene-bg { position: absolute; inset: 0; z-index: 0; }
@@ -118,6 +126,11 @@ export class GooglePageComponent {
 
   private readonly http = inject(HttpClient);
   private readonly gsap = inject(GsapService);
+  readonly rig = signal<CameraRig | null>(null);
+
+  onHost(host: MorphChartsHost): void {
+    this.rig.set(new CameraRig(host, { reducedMotion: () => this.gsap.reducedMotion }));
+  }
   private readonly el = inject<ElementRef<HTMLElement>>(ElementRef);
 
   constructor() {
