@@ -29,10 +29,10 @@ import type { OsirisScene } from './osiris-scene';
           <legend class="rail-title">Layers</legend>
           @for (l of layers; track l.id) {
             <label class="layer-row" [class.off]="counts()[l.id] === null">
-              <input type="checkbox" [checked]="enabled().has(l.id)" [disabled]="counts()[l.id] === null" (change)="toggle(l.id)" />
+              <input type="checkbox" [checked]="enabled().has(l.id)" [disabled]="counts()[l.id] === null" [attr.title]="counts()[l.id] === null ? 'snapshot missing' : null" (change)="toggle(l.id)" />
               <span class="swatch" [style.background]="l.color"></span>
               <span class="name">{{ l.label }}</span>
-              <span class="count" [attr.title]="counts()[l.id] === null ? 'snapshot missing' : null">{{ counts()[l.id] ?? '—' }}</span>
+              <span class="count">{{ counts()[l.id] ?? '—' }}</span>
             </label>
           }
         </fieldset>
@@ -59,7 +59,7 @@ import type { OsirisScene } from './osiris-scene';
               @for (line of sel.lines; track $index) { <li>{{ line }}</li> }
             </ul>
             @if (embed(); as src) {
-              <iframe [src]="src" [title]="sel.label + ' live stream'" loading="lazy" allow="autoplay; encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" sandbox="allow-scripts allow-same-origin allow-popups"></iframe>
+              <iframe [src]="src" [title]="sel.label + ' live stream'" loading="lazy" allow="autoplay; encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" sandbox="allow-scripts allow-same-origin"></iframe>
             }
             <p class="rail-actions">
               @if (sel.url) { <a [href]="sel.url" target="_blank" rel="noopener">{{ sel.embed ? 'Open on YouTube' : 'Source' }}</a> }
@@ -207,9 +207,9 @@ export class OsirisPageComponent {
     void this.announcer.announce(`${this.layerLabel(id)} ${next.has(id) ? 'on' : 'off'}, ${this.counts()[id] ?? 0} marks`, 'polite');
   }
 
+  /** Clicking empty map is a deselect, the same as Escape. */
   pickFromMap(): void {
-    const m = this.scene?.pick() ?? null;
-    if (m) this.select(m);
+    this.select(this.scene?.pick() ?? null);
   }
 
   pickFromRail(keys: readonly string[]): void {

@@ -3,6 +3,7 @@ import { CONFLICT_ZONES } from './conflict-zones';
 import {
   DEFAULT_ON,
   LAYERS,
+  mapExtent,
   marksFromCraft,
   marksFromEvents,
   marksFromFeeds,
@@ -57,6 +58,8 @@ describe('mappers', () => {
     expect(marksFromFires([{ lat: 1, lon: 2, frp: 12.5, conf: 80, day: true }])[0]).toMatchObject({ layer: 'fires', lat: 1, lon: 2, label: 'FRP 12.5' });
     const [ev] = marksFromEvents([{ id: 'EONET_1', title: 'Hurricane Polo', cat: 'severeStorms', lat: 15.1, lon: -104.8, date: '2026-09-21T00:00:00Z', url: 'https://x' }]);
     expect(ev).toMatchObject({ layer: 'events', label: 'Hurricane Polo', url: 'https://x' });
+    expect(ev.lines[0]).toBe('SEVERE STORMS');
+    expect(marksFromCraft([{ ...jet, hdg: 7 }], 0)[0].lines[1]).toBe('HDG 007');
     expect(marksFromFeeds()).toHaveLength(NEWS_FEEDS.length);
     expect(marksFromFeeds().find((m) => m.id === 'skynews')?.embed).toContain('youtube-nocookie.com');
     expect(marksFromZones()).toHaveLength(CONFLICT_ZONES.length);
@@ -79,5 +82,27 @@ describe('nearest', () => {
   });
   it('breaks a tie by list order', () => {
     expect(nearest(pts, 20, 10, 12)?.id).toBe('a');
+  });
+});
+
+describe('mapExtent', () => {
+  it('leaves the right column free on a wide stage', () => {
+    const { extent } = mapExtent(1600, 900);
+    expect(extent[0]).toEqual([48, 110]);
+    expect(extent[1]).toEqual([1600 - 360, 900 - 96]);
+  });
+  it('keeps the map at least half the width on a phone in portrait', () => {
+    const { extent } = mapExtent(390, 844);
+    expect(extent[1][0] - extent[0][0]).toBeGreaterThanOrEqual(195);
+    expect(extent[1][1]).toBeLessThanOrEqual(844);
+  });
+  it('never lets the scaled chrome exceed the stage width', () => {
+    for (const [w, h] of [
+      [390, 844],
+      [390, 700],
+      [1280, 800],
+      [1600, 900],
+    ])
+      expect(mapExtent(w, h).scale * 900).toBeLessThanOrEqual(Math.max(w, h) + 1e-9);
   });
 });

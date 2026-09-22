@@ -18,21 +18,47 @@ export interface LayerMeta {
   glyph: 'dot' | 'ring' | 'square' | 'diamond';
   /** Named marks are listed in the rail; mass layers (fires, craft, sats) are only hit-testable. */
   named: boolean;
+  /** Moving layers are re-reckoned every frame from the tracks snapshot; the rest are painted once. */
+  moving: boolean;
   defaultOn: boolean;
 }
 
 /** Draw order: dense, dim layers first so the sparse named ones sit on top. */
 export const LAYERS: LayerMeta[] = [
-  { id: 'fires', label: 'Fires', color: '#f2884e', glyph: 'dot', named: false, defaultOn: true },
-  { id: 'events', label: 'NASA events', color: PALETTE.amber, glyph: 'diamond', named: true, defaultOn: false },
-  { id: 'quakes', label: 'Earthquakes', color: PALETTE.rose, glyph: 'ring', named: false, defaultOn: true },
-  { id: 'zones', label: 'Conflict zones', color: PALETTE.rose, glyph: 'square', named: true, defaultOn: true },
-  { id: 'news', label: 'News bureaus', color: PALETTE.teal, glyph: 'square', named: true, defaultOn: false },
-  { id: 'sats', label: 'Satellites', color: PALETTE.text, glyph: 'dot', named: false, defaultOn: false },
-  { id: 'craft', label: 'Aircraft', color: PALETTE.amber, glyph: 'dot', named: false, defaultOn: true },
+  { id: 'fires', label: 'Fires', color: '#f2884e', glyph: 'dot', named: false, moving: false, defaultOn: true },
+  { id: 'events', label: 'NASA events', color: PALETTE.amber, glyph: 'diamond', named: true, moving: false, defaultOn: false },
+  { id: 'quakes', label: 'Earthquakes', color: PALETTE.rose, glyph: 'ring', named: false, moving: false, defaultOn: true },
+  { id: 'zones', label: 'Conflict zones', color: PALETTE.rose, glyph: 'square', named: true, moving: false, defaultOn: true },
+  { id: 'news', label: 'News bureaus', color: PALETTE.teal, glyph: 'square', named: true, moving: false, defaultOn: false },
+  { id: 'sats', label: 'Satellites', color: PALETTE.text, glyph: 'dot', named: false, moving: true, defaultOn: false },
+  { id: 'craft', label: 'Aircraft', color: PALETTE.amber, glyph: 'dot', named: false, moving: true, defaultOn: true },
 ];
 
 export const DEFAULT_ON: Set<LayerId> = new Set(LAYERS.filter((l) => l.defaultOn).map((l) => l.id));
+
+/** Reference-space chrome margins (900 px tall frame): header above, footer below, the right column for the DOM rail. */
+export const MAP = { left: 48, top: 110, right: 360, bottom: 96 } as const;
+
+/**
+ * The rectangle the map is fitted into, in stage px, for a stage of `w` × `h` CSS px. Chrome is
+ * laid out against a 900-high reference frame, so margins scale with `h / 900` — but on a stage
+ * narrower than 6:5 the reserved right column would eat the whole width, so there the rail
+ * overlays the map (its CSS already gives it a backdrop below 17:10) and the scale is floored on
+ * the width so the painted chrome cannot outgrow the stage.
+ */
+export function mapExtent(w: number, h: number): { scale: number; portrait: boolean; extent: [[number, number], [number, number]] } {
+  const portrait = w / h < 1.2;
+  const scale = Math.min(h, w) / 900;
+  const right = portrait ? MAP.left : MAP.right;
+  return {
+    scale,
+    portrait,
+    extent: [
+      [MAP.left * scale, MAP.top * scale],
+      [w - right * scale, h - MAP.bottom * scale],
+    ],
+  };
+}
 
 /** Wall-clock speed would take ten minutes to visibly move an airliner; 60x keeps the board alive (same as gev). */
 export const REPLAY = 60;

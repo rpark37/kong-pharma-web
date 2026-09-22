@@ -52,11 +52,13 @@ Coastlines come from the existing `app/public/data/gev/world-110m.json` via `dec
   One `requestAnimationFrame` loop advances flights with `deadReckon()` and satellites with
   `satelliteAt()` from `features/gev/tracks.ts`; static layers are drawn once to an offscreen
   canvas and blitted. Paused on `visibilitychange`.
-- **Layer registry** (`layers.ts`): `LAYERS: Layer[]`, each
-  `{ id, label, colour, load(): Promise<Mark[]> }`. `Mark` is
-  `{ id, kind, lat, lon, label, sub?, url?, embed?, severity? }`. Pure mappers
-  (`marksFromTracks`, `marksFromFires`, `marksFromEvents`, `marksFromFeeds`, `marksFromZones`) and
-  a `nearest(marks, x, y, radius)` hit-test. No DOM. Adding a layer is one registry entry.
+- **Layer registry** (`layers.ts`): `LAYERS: LayerMeta[]`, each metadata only —
+  `{ id, label, colour, glyph, named, moving, defaultOn }`. `Mark` is
+  `{ layer, id, lat, lon, label, lines, url?, embed?, size, color? }`. Pure mappers
+  (`marksFromCraft`, `marksFromSats`, `marksFromQuakes`, `marksFromFires`, `marksFromEvents`,
+  `marksFromFeeds`, `marksFromZones`) and a `nearest(pts, x, y, radius)` hit-test. No DOM; the
+  scene wires each layer's mapper in its own `load()`. Adding a layer is a registry entry, a
+  mapper, and one line in `load()`.
 - **Page state**: signals `enabled: Set<LayerId>`, `counts: Record<LayerId, number | null>`,
   `selected: Mark | null`.
 
@@ -94,6 +96,8 @@ Nothing in `features/gev/` changes. `tracks.ts` is imported across features the 
   click and removed on deselect — nothing autoplays on load. Others are an external
   `<a target="_blank" rel="noopener">`. The `embed_allowed` flags are copied from upstream and
   labelled as verified upstream in 2026-09.
+- **Mass layers** (fires, quakes, aircraft, satellites) are selectable only by pointer on the
+  canvas — an accepted limitation; named layers are the keyboard path.
 - **Time**: the painted status bar shows `SNAPSHOT · <captured date> · REPLAY +hh:mm:ss`.
   Flights and satellites replay forward from `captured`; static layers show captured values.
 
@@ -101,6 +105,9 @@ Nothing in `features/gev/` changes. `tracks.ts` is imported across features the 
 
 - A layer whose JSON fails to load reads `—` for its count and its checkbox is disabled with
   `title="snapshot missing"`. Other layers still draw. Coastlines draw with zero layers.
+- Each snapshot file degrades on its own: a missing world file means no coastlines, a missing
+  tracks file means aircraft, satellites and quakes read `—`, a missing hazards file means fires
+  and events read `—`. Every failure is one `console.warn`; `load()` never rejects.
 - No layer is fatal; there is no network path to fail at runtime beyond the app's own assets.
 
 ## Accessibility and motion
