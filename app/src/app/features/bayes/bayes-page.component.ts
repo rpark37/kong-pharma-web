@@ -194,7 +194,8 @@ import { curveSpec, iconArraySpec, outcomeSpec } from './bayes-specs';
   `,
   styles: `
     :host { display: block; padding: clamp(1.5rem, 4vh, 3rem) var(--pad-x) 4rem; max-width: 1400px; margin: 0 auto; width: 100%; }
-    .viz { padding: 16px; }
+    /* The render is the card: no inset, the glass border and radius clip it. */
+    .viz { padding: 0; overflow: hidden; }
     /* Transport deck at the top of the 160 px controls column: counter + name on one line, then
        the progress strip fused to the top edge of the key rail. */
     .transport { display: flex; flex-direction: column; gap: 6px; }
@@ -231,12 +232,12 @@ import { curveSpec, iconArraySpec, outcomeSpec } from './bayes-specs';
     .presets { display: flex; flex-direction: column; gap: 4px; }
     .caption { margin: 0; font-size: 11px; line-height: 1.3; color: var(--on-ink-dim); }
     @media (prefers-reduced-motion: reduce) { .filling .fill { animation: none; transform: scaleX(1); } }
-    .morphcharts-container { position: relative; width: 100%; height: 620px; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--hairline); background: var(--ink-2); }
+    .morphcharts-container { position: relative; width: 100%; height: 620px; overflow: hidden; background: var(--ink-2); }
     .morphcharts-container app-morphcharts-canvas { position: absolute; inset: 0; }
-    .hint { position: absolute; left: 12px; bottom: 8px; font-size: 11px; color: var(--on-ink-faint); pointer-events: none; }
+    .hint { position: absolute; left: 14px; bottom: 10px; font-size: 11px; color: var(--on-ink-faint); pointer-events: none; }
     .fallback-wrap { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 24px; }
     .fallback-text { font-size: 12px; color: var(--on-ink-faint); }
-    .err { color: var(--rose); font-size: 12px; margin-top: 6px; }
+    .err { color: var(--rose); font-size: 12px; margin: 0; padding: 8px 14px; }
     .layout { display: grid; grid-template-columns: 160px minmax(0, 1fr); gap: 16px; align-items: start; }
     .controls { position: sticky; top: calc(var(--nav-h) + 16px); padding: 12px; display: flex; flex-direction: column; gap: 12px; }
     /* Fields: label row + input, help copy in the label's tooltip; only Prior keeps a data caption. */
@@ -367,6 +368,8 @@ export class BayesPageComponent {
     this.resize = new ResizeObserver(() => this.fit());
     this.resize.observe(this.container().nativeElement);
     try {
+      // The 3D headings rasterise at spec load, so the display face must be resident first.
+      await document.fonts.load('600 32px Rajdhani').catch(() => undefined);
       const { BayesScene } = await import('./bayes-scene');
       const scene = new BayesScene(host);
       scene.reducedMotion = this.gsap.reducedMotion;
@@ -451,7 +454,10 @@ export class BayesPageComponent {
     this.layoutIndex.set(index);
     this.transitioning.set(true);
     const scene = this.scene;
-    void this.queue(() => scene.layout(index, this.data(), this.form(), true)).then(() => { if (!scene.isTransitioning) this.settle(); });
+    // `layout()` resolves as soon as the morph *starts*; the scene's `onTransitionEnd` (wired in
+    // onHost, and fired on a cut as well as a morph) is what releases the keys. The only case it
+    // cannot cover is a layout that threw, which `queue()` has already turned into `morphError`.
+    void this.queue(() => scene.layout(index, this.data(), this.form(), true)).then(() => { if (this.morphError()) this.settle(); });
   }
 }
 
