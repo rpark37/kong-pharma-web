@@ -7,11 +7,27 @@
  * Analogy: the spec describes the stage and the props; this class is the choreographer telling
  * each block where to stand for the next scene, and when to start walking.
  */
-import { type MorphChartsHost } from '../../shared/morphcharts/morphcharts-host';
+import { gsap } from 'gsap';
+import { EASE, MOTION } from '../../shared/animation/motion';
+import { type MorphChartsHost, type RenderMode } from '../../shared/morphcharts/morphcharts-host';
 import { MorphController } from '../../shared/morphcharts/morph-controller';
 import { LAYOUT_NAMES, type BayesData, type FormConfig } from './bayes-data.model';
 
 export const BAYES_PLOT = { width: 1600, height: 1000, depth: 80 } as const;
+
+export type CameraView = 'front' | 'quarter' | 'top' | 'low';
+/**
+ * Yaw and pitch for each view preset as fractions of the canvas height: the camera's `rotate()`
+ * maps one canvas height of drag to π radians, so these are resolution-independent.
+ */
+export const VIEW_DELTAS: Record<CameraView, [number, number]> = {
+  front: [0, 0],
+  quarter: [0.13, 0.07],
+  top: [0, 0.3],
+  low: [0.07, -0.09],
+};
+/** Turns per second while orbiting — one full turn in about 35 s. */
+const ORBIT_RATE = 0.03;
 const MARGIN = 32;
 const FACET_SPACING = 0.25;
 /** Gap between blocks as a share of the cell: crisp separation on a flat-lit paper ground. */
@@ -51,6 +67,14 @@ export class BayesScene {
   private readonly morph: MorphController;
   layoutIndex = 0;
   reducedMotion = false;
+  /**
+   * The camera as a pose over the spec's reset camera — preset yaw/pitch, a zoom factor and the
+   * orbit angle — re-applied from reset every time it changes, so the controls compose and a
+   * pointer drag in between is simply overwritten by the next control.
+   */
+  readonly view = { preset: 'front' as CameraView, yaw: 0, pitch: 0, zoom: 1, orbit: 0 };
+  private viewTween: gsap.core.Tween | null = null;
+  private orbitTick: ((time: number, deltaTime: number) => void) | null = null;
   set onTransitionEnd(fn: (() => void) | null) { this.morph.onTransitionEnd = fn; }
   get isTransitioning(): boolean { return this.morph.isTransitioning; }
 
@@ -72,15 +96,78 @@ export class BayesScene {
       depthOf: (size) => Math.max(2, size * BLOCK_DEPTH),
       reducedMotion: this.reducedMotion,
     });
+    // A re-layout reloads the spec camera; keep whatever pose the controls set.
+    if (!transition) this.applyView();
   }
 
+  /** Re-pose the camera from the spec's reset pose. */
+  applyView(): void {
+    const host = this.host;
+    const cam = host.camera;
+    const h = cam.height;
+    host.resetCamera();
+    cam.rotate((this.view.yaw + this.view.orbit) * h, this.view.pitch * h);
+    if (this.view.zoom !== 1) cam.zoom(1 - 1 / this.view.zoom, cam.width / 2, h / 2);
+    host.renderer.frameCount = 0;
+    if (!host.running() && host.hasMarks()) host.start();
+  }
+
+  setView(preset: CameraView): void {
+    this.view.preset = preset;
+    const [yaw, pitch] = VIEW_DELTAS[preset];
+    this.viewTween?.kill();
+    if (this.reducedMotion) {
+      this.view.yaw = yaw;
+      this.view.pitch = pitch;
+      this.applyView();
+      return;
+    }
+    this.viewTween = gsap.to(this.view, { yaw, pitch, duration: MOTION.duration.slow, ease: EASE.inOut, overwrite: 'auto', onUpdate: () => this.applyView() });
+  }
+
+  setZoom(zoom: number): void {
+    this.view.zoom = zoom;
+    this.applyView();
+  }
+
+  /** A slow turn around the plot. Runs in flat shading, since a moving path tracer never converges. */
+  setOrbit(on: boolean): void {
+    if (on === !!this.orbitTick) return;
+    if (on) {
+      this.orbitTick = (_time, deltaTime) => {
+        if (this.morph.isTransitioning) return;
+        this.host.renderer.renderMode = 'color';
+        this.view.orbit += ORBIT_RATE * (deltaTime / 1000);
+        this.applyView();
+      };
+      gsap.ticker.add(this.orbitTick);
+    } else {
+      gsap.ticker.remove(this.orbitTick!);
+      this.orbitTick = null;
+      this.host.renderer.renderMode = this.morph.stillMode;
+      this.host.renderer.frameCount = 0;
+    }
+  }
+
+  setRenderMode(mode: RenderMode): void {
+    this.morph.stillMode = mode;
+    if (!this.orbitTick) {
+      this.host.renderer.renderMode = mode;
+      this.host.renderer.frameCount = 0;
+    }
+  }
+
+  /** Back to the front view at 1x, orbit off: what the ⟲ key does. */
   resetCamera(): void {
-    this.host.resetCamera();
-    this.host.renderer.frameCount = 0;
-    if (!this.host.running() && this.host.hasMarks()) this.host.start();
+    this.setOrbit(false);
+    this.view.zoom = 1;
+    this.view.orbit = 0;
+    this.setView('front');
   }
 
   dispose(): void {
+    this.setOrbit(false);
+    this.viewTween?.kill();
     this.morph.dispose();
   }
 }
@@ -272,7 +359,7 @@ export function buildSpec(layout: LayoutResult, count: number): Record<string, u
       { name: 'units', type: 'rect', geometry: 'box', material: 'glossy', from: { data: 'units' }, encode: { enter: { xc: { field: 'xc' }, yc: { field: 'yc' }, zc: { field: 'zc' }, width: { field: 'size' }, height: { field: 'size' }, depth: { value: depth }, fuzz: { value: 0.1 }, fill: { color: { r: { field: 'r' }, g: { field: 'g' }, b: { field: 'b' } } } } } },
       { type: 'rect', geometry: 'xyrect', material: 'diffuse', from: { data: 'plates' }, encode: { enter: { xc: { field: 'xc' }, yc: { field: 'yc' }, zc: { value: D / 2 - depth }, width: { field: 'width' }, height: { field: 'height' }, fill: { value: '#E4E4E1' } } } },
       { type: 'text', from: { data: 'texts' }, encode: { enter: { x: { field: 'x' }, y: { field: 'y' }, z: { value: D / 2 + 2 }, text: { field: 'text' }, fontSize: { field: 'size' }, font: { value: 'Rajdhani' }, fontWeight: { value: 600 }, align: { value: 'center' }, baseline: { value: 'middle' }, fill: { value: '#2D2D2D' } } } },
-      { type: 'rect', geometry: 'xyrect', material: 'diffuse', encode: { enter: { xc: { value: W / 2 }, yc: { value: H / 2 }, zc: { value: -D }, width: { value: W * 4 }, height: { value: H * 4 }, fill: { value: '#E8E8E6' } } } },
+      { type: 'rect', geometry: 'xyrect', material: 'diffuse', encode: { enter: { xc: { value: W / 2 }, yc: { value: H / 2 }, zc: { value: -D }, width: { value: W * 10 }, height: { value: H * 10 }, fill: { value: '#E8E8E6' } } } },
     ],
   };
 }

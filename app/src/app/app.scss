@@ -28,6 +28,9 @@ nav {
   display: flex;
   gap: 4px;
   a {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
     padding: 6px 12px;
     border-radius: 999px;
     color: var(--on-ink-dim);
@@ -42,6 +45,9 @@ nav {
   position: relative;
   summary {
     list-style: none;                 /* Firefox marker */
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
     cursor: pointer;
     padding: 6px 12px;
     border-radius: 999px;
@@ -69,6 +75,11 @@ nav {
     a { white-space: nowrap; }
   }
 }
+
+/* Glyphs sit faint beside their label and take the label's colour on hover, focus and when active. */
+app-nav-icon { color: var(--on-ink-faint); transition: color var(--dur-fast) var(--ease-out); }
+nav a:hover app-nav-icon, nav a:focus-visible app-nav-icon, nav a.active app-nav-icon,
+.group summary:hover app-nav-icon, .group summary:focus-visible app-nav-icon, .group.open-route > summary app-nav-icon, .group[open] > summary app-nav-icon { color: inherit; }
 
 .site-link { margin-left: auto; color: var(--on-ink-dim); font-size: 13px; &:hover { color: var(--teal); } }
 

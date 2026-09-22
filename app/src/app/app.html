@@ -8,15 +8,15 @@
       @if (link.children) {
         <!-- routerLinkActive on the <details> highlights the group while any child route is open. -->
         <details class="group" routerLinkActive="open-route" #menu>
-          <summary>{{ link.label }}</summary>
+          <summary><app-nav-icon [name]="link.icon" />{{ link.label }}</summary>
           <div class="menu glass">
             @for (child of link.children; track child.path) {
-              <a [routerLink]="child.path" routerLinkActive="active" (click)="menu.open = false">{{ child.label }}</a>
+              <a [routerLink]="child.path" routerLinkActive="active" (click)="menu.open = false"><app-nav-icon [name]="child.icon" />{{ child.label }}</a>
             }
           </div>
         </details>
       } @else {
-        <a [routerLink]="link.path" routerLinkActive="active">{{ link.label }}</a>
+        <a [routerLink]="link.path" routerLinkActive="active"><app-nav-icon [name]="link.icon" />{{ link.label }}</a>
       }
     }
   </nav>

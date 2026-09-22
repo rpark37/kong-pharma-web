@@ -25,6 +25,9 @@ export const BAYES_ICONS = {
   bars: { d: 'M2 13.5h12M4.5 13V8M8 13V3.5M11.5 13V6' },
   dots: { d: '', fill: 'M2.5 2.5h2.5v2.5H2.5zM6.75 2.5h2.5v2.5h-2.5zM11 2.5h2.5v2.5H11zM2.5 6.75h2.5v2.5H2.5zM6.75 6.75h2.5v2.5h-2.5zM11 6.75h2.5v2.5H11zM2.5 11h2.5v2.5H2.5zM6.75 11h2.5v2.5h-2.5zM11 11h2.5v2.5H11z' },
   curve: { d: 'M2 13.5C5 13.5 5.5 2.5 14 2.5' },
+  camera: { d: 'M2 5.5a1.5 1.5 0 0 1 1.5-1.5H5l1-1.5h4l1 1.5h1.5A1.5 1.5 0 0 1 14 5.5v6a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 11.5zM8 6a2.5 2.5 0 1 0 0 5 2.5 2.5 0 1 0 0-5' },
+  zoom: { d: 'M7 2.5a4.5 4.5 0 1 0 0 9 4.5 4.5 0 1 0 0-9zM10.3 10.3 14 14M5 7h4M7 5v4' },
+  render: { d: 'M2 2h5v5H2zM9 2h5v5H9zM2 9h5v5H2zM9 9h5v5H9z', fill: 'M9 9h5v5H9z' },
   /** A globe with an orbit line: drag to look around. */
   orbit: { d: 'M8 3.5a4.5 4.5 0 1 0 0 9 4.5 4.5 0 1 0 0-9zM1.5 9.5c2.5-1 10.5-1 13 0' },
 } as const;

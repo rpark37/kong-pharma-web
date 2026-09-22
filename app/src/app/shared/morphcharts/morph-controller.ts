@@ -21,7 +21,7 @@
  *    the scene has been still for a moment.
  */
 import { gsap } from 'gsap';
-import { Core, type MorphChartsHost } from './morphcharts-host';
+import { Core, type MorphChartsHost, type RenderMode } from './morphcharts-host';
 
 /** One posed state of the whole unit population: where each block stands, how big, what colour. */
 export interface MorphFrame {
@@ -68,6 +68,8 @@ export class MorphController {
 
   /** Fires once the scene has reached the target pose, on a cut as well as a morph. */
   onTransitionEnd: (() => void) | null = null;
+  /** The mode a still scene renders in; motion always runs in the cheap `color` mode. */
+  stillMode: RenderMode = 'raytrace';
 
   get isTransitioning(): boolean {
     return gsap.isTweening(this.progress);
@@ -187,7 +189,7 @@ export class MorphController {
   private settle(): void {
     if (this.settleTimer) clearTimeout(this.settleTimer);
     this.settleTimer = setTimeout(() => {
-      this.host.renderer.renderMode = 'raytrace';
+      this.host.renderer.renderMode = this.stillMode;
       this.host.renderer.frameCount = 0;
       this.ensureRunning();
     }, SETTLE_MS);

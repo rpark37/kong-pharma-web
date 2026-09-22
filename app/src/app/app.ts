@@ -1,17 +1,19 @@
 import { Component, ElementRef, HostListener, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { RouteTransitionDirective } from './shared/animation/route-transition.directive';
+import { NavIconComponent, type NavIconName } from './shared/ui/nav-icon.component';
 
 /** A nav entry: either a direct link (`path`) or a labelled group of them (`children`). */
 export interface NavItem {
   label: string;
+  icon: NavIconName;
   path?: string;
-  children?: { path: string; label: string }[];
+  children?: { path: string; label: string; icon: NavIconName }[];
 }
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, RouteTransitionDirective],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, RouteTransitionDirective, NavIconComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
@@ -19,40 +21,38 @@ export class App {
   readonly links: NavItem[] = [
     {
       label: 'Data',
+      icon: 'data',
       children: [
-        { path: '/ares', label: 'People' },
-        { path: '/merchandise', label: 'Merchandise' },
+        { path: '/ares', label: 'People', icon: 'people' },
+        { path: '/merchandise', label: 'Merchandise', icon: 'merchandise' },
       ],
     },
     {
       label: 'Charts',
+      icon: 'charts',
       children: [
-        { path: '/morphcharts', label: 'MorphCharts' },
-        { path: '/vega-charts', label: 'Vega Charts' },
-        { path: '/transition', label: 'Transition - Deck.gl' },
-        { path: '/sanddance-specs', label: 'Sanddance Specs' },
+        { path: '/morphcharts', label: 'MorphCharts', icon: 'morphcharts' },
+        { path: '/vega-charts', label: 'Vega Charts', icon: 'vega' },
+        { path: '/transition', label: 'Transition - Deck.gl', icon: 'transition' },
+        { path: '/sanddance-specs', label: 'Sanddance Specs', icon: 'sanddance' },
       ],
     },
     {
       label: 'Examples',
+      icon: 'examples',
       children: [
-        { path: '/bayes', label: 'Clinical (Bayes Theorem)' },
-        { path: '/google', label: 'Google Merchandise' },
-        { path: '/gev', label: "God's Eye" },
-        { path: '/osiris', label: 'Osiris' },
-      ],
-    },
-    {
-      // The three.js FUI scenes, grouped apart because they are their own family: they kept the
-      // original dark instrument palette when the rest of the app went light. That split is
-      // deliberate and settled — consoles are dark, reading surfaces are light. See the "Theme"
-      // section of /.impeccable.md before proposing to unify them; the cost is concentrated in
-      // the 19 hardcoded teal literals inside shared/fui/fui-panels.ts.
-      label: 'HUD',
-      children: [
-        { path: '/hud', label: 'Readout' },
-        { path: '/site-map', label: 'Site map' },
-        { path: '/controls', label: 'Controls' },
+        { path: '/bayes', label: 'Clinical (Bayes Theorem)', icon: 'bayes' },
+        { path: '/google', label: 'Google Merchandise', icon: 'google' },
+        { path: '/gev', label: "God's Eye", icon: 'gev' },
+        { path: '/osiris', label: 'Osiris', icon: 'osiris' },
+        // The three.js FUI consoles. They kept the original dark instrument palette when the rest
+        // of the app went light; that split is deliberate and settled — consoles are dark, reading
+        // surfaces are light. See the "Theme" section of /.impeccable.md before proposing to
+        // unify them; the cost is concentrated in the 19 hardcoded teal literals inside
+        // shared/fui/fui-panels.ts.
+        { path: '/hud', label: 'Readout', icon: 'hud' },
+        { path: '/site-map', label: 'Site map', icon: 'siteMap' },
+        { path: '/controls', label: 'Controls', icon: 'controls' },
       ],
     },
     {
@@ -60,13 +60,14 @@ export class App {
       // competitive field around all three programmes. Snapshots, refreshed by
       // app/scripts/fetch-science.py.
       label: 'Science',
+      icon: 'science',
       children: [
-        { path: '/science-rac1', label: 'RAC1 target' },
-        { path: '/science-bladder', label: 'Bladder targets' },
-        { path: '/science-trials', label: 'Trial landscape' },
+        { path: '/science-rac1', label: 'RAC1 target', icon: 'rac1' },
+        { path: '/science-bladder', label: 'Bladder targets', icon: 'bladder' },
+        { path: '/science-trials', label: 'Trial landscape', icon: 'trials' },
       ],
     },
-    { path: '/atlas', label: 'Human Atlas' },
+    { path: '/atlas', label: 'Human Atlas', icon: 'atlas' },
   ];
 
   private readonly el = inject<ElementRef<HTMLElement>>(ElementRef);
