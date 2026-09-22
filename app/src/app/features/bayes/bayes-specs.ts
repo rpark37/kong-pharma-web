@@ -57,7 +57,15 @@ export function curveSpec(): Record<string, unknown> {
       },
       { data: { name: 'marker' }, mark: { type: 'rule', color: VEGA_COLORS.warn, strokeDash: [4, 4] }, encoding: { x: { field: 'prevalence', type: 'quantitative' } } },
       { data: { name: 'marker' }, mark: { type: 'point', filled: true, size: 90, color: VEGA_COLORS.warn }, encoding: { x: { field: 'prevalence', type: 'quantitative' }, y: { field: 'ppv', type: 'quantitative' }, tooltip: [{ field: 'ppv', format: '.1%' }] } },
-      { data: { name: 'marker' }, transform: [{ calculate: "format(datum.prevalence, '.1%') + ' → PPV ' + format(datum.ppv, '.1%')", as: 'label' }], mark: { type: 'text', align: 'left', dx: 10, dy: -8, fontSize: 11, font: 'IBM Plex Mono, monospace', color: VEGA_COLORS.onInk }, encoding: { x: { field: 'prevalence', type: 'quantitative' }, y: { field: 'ppv', type: 'quantitative' }, text: { field: 'label' } } },
+      // The label sits above the marker low on the curve and below it once PPV is high, so it never
+      // lands on the NPV line running across the top. Two filtered layers, since `dy` is a mark
+      // property rather than an encoding.
+      ...[[-10, 'datum.ppv <= 0.6'], [16, 'datum.ppv > 0.6']].map(([dy, filter]) => ({
+        data: { name: 'marker' },
+        transform: [{ filter }, { calculate: "format(datum.prevalence, '.1%') + ' → PPV ' + format(datum.ppv, '.1%')", as: 'label' }],
+        mark: { type: 'text', align: 'left', dx: 10, dy, fontSize: 11, font: 'IBM Plex Mono, monospace', color: VEGA_COLORS.onInk },
+        encoding: { x: { field: 'prevalence', type: 'quantitative' }, y: { field: 'ppv', type: 'quantitative' }, text: { field: 'label' } },
+      })),
     ],
   };
 }

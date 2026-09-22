@@ -255,7 +255,7 @@ export function buildSpec(layout: LayoutResult, count: number): Record<string, u
   const depth = Math.max(2, layout.size * BLOCK_DEPTH);
   const W = BAYES_PLOT.width, H = BAYES_PLOT.height, D = BAYES_PLOT.depth;
   const fov = 40;
-  const distance = Math.max(H / (2 * Math.tan((fov * Math.PI) / 360)), W / (2 * 1.6 * Math.tan((fov * Math.PI) / 360))) * 1.04;
+  const distance = Math.max(H / (2 * Math.tan((fov * Math.PI) / 360)), W / (2 * 1.6 * Math.tan((fov * Math.PI) / 360))) * 0.95;
   return {
     title: LAYOUT_NAMES[0],
     width: W, height: H, depth: D,

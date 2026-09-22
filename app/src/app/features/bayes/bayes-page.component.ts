@@ -1,5 +1,5 @@
 import { DecimalPipe, PercentPipe } from '@angular/common';
-import { Component, DestroyRef, ElementRef, afterNextRender, computed, effect, inject, signal, untracked, viewChild } from '@angular/core';
+import { Component, DestroyRef, ElementRef, afterNextRender, computed, effect, inject, signal, untracked, viewChild, viewChildren } from '@angular/core';
 import { GsapService } from '../../shared/animation/gsap.service';
 import { VegaChartComponent } from '../../shared/vega/vega-chart.component';
 import { PRESETS, bayes, predictiveCurve } from './bayes';
@@ -41,9 +41,6 @@ import { curveSpec, iconArraySpec, outcomeSpec } from './bayes-specs';
               }
             </ol>
             <div class="keys">
-            <button type="button" class="key" (click)="onReset()" aria-label="Reset camera" title="Reset camera">
-              <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8a4.5 4.5 0 1 0 1.3-3.2" /><path d="M3.5 3.5v3h3" /></svg>
-            </button>
             <button type="button" class="key" (click)="onPrev()" [disabled]="transitioning()" aria-label="Previous view" title="Previous view (←)">
               <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 3.5v9" /><path class="solid" d="M12 3.5 6 8l6 4.5z" /></svg>
             </button>
@@ -56,6 +53,9 @@ import { curveSpec, iconArraySpec, outcomeSpec } from './bayes-specs';
             </button>
             <button type="button" class="key" (click)="onNext()" [disabled]="transitioning()" aria-label="Next view" title="Next view (→)">
               <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M12 3.5v9" /><path class="solid" d="M4 3.5 10 8l-6 4.5z" /></svg>
+            </button>
+            <button type="button" class="key" (click)="onReset()" aria-label="Reset camera" title="Reset camera">
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8a4.5 4.5 0 1 0 1.3-3.2" /><path d="M3.5 3.5v3h3" /></svg>
             </button>
             </div>
           </div>
@@ -119,28 +119,31 @@ import { curveSpec, iconArraySpec, outcomeSpec } from './bayes-specs';
         </div>
 
         <!-- The answer first: PPV is what the whole page is asking. One flat strip, sized by weight. -->
-        <dl class="readout" data-reveal>
-          <div class="cell primary">
+        <!-- Values count from their previous number to the new one, PPV first, so a slider move
+             reads as the numbers responding rather than swapping. -->
+        <dl class="readout">
+          <div class="cell primary" data-reveal>
             <dt>Positive predictive value</dt>
-            <dd class="value">{{ out().ppv * 100 | number: '1.1-1' }}<span class="unit">%</span></dd>
+            <dd class="value">{{ shown().ppv | number: '1.1-1' }}<span class="unit">%</span></dd>
             <dd class="formula">P(disease | positive)</dd>
           </div>
-          <div class="cell">
+          <div class="cell" data-reveal>
             <dt>Negative predictive value</dt>
-            <dd class="value">{{ out().npv * 100 | number: '1.1-1' }}<span class="unit">%</span></dd>
+            <dd class="value">{{ shown().npv | number: '1.1-1' }}<span class="unit">%</span></dd>
             <dd class="formula">P(no disease | negative)</dd>
           </div>
-          <div class="cell small">
+          <div class="cell small" data-reveal>
             <dt>LR+</dt>
-            <dd class="value">{{ lrPlus() | number: '1.1-1' }}</dd>
+            <dd class="value">{{ shown().lrPlus | number: '1.1-1' }}</dd>
             <dd class="formula">Se / (1 − Sp)</dd>
           </div>
-          <div class="cell small">
+          <div class="cell small" data-reveal>
             <dt>LR−</dt>
-            <dd class="value">{{ out().lrNegative | number: '1.2-2' }}</dd>
+            <dd class="value">{{ shown().lrMinus | number: '1.2-2' }}</dd>
             <dd class="formula">(1 − Se) / Sp</dd>
           </div>
         </dl>
+        <p class="readout-note" data-reveal>PPV = Se·P / (Se·P + (1−Sp)·(1−P)) &nbsp;·&nbsp; post-test odds = pre-test odds × LR</p>
 
         <div class="tree glass" data-reveal>
           <p class="eyebrow">Natural frequencies · {{ form().count | number }} people tested</p>
@@ -174,22 +177,21 @@ import { curveSpec, iconArraySpec, outcomeSpec } from './bayes-specs';
           </p>
         </div>
 
-        <figure class="fig" data-reveal>
+        <figure class="fig" data-reveal #fig>
           <figcaption class="eyebrow">What a result means, in people</figcaption>
           <app-vega-chart [spec]="specs.outcome" [data]="{ outcomes: outcomes() }" [height]="170" />
         </figure>
-        <figure class="fig" data-reveal>
+        <figure class="fig" data-reveal #fig>
           <figcaption class="eyebrow">Icon array · each dot is 1 in 100</figcaption>
           <app-vega-chart [spec]="specs.icons" [data]="{ icons: icons() }" [height]="210" />
         </figure>
-        <figure class="fig wide" data-reveal>
+        <figure class="fig wide" data-reveal #fig>
           <figcaption class="eyebrow">Predictive values across prevalence</figcaption>
           <app-vega-chart [spec]="specs.curve" [data]="{ curve: curve(), marker: marker() }" [height]="250" />
         </figure>
       </div>
     </section>
     <p class="note" data-reveal>
-      <span class="mono">PPV = Se·P / (Se·P + (1−Sp)·(1−P)) &nbsp;·&nbsp; post-test odds = pre-test odds × LR</span>
       Presets are rounded illustrative figures for learning, not clinical guidance. Ported from the therapeutic-tests-bayes-theorem project; the block views are MorphCharts specifications path-traced on WebGPU, the companions are Vega-Lite specifications.</p>
   `,
   styles: `
@@ -216,7 +218,7 @@ import { curveSpec, iconArraySpec, outcomeSpec } from './bayes-specs';
     @keyframes fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
     /* Segmented rails: hairline dividers, one filled key (play, or the active preset). */
     .keys, .rail { display: grid; }
-    .keys { grid-template-columns: 1fr 1fr 1.5fr 1fr; }
+    .keys { grid-template-columns: 1fr 1.5fr 1fr 1fr; }
     .rail { grid-template-columns: repeat(4, 1fr); border: 1px solid var(--hairline); border-radius: 6px; overflow: hidden; background: rgba(0, 0, 0, 0.04); }
     .key { display: flex; align-items: center; justify-content: center; height: 30px; padding: 0; border: 0; background: none; color: var(--on-ink-dim); cursor: pointer; transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out); }
     .key + .key { border-left: 1px solid var(--hairline); }
@@ -267,6 +269,7 @@ import { curveSpec, iconArraySpec, outcomeSpec } from './bayes-specs';
     .readout .primary .value { font-size: 40px; color: var(--teal); }
     .readout .unit { margin-left: 2px; font-size: 0.55em; font-weight: 500; color: var(--on-ink-dim); }
     .readout .formula { margin-top: 4px; font: 400 11px/1.3 var(--font-mono); color: var(--on-ink-faint); }
+    .readout-note { grid-column: 1 / -1; margin: -4px 0 0; padding: 0 18px; font: 400 11px/1.4 var(--font-mono); color: var(--on-ink-dim); }
 
     /* Natural-frequency flow: two proportional stacked bars with their counts beneath. */
     .tree { grid-column: 1 / -1; padding: 16px 18px; }
@@ -293,7 +296,6 @@ import { curveSpec, iconArraySpec, outcomeSpec } from './bayes-specs';
     .fig figcaption { margin-bottom: 2px; }
     .wide { grid-column: 1 / -1; }
     .note { margin-top: 20px; font-size: 12px; color: var(--on-ink-faint); }
-    .note .mono { display: block; margin-bottom: 4px; color: var(--on-ink-dim); }
     @media (max-width: 960px) { .layout { grid-template-columns: 1fr; } .controls { position: static; } .results { grid-template-columns: 1fr; } .morphcharts-container { height: 400px; } }
   `,
 })
@@ -318,6 +320,11 @@ export class BayesPageComponent {
   readonly data = computed(() => generateBayesData(this.form()));
   readonly out = computed(() => bayes(this.inputs()));
   readonly lrPlus = computed(() => Math.min(999, this.out().lrPositive));
+  /** What the readout strip displays: tweened towards `out()`, so the numbers count rather than jump. */
+  readonly shown = signal<Readout>({ ppv: 0, npv: 0, lrPlus: 0, lrMinus: 0 });
+  private readonly readoutState: Readout = { ppv: 0, npv: 0, lrPlus: 0, lrMinus: 0 };
+  private readonly figs = viewChildren<ElementRef<HTMLElement>>('fig');
+  private firstPulse = true;
   readonly curve = computed(() => predictiveCurve(this.form().sensitivity, this.form().specificity));
   readonly marker = computed(() => [{ prevalence: this.form().prior, ppv: this.out().ppv }]);
   readonly outcomes = computed(() => {
@@ -354,6 +361,18 @@ export class BayesPageComponent {
       this.gsap.reveal(this.el.nativeElement.querySelectorAll('[data-reveal]'), { delay: this.gsap.MOTION.delay.medium });
     });
     inject(DestroyRef).onDestroy(() => { this.stop(); this.scene?.dispose(); this.resize?.disconnect(); });
+    // The readout counts to its new numbers, PPV first, and the charts pulse as they redraw.
+    effect(() => {
+      const o = this.out();
+      const target: Readout = { ppv: o.ppv * 100, npv: o.npv * 100, lrPlus: Math.min(999, o.lrPositive), lrMinus: o.lrNegative };
+      untracked(() => this.animateReadout(target));
+    });
+    effect(() => {
+      this.out();
+      const figs = this.figs().map((f) => f.nativeElement);
+      // The first run coincides with the page reveal, which already brings the figures in.
+      untracked(() => { if (this.firstPulse) { this.firstPulse = false; return; } if (figs.length) this.gsap.reveal(figs, { distance: 6, delay: 0 }); });
+    });
     // Re-lay out the current view (no transition) whenever the inputs change.
     effect(() => {
       const config = this.form();
@@ -397,6 +416,19 @@ export class BayesPageComponent {
   private queue(job: () => Promise<void>): Promise<void> {
     this.relayout = this.relayout.then(job).catch((err) => this.morphError.set(err instanceof Error ? err.message : String(err)));
     return this.relayout;
+  }
+
+  private animateReadout(target: Readout): void {
+    const keys: Array<keyof Readout> = ['ppv', 'npv', 'lrPlus', 'lrMinus'];
+    keys.forEach((k, i) =>
+      this.gsap.tweenObject(this.readoutState, {
+        [k]: target[k],
+        duration: this.gsap.MOTION.duration.base,
+        delay: i * this.gsap.MOTION.stagger,
+        ease: this.gsap.EASE.out,
+        onUpdate: () => this.shown.set({ ...this.readoutState }),
+      }),
+    );
   }
 
   set<K extends keyof FormConfig>(key: K, value: FormConfig[K]): void {
@@ -463,3 +495,5 @@ export class BayesPageComponent {
 
 /** Play holds on each view this long after its morph settles — enough to read the heading and counts. */
 const DWELL_MS = 1500;
+
+interface Readout { ppv: number; npv: number; lrPlus: number; lrMinus: number; }
