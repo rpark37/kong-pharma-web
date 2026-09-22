@@ -61,6 +61,7 @@ describe('mappers', () => {
     expect(marksFromFeeds().find((m) => m.id === 'skynews')?.embed).toContain('youtube-nocookie.com');
     expect(marksFromZones()).toHaveLength(CONFLICT_ZONES.length);
     expect(marksFromZones().every((m) => m.color)).toBe(true);
+    for (const m of marksFromZones()) for (const l of m.lines) expect(l).toBe(l.toUpperCase());
   });
 });
 
