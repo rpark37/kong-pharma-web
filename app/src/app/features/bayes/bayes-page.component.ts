@@ -26,6 +26,15 @@ import { curveSpec, iconArraySpec, outcomeSpec } from './bayes-specs';
 
     <section class="layout">
       <form class="controls glass" data-reveal (submit)="$event.preventDefault()">
+        <div class="view-head">
+          <span class="eyebrow">View {{ layoutIndex() + 1 }} of 4</span>
+          <h2>{{ layoutName() }}</h2>
+          <div class="button-group">
+            <button type="button" class="btn small" (click)="onReset()" title="Reset the camera">Reset</button>
+            <button type="button" class="btn small" (click)="onPrev()" [disabled]="transitioning()">‹ Prev</button>
+            <button type="button" class="btn" [class.active]="true" (click)="onNext()" [disabled]="transitioning()">Next ›</button>
+          </div>
+        </div>
         <div class="presets">
           @for (p of presets; track p.id) { <button type="button" class="btn small" [class.active]="preset() === p.id" (click)="apply(p.id)" [title]="p.note">{{ p.name }}</button> }
         </div>
@@ -64,23 +73,12 @@ import { curveSpec, iconArraySpec, outcomeSpec } from './bayes-specs';
 
       <div class="results">
         <div class="viz glass wide" data-reveal>
-          <div class="viz-head">
-            <div>
-              <span class="eyebrow">View {{ layoutIndex() + 1 }} of 4</span>
-              <h2>{{ layoutName() }}</h2>
-            </div>
-            <div class="button-group">
-              <button type="button" class="btn small" (click)="onReset()" title="Reset the camera">Reset</button>
-              <button type="button" class="btn small" (click)="onPrev()" [disabled]="transitioning()">‹ Prev</button>
-              <button type="button" class="btn" [class.active]="true" (click)="onNext()" [disabled]="transitioning()">Next ›</button>
-            </div>
-          </div>
           <div #morphchartsContainer class="morphcharts-container">
             @if (!fallback()) {
               <app-morphcharts-canvas (hostReady)="onHost($event)" (failed)="fallback.set($event)" />
               <span class="hint">Drag to orbit · wheel to zoom · Reset returns the camera</span>
             } @else {
-              <div class="fallback-wrap"><app-webgpu-fallback title="The block views need WebGPU"><p class="small">{{ fallback() }} The Vega charts below show the same numbers.</p></app-webgpu-fallback></div>
+              <div class="fallback-wrap"><app-webgpu-fallback title="The block views need WebGPU"><p class="fallback-text">{{ fallback() }} The Vega charts below show the same numbers.</p></app-webgpu-fallback></div>
             }
           </div>
           @if (morphError()) { <p class="err">{{ morphError() }}</p> }
@@ -133,24 +131,26 @@ import { curveSpec, iconArraySpec, outcomeSpec } from './bayes-specs';
   styles: `
     :host { display: block; padding: clamp(1.5rem, 4vh, 3rem) var(--pad-x) 4rem; max-width: 1400px; margin: 0 auto; width: 100%; }
     .viz { padding: 16px; }
-    .viz-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
-    .viz-head h2 { font-size: 20px; margin-top: 2px; }
-    .button-group { display: flex; gap: 8px; }
+    /* The view header lives at the top of the 160 px controls column, so it stacks. */
+    .view-head { display: flex; flex-direction: column; gap: 8px; }
+    .view-head h2 { font-size: 16px; margin: 2px 0 0; }
+    .button-group { display: flex; flex-wrap: wrap; gap: 6px; }
+    .button-group .btn { flex: 1 1 100%; }
     .morphcharts-container { position: relative; width: 100%; height: 620px; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--hairline); background: var(--ink-2); }
     .morphcharts-container app-morphcharts-canvas { position: absolute; inset: 0; }
     .hint { position: absolute; left: 12px; bottom: 8px; font-size: 11px; color: var(--on-ink-faint); pointer-events: none; }
     .fallback-wrap { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 24px; }
-    .small { font-size: 12px; color: var(--on-ink-faint); }
+    .fallback-text { font-size: 12px; color: var(--on-ink-faint); }
     .steps { list-style: none; margin: 10px 0 0; padding: 0; display: flex; gap: 6px; flex-wrap: wrap; }
     .steps button { font: inherit; font-size: 12px; background: none; border: 1px solid var(--hairline); border-radius: 999px; padding: 4px 10px; color: var(--on-ink-dim); cursor: pointer; }
     .steps .active button { border-color: var(--teal); color: var(--teal); }
     .err { color: var(--rose); font-size: 12px; margin-top: 6px; }
-    .layout { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 16px; align-items: start; }
-    .controls { position: sticky; top: calc(var(--nav-h) + 16px); padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+    .layout { display: grid; grid-template-columns: 160px minmax(0, 1fr); gap: 16px; align-items: start; }
+    .controls { position: sticky; top: calc(var(--nav-h) + 16px); padding: 12px; display: flex; flex-direction: column; gap: 12px; }
     .presets { display: flex; flex-wrap: wrap; gap: 6px; }
     label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
     label span { display: flex; justify-content: space-between; color: var(--on-ink); }
-    input[type=number] { font: inherit; color: var(--on-ink); background: rgba(0,0,0,0.25); border: 1px solid var(--hairline); border-radius: 6px; padding: 5px 8px; width: 120px; }
+    input[type=number] { font: inherit; color: var(--on-ink); background: rgba(0,0,0,0.25); border: 1px solid var(--hairline); border-radius: 6px; padding: 5px 8px; width: 100%; box-sizing: border-box; }
     output { font-family: var(--font-mono); color: var(--teal); }
     small { color: var(--on-ink-faint); font-size: 11px; }
     .formula { font-size: 11px; color: var(--on-ink-dim); }
