@@ -13,6 +13,24 @@ import rasJson from '../../../../public/data/science/ras.json';
 import trialsJson from '../../../../public/data/science/trials.json';
 import { associationSpec, geneDiseaseSpec, literatureRaceSpec, machineryPapersSpec, phaseSpec, rasDiseaseSpec, stageSpec, statusSpec } from './science-specs';
 import { GENE_ORDER, GENE_STORIES, STATIONS } from './gene-stories';
+import { confidentShare, proteinSpec } from './protein-spec';
+import type { StructureSnapshot } from './science.model';
+import krasStructure from '../../../../public/data/science/structures/KRAS.json';
+import hrasStructure from '../../../../public/data/science/structures/HRAS.json';
+import nrasStructure from '../../../../public/data/science/structures/NRAS.json';
+import rac1Structure from '../../../../public/data/science/structures/RAC1.json';
+import pak1Structure from '../../../../public/data/science/structures/PAK1.json';
+import cdc42Structure from '../../../../public/data/science/structures/CDC42.json';
+import pik3caStructure from '../../../../public/data/science/structures/PIK3CA.json';
+import ptenStructure from '../../../../public/data/science/structures/PTEN.json';
+import slc9a1Structure from '../../../../public/data/science/structures/SLC9A1.json';
+import arf6Structure from '../../../../public/data/science/structures/ARF6.json';
+import rab5aStructure from '../../../../public/data/science/structures/RAB5A.json';
+import rab7aStructure from '../../../../public/data/science/structures/RAB7A.json';
+import mtorStructure from '../../../../public/data/science/structures/MTOR.json';
+import hif1aStructure from '../../../../public/data/science/structures/HIF1A.json';
+// One import per model rather than a glob: the unit-test builder's TypeScript lib has no import.meta.glob.
+const structureFiles = [krasStructure, hrasStructure, nrasStructure, rac1Structure, pak1Structure, cdc42Structure, pik3caStructure, ptenStructure, slc9a1Structure, arf6Structure, rab5aStructure, rab7aStructure, mtorStructure, hif1aStructure] as unknown as StructureSnapshot[];
 import { capturedOn, evidenceRows, isCancer, type BladderSnapshot, type MachinerySnapshot, type Rac1Snapshot, type RasSnapshot, type TrialsSnapshot } from './science.model';
 
 // Imported rather than read from disk: the spec tsconfig exposes only vitest globals, and adding
@@ -223,6 +241,30 @@ describe('gene stories', () => {
       expect(s.kong.length, s.symbol).toBeGreaterThan(20);
       const station = STATIONS.find((st) => st.id === s.station);
       if (s.station !== 'sensing') expect(station?.genes, s.symbol).toContain(s.symbol);
+    }
+  });
+});
+
+describe('structures', () => {
+  const structures = structureFiles;
+
+  it('carries an AlphaFold Cα trace for every gene story', () => {
+    expect(structures.map((s) => s.symbol).sort()).toEqual([...GENE_ORDER].sort());
+    for (const s of structures) {
+      expect(s.residues.length, s.symbol).toBe(s.length);
+      expect(s.model, s.symbol).toMatch(/^AF-[A-Z0-9]+-F1$/);
+      for (const r of s.residues) { expect(r[3]).toBeGreaterThanOrEqual(0); expect(r[3]).toBeLessThanOrEqual(100); }
+    }
+  });
+
+  it('keeps the trace centred and builds a bead per residue', () => {
+    for (const s of structures) {
+      const mean = (i: number) => s.residues.reduce((n, r) => n + r[i], 0) / s.residues.length;
+      for (let i = 0; i < 3; i++) expect(Math.abs(mean(i)), `${s.symbol} axis ${i}`).toBeLessThan(0.5);
+      const spec = proteinSpec(s) as { data: { values: unknown[] }[] };
+      expect(spec.data[0].values.length).toBe(s.length);
+      expect(confidentShare(s)).toBeGreaterThan(0);
+      expect(confidentShare(s)).toBeLessThanOrEqual(1);
     }
   });
 });

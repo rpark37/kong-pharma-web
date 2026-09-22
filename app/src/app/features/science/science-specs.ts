@@ -6,7 +6,9 @@
  * `data.values` because every page has already loaded its snapshot by the time it builds a spec.
  */
 import { VEGA_COLORS } from '../../shared/vega/theme';
-import { isCancer, type MachineryGene, type RasGene } from './science.model';
+import { isCancer, type MachineryGene, type RasGene, type StructureSnapshot } from './science.model';
+import { PLDDT_BANDS, plddtBand } from './protein-spec';
+import { currentTheme } from '../../shared/theme/surface';
 
 const VL = 'https://vega.github.io/schema/vega-lite/v6.json';
 
@@ -221,5 +223,25 @@ export function geneDiseaseSpec(gene: { diseases: { name: string; score: number 
       color: { field: 'kind', type: 'nominal', legend: null, scale: { domain: ['Malignancy', 'Other'], range: [VEGA_COLORS.teal, VEGA_COLORS.faint] } },
       tooltip: [{ field: 'name', title: 'Disease' }, { field: 'score', format: '.3f' }],
     },
+  };
+}
+
+// ── structure ────────────────────────────────────────────────────────────────────────────────
+
+/** pLDDT along the chain, one bar per residue coloured by AlphaFold's confidence band. */
+export function plddtStripSpec(s: StructureSnapshot): Record<string, unknown> {
+  const rows = s.residues.map((r, i) => ({ residue: i + 1, plddt: r[3], band: plddtBand(r[3]).label }));
+  return {
+    ...base('Per-residue confidence, AlphaFold pLDDT'),
+    data: { values: rows },
+    mark: { type: 'rect' },
+    encoding: {
+      x: { field: 'residue', type: 'quantitative', title: 'Residue', scale: { domain: [1, s.residues.length + 1], nice: false }, axis: { tickMinStep: 1 } },
+      x2: { field: 'residue2' },
+      y: { field: 'plddt', type: 'quantitative', title: 'pLDDT', scale: { domain: [0, 100] } },
+      color: { field: 'band', type: 'nominal', title: null, scale: { domain: PLDDT_BANDS.map((b) => b.label), range: PLDDT_BANDS.map((b) => (currentTheme() === 'dark' ? b.dark : b.light)) }, legend: { orient: 'top', direction: 'horizontal' } },
+      tooltip: [{ field: 'residue' }, { field: 'plddt', title: 'pLDDT' }, { field: 'band' }],
+    },
+    transform: [{ calculate: 'datum.residue + 1', as: 'residue2' }],
   };
 }

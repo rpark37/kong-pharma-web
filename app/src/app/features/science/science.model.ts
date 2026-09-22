@@ -106,6 +106,20 @@ export interface MachinerySnapshot extends Captured {
   macropinocytosisPapers: number;
 }
 
+// ── AlphaFold structures, one per gene story ─────────────────────────────────────────────────
+export interface StructureSnapshot extends Captured {
+  symbol: string;
+  uniprot: string;
+  /** AlphaFold entry, e.g. AF-P63000-F1, and the database version the model came from. */
+  model: string;
+  version: number | null;
+  modelDate: string | null;
+  length: number;
+  meanPlddt: number | null;
+  /** Per residue: Cα x, y, z in ångström (centred) and pLDDT 0–100. */
+  residues: [number, number, number, number][];
+}
+
 // ── /science/bladder ─────────────────────────────────────────────────────────────────────────
 export interface TargetAssociation {
   id: string;

@@ -6,10 +6,16 @@ import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { GsapService } from '../../shared/animation/gsap.service';
 import { GlyphComponent } from '../../shared/ui/glyph.component';
+import { MorphchartsSceneComponent } from '../../shared/morphcharts/morphcharts-scene.component';
+import { MorphchartsCameraComponent } from '../../shared/morphcharts/morphcharts-camera.component';
+import { CameraRig } from '../../shared/morphcharts/camera-rig';
+import type { MorphChartsHost } from '../../shared/morphcharts/morphcharts-host';
+import { ThemeService } from '../../shared/theme/theme.service';
+import { PLDDT_BANDS, confidentShare, proteinSpec } from './protein-spec';
 import { VegaChartComponent } from '../../shared/vega/vega-chart.component';
 import { GENE_ORDER, STATIONS, STATION_LABEL, geneStory, type GeneStory, type Station } from './gene-stories';
-import { associationSpec, geneDiseaseSpec, interactorSpec, literatureRaceSpec } from './science-specs';
-import { capturedOn, evidenceRows, isCancer, type DiseaseAssociation, type MachinerySnapshot, type Rac1Snapshot, type RasSnapshot } from './science.model';
+import { associationSpec, geneDiseaseSpec, interactorSpec, literatureRaceSpec, plddtStripSpec } from './science-specs';
+import { capturedOn, evidenceRows, isCancer, type DiseaseAssociation, type MachinerySnapshot, type Rac1Snapshot, type RasSnapshot, type StructureSnapshot } from './science.model';
 
 /** What every story shows, whichever snapshot it came from. */
 interface GeneData {
@@ -35,7 +41,7 @@ interface GeneData {
  */
 @Component({
   selector: 'app-gene-page',
-  imports: [DecimalPipe, RouterLink, VegaChartComponent, GlyphComponent],
+  imports: [DecimalPipe, RouterLink, VegaChartComponent, GlyphComponent, MorphchartsSceneComponent, MorphchartsCameraComponent],
   template: `
     @if (story(); as s) {
       <article class="story">
@@ -67,6 +73,29 @@ interface GeneData {
           @for (p of s.what; track $index) { <p class="prose">{{ p }}</p> }
         </section>
 
+        @if (structure(); as st) {
+          <section class="part structure" data-reveal>
+            <p class="kicker">The protein</p>
+            <dl class="ledger tight">
+              <div><dt>Model</dt><dd>{{ st.model }}<small>AlphaFold DB v{{ st.version }}</small></dd></div>
+              <div><dt>Residues</dt><dd>{{ st.length | number }}<small>Cα trace</small></dd></div>
+              <div><dt>Mean pLDDT</dt><dd>{{ st.meanPlddt | number: '1.0-0' }}<small>{{ meanBand() }}</small></dd></div>
+              <div><dt>Confident</dt><dd>{{ confident() | number: '1.0-0' }}%<small>residues at pLDDT ≥ 70</small></dd></div>
+            </dl>
+            <div class="scene-box">
+              <app-morphcharts-scene [spec]="structureSpec()" [maxFrames]="300" [fallbackTitle]="s.symbol + ' in 3D needs WebGPU'" (hostReady)="onStructureHost($event)" (loaded)="rig()?.apply(); rig()?.applyRenderMode()">
+                <p class="context-note">The confidence strip below carries the same model.</p>
+              </app-morphcharts-scene>
+            </div>
+            <app-morphcharts-camera class="scene-camera" [rig]="rig()" layout="row" />
+            <figcaption><b>Fig. 1</b> {{ s.symbol }} as beads on a string: every residue's alpha-carbon, coloured by how sure AlphaFold is of its position — <span class="band b0">very high</span>, <span class="band b1">confident</span>, <span class="band b2">low</span>, <span class="band b3">very low</span>. A loose thread of red is disorder, not error. AlphaFold DB, EMBL-EBI &amp; DeepMind, CC BY 4.0.</figcaption>
+            <figure>
+              <div class="chart strip-chart"><app-vega-chart [spec]="plddtStrip()" [fill]="true" /></div>
+              <figcaption><b>Fig. 2</b> Confidence along the chain, one bar per residue. Long low stretches are the flexible regions a crystal never resolves.</figcaption>
+            </figure>
+          </section>
+        }
+
         <figure class="pathway strip" data-reveal>
           <svg viewBox="0 0 960 150" role="img" [attr.aria-label]="'The route from RAS to the lysosome, with ' + s.symbol + ' at ' + stationLabel().toLowerCase()">
             <defs><marker id="gene-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1l6 3-6 3" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" /></marker></defs>
@@ -84,7 +113,7 @@ interface GeneData {
               <rect class="node" x="846" y="12" width="104" height="40" rx="8" /><text class="label" x="898" y="30">HIF1A · MTOR</text><text class="label small" x="898" y="44">sensing</text>
             </g>
           </svg>
-          <figcaption><b>Fig. 1</b> The route, with {{ s.symbol }}'s station lit. HIF1A turns the programme up under hypoxia; MTOR reads what the lysosome releases.</figcaption>
+          <figcaption><b>Fig. 3</b> The route, with {{ s.symbol }}'s station lit. HIF1A turns the programme up under hypoxia; MTOR reads what the lysosome releases.</figcaption>
         </figure>
 
         <section class="part" data-reveal>
@@ -104,18 +133,18 @@ interface GeneData {
             </p>
             <figure>
               <div class="chart tall"><app-vega-chart [spec]="associations()" [fill]="true" /></div>
-              <figcaption><b>Fig. 2</b> Top {{ d.diseases.length }} associations, each score stacked by the evidence type behind it.</figcaption>
+              <figcaption><b>Fig. 4</b> Top {{ d.diseases.length }} associations, each score stacked by the evidence type behind it.</figcaption>
             </figure>
             @if (d.interactors) {
               <figure>
                 <div class="chart"><app-vega-chart [spec]="interactors()" [fill]="true" /></div>
-                <figcaption><b>Fig. 3</b> STRING interaction partners, combined score; the solid bar is experimental evidence alone. The exchange factors that carry the RAS signal stay bright.</figcaption>
+                <figcaption><b>Fig. 5</b> STRING interaction partners, combined score; the solid bar is experimental evidence alone. The exchange factors that carry the RAS signal stay bright.</figcaption>
               </figure>
             }
             @if (d.literature) {
               <figure>
                 <div class="chart"><app-vega-chart [spec]="literature()" [fill]="true" /></div>
-                <figcaption><b>Fig. {{ d.interactors ? 4 : 3 }}</b> Publications per year, Europe PMC; the last year is partial.</figcaption>
+                <figcaption><b>Fig. {{ d.interactors ? 6 : 5 }}</b> Publications per year, Europe PMC; the last year is partial.</figcaption>
               </figure>
             }
             <div class="split">
@@ -186,6 +215,13 @@ interface GeneData {
     .thread.foot { margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--hairline); }
 
     .part { padding: 28px 0 8px; }
+    .structure { padding-top: 24px; }
+    .ledger.tight { margin: 0 0 16px; padding: 10px 0; border-top: 0; }
+    .scene-box { height: clamp(320px, 52vh, 520px); }
+    .scene-camera { margin-top: 12px; }
+    .band { font-weight: 500; }
+    .band.b0 { color: var(--teal); } .band.b1 { color: color-mix(in srgb, var(--teal) 70%, var(--on-ink)); } .band.b2 { color: var(--amber); } .band.b3 { color: var(--rose); }
+    .chart.strip-chart { height: 170px; }
     .kicker { margin: 0 0 12px; color: var(--teal); }
     .prose { max-width: 66ch; font-size: 15px; line-height: 1.7; color: var(--on-ink); margin: 0 0 14px; }
     .prose.small { font-size: 13px; color: var(--on-ink-dim); }
@@ -241,6 +277,8 @@ export class GenePageComponent {
   readonly prev = computed(() => (this.index() > 0 ? GENE_ORDER[this.index() - 1] : null));
   readonly next = computed(() => (this.index() >= 0 && this.index() < GENE_ORDER.length - 1 ? GENE_ORDER[this.index() + 1] : null));
   readonly data = signal<GeneData | null>(null);
+  readonly structure = signal<StructureSnapshot | null>(null);
+  readonly rig = signal<CameraRig | null>(null);
   readonly targetId = signal('');
   readonly error = signal('');
   readonly capturedOn = capturedOn;
@@ -251,6 +289,12 @@ export class GenePageComponent {
     const st = this.story()?.station;
     return st === 'ras' ? 'ras' : st === 'rac1' ? 'rac1' : (this.story()?.symbol.toLowerCase() ?? 'machinery');
   });
+  /** Rebuilt on theme change too: the beads' colours and the paper are baked into the spec. */
+  readonly structureSpec = computed(() => { this.theme.theme(); const st = this.structure(); return st ? proteinSpec(st) : null; });
+  readonly plddtStrip = computed(() => { const st = this.structure(); return st ? plddtStripSpec(st) : {}; });
+  readonly confident = computed(() => { const st = this.structure(); return st ? confidentShare(st) * 100 : 0; });
+  readonly meanBand = computed(() => { const m = this.structure()?.meanPlddt ?? 0; return (PLDDT_BANDS.find((b) => m >= b.min) ?? PLDDT_BANDS[3]).label.toLowerCase(); });
+  onStructureHost(host: MorphChartsHost): void { this.rig.set(new CameraRig(host, { reducedMotion: () => this.gsap.reducedMotion })); }
   readonly malignancies = computed(() => (this.data()?.diseases ?? []).filter((d) => isCancer(d.name)).length);
   readonly approved = computed(() => (this.data()?.drugs ?? []).filter((d) => /approv/i.test(d.stage)).map((d) => d.name).slice(0, 2).join(', '));
   readonly peakYear = computed(() => this.data()?.literature?.at(-2)?.year ?? 0);
@@ -265,6 +309,7 @@ export class GenePageComponent {
   private readonly http = inject(HttpClient);
   private readonly gsap = inject(GsapService);
   private readonly title = inject(Title);
+  private readonly theme = inject(ThemeService);
   private readonly el = inject<ElementRef<HTMLElement>>(ElementRef);
 
   constructor() {
@@ -275,7 +320,8 @@ export class GenePageComponent {
       untracked(() => {
         this.title.setTitle(story ? `${story.symbol} · ${story.role}` : 'Research');
         this.data.set(null);
-        if (story) void this.load(story).then(() => this.reveal());
+        this.structure.set(null);
+        if (story) { void this.load(story).then(() => this.reveal()); void this.loadStructure(story.symbol); }
       });
     });
   }
@@ -291,6 +337,14 @@ export class GenePageComponent {
       const edges = Array.from(svg.querySelectorAll<SVGPathElement>('.edge'));
       for (const p of edges) { const len = p.getTotalLength(); p.style.strokeDasharray = p.classList.contains('direct') ? '4 5' : `${len}`; p.style.strokeDashoffset = `${len}`; }
       this.gsap.tweenObject(edges as unknown as object, { strokeDashoffset: 0, duration: this.gsap.MOTION.duration.slow, stagger: 0.05, delay: 0.2 });
+    }
+  }
+
+  private async loadStructure(symbol: string): Promise<void> {
+    try {
+      this.structure.set(await firstValueFrom(this.http.get<StructureSnapshot>(`data/science/structures/${symbol}.json`)));
+    } catch {
+      this.structure.set(null); // no model for this gene: the page simply has no structure section
     }
   }
 
