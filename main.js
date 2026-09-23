@@ -1,17 +1,13 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // Set while the menu drives a scroll, so passing cards don't auto-open mid-flight.
-  let programScrollBusy = false;
   // Core nav behavior — always runs, independent of GSAP / reduced motion.
   initNav();
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest('a[href^="tel:"], a[href^="mailto:"]');
+    if (a && typeof window.gtag === "function") window.gtag("event", "contact_click", { method: a.protocol.replace(":", "") });
+  });
 
-  // Animated expand/collapse for the program-overview <details> accordions.
-  initProgramAccordions();
-
-  // Deep links to a drug (#cr-067 etc.) expand its overview before scrolling.
-  initProgramLinks();
-
-  // Each drug's overview opens on its own as the card scrolls into the reading band.
-  initAutoOpenPrograms();
+  // The drug row in the reading band is bracketed; the others step back.
+  initReadingCursor();
 
   // Mission explainer video plays only while it is on screen.
   initScienceVideo();
@@ -87,6 +83,23 @@ document.addEventListener("DOMContentLoaded", () => {
     sections.forEach((sec) => io.observe(sec));
   }
 
+  function initReadingCursor() {
+    const items = document.querySelectorAll(".pipeline .index-item");
+    if (!items.length || typeof IntersectionObserver !== "function") return;
+    const seen = new Set();
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        items.forEach((li) => li.classList.toggle("is-reading", li === e.target));
+        if (!seen.has(e.target) && typeof window.gtag === "function") {
+          seen.add(e.target);
+          window.gtag("event", "program_read", { program: e.target.id });
+        }
+      });
+    }, { rootMargin: "-25% 0px -45% 0px", threshold: 0 });
+    items.forEach((li) => io.observe(li));
+  }
+
   function initReveals() {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const cards = document.querySelectorAll(".panel, .member, .tox__card, .dmta__card, .pipeline .index-item");
@@ -102,6 +115,15 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!e.isIntersecting) return;
         e.target.classList.add("is-in");
         io.unobserve(e.target);
+        // a drug row brings its overview in with it: caption and milestones
+        // fade, the paragraphs rise line by line
+        const content = e.target.querySelector(".program__content");
+        if (content && window.gsap) {
+          content.querySelectorAll(".milestones li").forEach((li) => li.classList.add("is-in"));
+          gsap.from(content.querySelectorAll(".program__viz-cap, .milestones li"),
+            { autoAlpha: 0, y: 10, duration: 0.3, stagger: 0.1, ease: "power2.out", overwrite: true, delay: 0.25 });
+          revealLines(content.querySelectorAll(".program__content > p"), 0.35);
+        }
       });
     }, { rootMargin: "0px 0px -8% 0px", threshold: 0.1 });
     cards.forEach((el) => io.observe(el));
@@ -140,102 +162,6 @@ document.addEventListener("DOMContentLoaded", () => {
     ).observe(video);
   }
 
-  function initAutoOpenPrograms() {
-    const items = document.querySelectorAll(".pipeline .index-item");
-    if (!items.length || typeof IntersectionObserver !== "function") return;
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    // A card counts as "being read" once its top crosses the band between
-    // 15% and 55% of the viewport; that is when its overview unfolds.
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((e) => {
-        if (!e.isIntersecting || programScrollBusy) return;
-        const d = e.target.querySelector("details.program");
-        if (!d || d.open || d.dataset.userClosed || d.dataset.animating) return;
-        const summary = d.querySelector("summary");
-        if (summary && !reduce) summary.click(); // animated grow-in via the accordion
-        else d.open = true;
-      });
-    }, { rootMargin: "-15% 0px -45% 0px", threshold: 0 });
-    items.forEach((li) => io.observe(li));
-  }
-
-  function initProgramLinks() {
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const NAV_OFFSET = 84; // matches .index-item { scroll-margin-top }
-
-    const programOf = (hash) => {
-      if (!hash || hash.length < 2) return {};
-      const item = document.getElementById(hash.slice(1));
-      const d = item && item.querySelector("details.program");
-      return d ? { item, d } : {};
-    };
-    // One drug at a time. Collapsing is instant (setting .open fires `toggle`,
-    // so the viz timelines pause) which keeps the scroll target stable.
-    const collapseOthers = (d) =>
-      document.querySelectorAll("details.program").forEach((other) => {
-        if (other !== d && other.open) other.open = false;
-      });
-    // Opening goes through the summary so the accordion's grow-in animation runs.
-    const openProgram = (d) => {
-      if (d.open) return;
-      const summary = d.querySelector("summary");
-      if (summary && !reduce) summary.click();
-      else d.open = true;
-    };
-    // Scroll the item under the toolbar first; open it only once we've arrived.
-    const scrollThenOpen = (item, d) => {
-      programScrollBusy = true;
-      collapseOthers(d);
-      const html = document.documentElement;
-      const target = () =>
-        Math.min(
-          Math.round(item.getBoundingClientRect().top + window.scrollY - NAV_OFFSET),
-          html.scrollHeight - window.innerHeight
-        );
-      let done = false;
-      const finish = () => {
-        if (done) return;
-        done = true;
-        window.removeEventListener("scrollend", finish);
-        openProgram(d);
-        setTimeout(() => { programScrollBusy = false; }, 400);
-      };
-      // `scrollend` fires exactly when the smooth scroll settles; the frame
-      // check is the fallback for browsers without it (long jumps can take >2 s)
-      window.addEventListener("scrollend", finish, { once: true });
-      window.scrollTo({ top: target(), behavior: reduce ? "auto" : "smooth" });
-      const t0 = performance.now();
-      let still = 0, lastY = -1;
-      const check = () => {
-        if (done) return;
-        const y = window.scrollY;
-        still = Math.abs(y - lastY) < 0.5 ? still + 1 : 0;
-        lastY = y;
-        const arrived = Math.abs(y - target()) < 2 || still > 6; // settled, even if short of target
-        if (!arrived && performance.now() - t0 < 4000) return requestAnimationFrame(check);
-        finish();
-      };
-      requestAnimationFrame(check);
-    };
-
-    document.querySelectorAll('a[href^="#"]').forEach((a) =>
-      a.addEventListener("click", (e) => {
-        const { item, d } = programOf(a.getAttribute("href"));
-        if (!d) return;
-        e.preventDefault(); // we drive the scroll ourselves
-        history.pushState(null, "", a.getAttribute("href"));
-        scrollThenOpen(item, d);
-      })
-    );
-    window.addEventListener("hashchange", () => {
-      const { d } = programOf(location.hash);
-      if (d) { collapseOthers(d); openProgram(d); }
-    });
-    // Arriving on a #drug URL: the browser scrolls there itself, so open at once.
-    const { d: initial } = programOf(location.hash);
-    if (initial) { collapseOthers(initial); initial.open = true; }
-  }
-
   function initNavTheme() {
     const nav = document.querySelector("[data-nav]");
     if (!nav) return;
@@ -246,16 +172,14 @@ document.addEventListener("DOMContentLoaded", () => {
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
 
-    const targets = document.querySelectorAll("main > section, .site-footer");
+    const targets = document.querySelectorAll("main > section");
     if (!targets.length || typeof IntersectionObserver !== "function") return;
     // A section is "active" when it crosses the thin band just under the bar.
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
           if (!e.isIntersecting) return;
-          const dark =
-            e.target.classList.contains("section--ink") ||
-            e.target.classList.contains("site-footer");
+          const dark = e.target.classList.contains("section--ink");
           nav.classList.toggle("nav--light", dark);
         });
       },
@@ -264,61 +188,25 @@ document.addEventListener("DOMContentLoaded", () => {
     targets.forEach((t) => io.observe(t));
   }
 
-  function initProgramAccordions() {
-    const reduce = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
-    // Reduced motion (or no Web Animations API): keep the native instant toggle.
-    if (reduce || typeof Element.prototype.animate !== "function") return;
-
-    document.querySelectorAll("details.program").forEach((d) => {
-      const summary = d.querySelector("summary");
-      const content = d.querySelector(".program__content");
-      if (!summary || !content) return;
-
-      summary.addEventListener("click", (e) => {
-        e.preventDefault();
-        if (d.dataset.animating) return;
-        d.dataset.animating = "1";
-        content.style.overflow = "hidden";
-
-        if (!d.open) {
-          delete d.dataset.userClosed;
-          d.open = true; // reveal + expose to assistive tech, then grow in
-          if (window.gsap) {
-            content.querySelectorAll(".milestones li").forEach((li) => li.classList.add("is-in"));
-            gsap.from(content.querySelectorAll(".program__viz-cap, .milestones li, p"),
-              { autoAlpha: 0, y: 10, duration: 0.3, stagger: 0.1, ease: "power2.out", overwrite: true });
-          }
-          const h = content.scrollHeight;
-          const anim = content.animate(
-            [
-              { height: "0px", opacity: 0 },
-              { height: h + "px", opacity: 1 },
-            ],
-            { duration: 253.333, easing: "cubic-bezier(0.22, 1, 0.36, 1)" }
-          );
-          anim.onfinish = anim.oncancel = () => {
-            content.style.overflow = "";
-            delete d.dataset.animating;
-          };
-        } else {
-          const h = content.scrollHeight;
-          const anim = content.animate(
-            [
-              { height: h + "px", opacity: 1 },
-              { height: "0px", opacity: 0 },
-            ],
-            { duration: 200.0, easing: "cubic-bezier(0.4, 0, 0.2, 1)" }
-          );
-          d.dataset.userClosed = "1"; // a deliberate close: scrolling won't reopen it
-          anim.onfinish = anim.oncancel = () => {
-            d.open = false; // collapse + hide from assistive tech
-            content.style.overflow = "";
-            delete d.dataset.animating;
-          };
-        }
+  // Overview copy: each paragraph's lines rise out of a mask, one after the
+  // other, 0.3s per line staggered 0.06s. Falls back to a fade without SplitText.
+  function revealLines(paragraphs, delay) {
+    const els = Array.from(paragraphs);
+    if (!els.length) return;
+    if (!window.SplitText) {
+      gsap.from(els, { autoAlpha: 0, y: 10, duration: 0.3, stagger: 0.1, ease: "power2.out", overwrite: true, delay: delay || 0 });
+      return;
+    }
+    let at = delay || 0.1;
+    els.forEach((p) => {
+      if (p._split) p._split.revert();
+      const split = new SplitText(p, { type: "lines", mask: "lines", linesClass: "split-line" });
+      p._split = split;
+      gsap.from(split.lines, {
+        yPercent: 100, opacity: 0, duration: 0.3, stagger: 0.06, ease: "power2.out", delay: at,
+        onComplete: () => { split.revert(); p._split = null; },
       });
+      at += 0.06 * split.lines.length + 0.05;
     });
   }
 
@@ -370,7 +258,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .from(heroTail, { y: 20, duration: 0.4, stagger: 0.08 }, "<");
 
     // ---- Detailed text: fade-rise, 0.3s per tween, siblings staggered 0.1s ----
-    // Drug overview copy lives in closed <details>; initProgramAccordions animates it on open.
+    // Drug overview copy is animated by initReveals as its row enters.
     const detail = gsap.utils.toArray(
       ".science__intro p, .science__blurb, .panel__def, .panel__note, .readout p, " +
       ".dmta__card p, .speed__row, .speed__src, .tox__card p, .pipeline-group__desc, " +

@@ -230,14 +230,59 @@
       de: "3 Programme · 1 in der Klinik · 1 IND eingereicht · 1 in der Entdeckung",
       ja: "3 プログラム · 臨床 1 · IND 申請済み 1 · 探索段階 1",
     },
-    "prog.overview": { en: "Overview", zh: "概览", es: "Resumen", ko: "개요", fr: "Aperçu", de: "Überblick", ja: "概要" },
-    "contact.eyebrow": { fr: "Contact", de: "Kontakt", ja: "お問い合わせ", en: "Contact", zh: "联系我们", es: "Contacto", ko: "문의" },
-    "contact.title": { fr: "Faire progresser le rétablissement des patients, ensemble.", de: "Gemeinsam die Genesung der Patienten voranbringen.", ja: "共に、患者の回復を前進させる。",
-    "contact.globe": { en: "Collaborating from Lowell, MA with", zh: "从马萨诸塞州洛厄尔出发，合作伙伴遍及", es: "Colaborando desde Lowell, MA con", ko: "매사추세츠주 로웰에서 협력 중:", fr: "Collaborations depuis Lowell, MA avec", de: "Zusammenarbeit von Lowell, MA aus mit", ja: "マサチューセッツ州ローウェルから連携：" },
-      en: "Advancing patient recovery, together.",
-      zh: "携手推进患者康复。",
-      es: "Impulsando juntos la recuperación de los pacientes.",
-      ko: "함께 환자 회복을 앞당깁니다.",
+    "meta.title": {
+      en: "Kong's Pharmaceutical Co. | AI Endocrine & Oncology Drug Innovation",
+      zh: "Kong's Pharmaceutical Co. | AI 驱动的内分泌与肿瘤新药研发",
+      es: "Kong's Pharmaceutical Co. | Innovación en fármacos endocrinos y oncológicos con IA",
+      ko: "Kong's Pharmaceutical Co. | AI 기반 내분비·종양 신약 혁신",
+      fr: "Kong's Pharmaceutical Co. | Innovation en médicaments endocriniens et oncologiques par l'IA",
+      de: "Kong's Pharmaceutical Co. | KI-gestützte Innovation in Endokrinologie und Onkologie",
+      ja: "Kong's Pharmaceutical Co. | AI による内分泌・腫瘍領域の新薬イノベーション",
+    },
+    "meta.desc": {
+      en: "Small molecules designed with AI and robotics alongside XtalPi that starve aggressive cancers of the nutrients they take in through macropinocytosis.",
+      zh: "与 XtalPi 合作，用 AI 与机器人设计小分子药物，切断侵袭性癌症通过巨胞饮摄取的营养。",
+      es: "Moléculas pequeñas diseñadas con IA y robótica junto a XtalPi que privan a los cánceres agresivos de los nutrientes que captan por macropinocitosis.",
+      ko: "XtalPi와 함께 AI와 로봇으로 설계한 소분자 약물로, 공격적인 암이 거대음세포작용으로 흡수하는 영양분을 차단합니다.",
+      fr: "Des petites molécules conçues par IA et robotique avec XtalPi, qui privent les cancers agressifs des nutriments captés par macropinocytose.",
+      de: "Mit KI und Robotik gemeinsam mit XtalPi entworfene kleine Moleküle, die aggressiven Krebs von den über Makropinozytose aufgenommenen Nährstoffen abschneiden.",
+      ja: "XtalPi と共に AI とロボティクスで設計した低分子薬で、マクロピノサイトーシスにより取り込む栄養を侵襲性のがんから断ちます。",
+    },
+    "consent.text": {
+      en: "We use Google Analytics to see which sections matter to visitors. Allow it?",
+      zh: "我们使用 Google Analytics 了解访客关注哪些内容。是否允许？",
+      es: "Usamos Google Analytics para ver qué secciones importan a los visitantes. ¿Lo permite?",
+      ko: "방문자가 어떤 섹션을 보는지 파악하기 위해 Google Analytics를 사용합니다. 허용하시겠습니까?",
+      fr: "Nous utilisons Google Analytics pour voir quelles sections comptent pour les visiteurs. L'autoriser ?",
+      de: "Wir nutzen Google Analytics, um zu sehen, welche Abschnitte Besuchern wichtig sind. Erlauben?",
+      ja: "訪問者にとって重要なセクションを知るため Google Analytics を使用しています。許可しますか？",
+    },
+    "consent.allow": {
+      en: "Allow",
+      zh: "允许",
+      es: "Permitir",
+      ko: "허용",
+      fr: "Autoriser",
+      de: "Erlauben",
+      ja: "許可する",
+    },
+    "consent.decline": {
+      en: "Decline",
+      zh: "拒绝",
+      es: "Rechazar",
+      ko: "거부",
+      fr: "Refuser",
+      de: "Ablehnen",
+      ja: "許可しない",
+    },
+    "consent.privacy": {
+      en: "Privacy notice",
+      zh: "隐私政策",
+      es: "Aviso de privacidad",
+      ko: "개인정보 안내",
+      fr: "Notice de confidentialité",
+      de: "Datenschutzhinweis",
+      ja: "プライバシー通知",
     },
     "label.phone": { fr: "Téléphone", de: "Telefon", ja: "電話", en: "Phone", zh: "电话", es: "Teléfono", ko: "전화" },
     "label.email": { fr: "E-mail", de: "E-Mail", ja: "メール", en: "Email", zh: "邮箱", es: "Correo", ko: "이메일" },
@@ -324,6 +369,7 @@
   };
   const LABEL = { en: "EN", zh: "中", es: "ES", ko: "KO", fr: "FR", de: "DE", ja: "日" };
   const LANGTAG = { en: "en", zh: "zh-CN", es: "es", ko: "ko", fr: "fr", de: "de", ja: "ja" };
+  const OGLOCALE = { en: "en_US", zh: "zh_CN", es: "es_ES", ko: "ko_KR", fr: "fr_FR", de: "de_DE", ja: "ja_JP" };
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   let ready = false;
 
@@ -415,6 +461,18 @@
     if (!I18N["nav.science"][lang]) return;
     const canScramble = ensurePlugin() && !reduce;
     document.documentElement.lang = LANGTAG[lang];
+    // head metadata follows the language; the URL carries it so the page is shareable
+    document.title = I18N["meta.title"][lang];
+    const desc = document.querySelector('meta[name="description"]');
+    if (desc) desc.setAttribute("content", I18N["meta.desc"][lang]);
+    const ogl = document.querySelector('meta[property="og:locale"]');
+    if (ogl) ogl.setAttribute("content", OGLOCALE[lang]);
+    try {
+      const url = new URL(location.href);
+      if (lang === "en") url.searchParams.delete("lang"); else url.searchParams.set("lang", lang);
+      history.replaceState(history.state, "", url);
+    } catch (e) {}
+    if (ready && typeof window.gtag === "function") window.gtag("event", "lang_change", { language: lang });
     let i = 0;
     document.querySelectorAll("[data-i18n]").forEach((el) => {
       const t = (I18N[el.dataset.i18n] || {})[lang];
@@ -456,9 +514,15 @@
         btn.setAttribute("aria-expanded", "false");
       }
     });
+    // URL beats the remembered choice, so a shared /?lang=de link opens in German
     let saved = "en";
     try { saved = localStorage.getItem("lang") || "en"; } catch (e) {}
+    try {
+      const q = new URLSearchParams(location.search).get("lang");
+      if (q && I18N["nav.science"][q]) saved = q;
+    } catch (e) {}
     if (saved !== "en") setLang(saved);
     else document.querySelector('.nav__lang-menu [data-lang="en"]').setAttribute("aria-current", "true");
+    ready = true;
   }
 })();

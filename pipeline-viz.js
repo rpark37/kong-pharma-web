@@ -269,26 +269,22 @@
   // ---- animate (skip entirely under reduced motion / no GSAP) -----------
   if (reduce || !G) return;
 
-  var programs = document.querySelectorAll("details.program");
-  for (i = 0; i < programs.length; i++) {
-    (function (details) {
-      var b = details.querySelector("[data-viz-banner]");
-      if (!b) return;
-      var k = b.getAttribute("data-viz-banner");
-      var s = b.querySelector("svg");
-      if (!s || !VIZ[k]) return;
-      // Build lazily on first open so GSAP reads valid bounding boxes for
-      // scale/rotate origins (a collapsed display:none <details> reports 0).
-      var tl = null;
-      details.addEventListener("toggle", function () {
-        if (details.open) {
-          if (!tl) tl = VIZ[k].anim(s, G);
-          tl.restart();
-        } else if (tl) {
-          tl.pause();
+  // Each figure builds its timeline the first time it scrolls into view,
+  // then plays while visible and pauses off-screen.
+  var banners2 = document.querySelectorAll("[data-viz-banner]");
+  if ("IntersectionObserver" in window) {
+    var vio = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        var b = e.target, k = b.getAttribute("data-viz-banner"), s = b.querySelector("svg");
+        if (!s || !VIZ[k]) return;
+        if (e.isIntersecting) {
+          if (!b._tl) { b._tl = VIZ[k].anim(s, G); b._tl.play(0); } else b._tl.play();
+        } else if (b._tl) {
+          b._tl.pause();
         }
       });
-    })(programs[i]);
+    }, { rootMargin: "0px 0px -12% 0px", threshold: 0.2 });
+    for (i = 0; i < banners2.length; i++) vio.observe(banners2[i]);
   }
 
   // Idle the always-on emblem loops while the pipeline is off-screen.

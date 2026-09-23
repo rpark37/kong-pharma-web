@@ -5,8 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Privacy | Kong's Pharmaceutical Co.</title>
     <meta name="robots" content="noindex" />
-    <link rel="icon" href="assets/favicon.png" type="image/png" />
+    <meta name="description" content="Privacy notice for the Kong's Pharmaceutical Co. website: what is stored in your browser, analytics consent, and how to reach us." />
+    <link rel="canonical" href="https://www.kongspharmaceuticals.com/privacy.html" />
+    <link rel="icon" href="assets/favicon.png" type="image/png" sizes="192x192" />
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=Albert+Sans:wght@400;500;600&family=Red+Hat+Mono:wght@400;500&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css" />
     <style>
@@ -21,9 +25,15 @@
     <main class="simple section section--ink"><div class="simple__inner"><p class="eyebrow">Privacy</p>
         <h1>Privacy notice</h1>
         <p><strong>Draft: to be reviewed by counsel before publication.</strong></p>
-        <p>This website does not use advertising cookies and does not run analytics. Your language preference is stored only in your browser. Fonts are loaded from Google Fonts and 3D libraries from public CDNs; those providers may log standard request data such as your IP address.</p>
+        <p>This website does not use advertising cookies. Your language preference and your analytics choice are stored only in your browser. Fonts are loaded from Google Fonts and 3D libraries from public CDNs; those providers may log standard request data such as your IP address.</p>
+        <p>This website does not currently run analytics. If we enable Google Analytics 4 in future to understand which sections visitors read, IP addresses will be anonymised, and in the European Union, the European Economic Area, the United Kingdom and Switzerland it will run only after you allow it in a notice shown on your first visit. You will be able to change your choice at any time: <a href="./" id="consent-reset">reset your analytics choice</a>.</p>
         <p>If you contact us by email or phone, we use the details you provide only to respond to you.</p>
-        <p>Questions: <a href="mailto:yanpingk@kongspharmaceutical.com">yanpingk@kongspharmaceutical.com</a> · Kong's Pharmaceutical Co., 110 Canal Street, 4th Floor, Lowell, MA 01852.</p>
+        <p>Questions: <a href="mailto:yanpingk@kongspharmaceuticals.com">yanpingk@kongspharmaceuticals.com</a> · Kong's Pharmaceutical Co., 110 Canal Street, 4th Floor, Lowell, MA 01852.</p>
         <a class="btn" href="./">Back to the home page</a></div></main>
+    <script>
+      document.getElementById("consent-reset").addEventListener("click", function () {
+        try { localStorage.removeItem("consent"); } catch (e) {}
+      });
+    </script>
   </body>
 </html>

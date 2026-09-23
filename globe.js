@@ -247,6 +247,7 @@ function init() {
     spin.vy = spin.vx = 0;
     idleUntil = performance.now() / 1000 + 9;
     siteButtons.forEach((b) => b.setAttribute("aria-pressed", String(b === btn)));
+    if (typeof window.gtag === "function") window.gtag("event", "site_focus", { site: btn.textContent.trim() });
     // permanent labels already cover Lowell and Sydney; anything else gets the focus chip
     const permanent = labels.slice(0, 2).some(({ anchor }) => anchor.angleTo(toVec(lat, lon, R * 1.02)) < 0.01);
     if (permanent) { focusLabel.hidden = true; return; }
