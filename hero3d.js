@@ -55,7 +55,7 @@ function initThree(placeholderCanvas) {
   const scene = new THREE.Scene();
   // Depth fog: distant nodes dissolve into the hero's teal for real depth.
   // Far plane is generous so the cluster survives being scaled up on wide screens.
-  scene.fog = new THREE.Fog(0xf4f9f9, 6.5, 16); // matches the light hero background (--paper)
+  scene.fog = new THREE.Fog(0xf5faf8, 6.5, 16); // matches the light hero background (--paper)
   const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
   camera.position.set(0, 0, 9);
 

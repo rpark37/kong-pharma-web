@@ -12,7 +12,7 @@ function init() {
 
   const TEAL = 0x44e0cc;
   const MINT = 0xe6fff8;
-  const AMBER = 0xffb547;
+  const AMBER = 0xcf8a5c; // copper: the site's one secondary accent
   const INK = 0x121c24;
   const R = 1;
 
@@ -64,7 +64,7 @@ function init() {
   globe.add(
     new THREE.Mesh(
       new THREE.SphereGeometry(R * 0.995, 64, 48),
-      new THREE.MeshBasicMaterial({ color: 0x0b141b }) // darker ocean so the land dots pop
+      new THREE.MeshBasicMaterial({ color: 0x0f181f }) // ocean: the site's ink
     )
   );
 

@@ -82,7 +82,7 @@ a {
   font-family: var(--font-display);
   font-size: 0.9rem;
   transform: translateY(-150%);
-  transition: transform 0.2s ease;
+  transition: transform 0.2s var(--ease-out);
 }
 .skip-link:focus {
   transform: translateY(0);
@@ -120,7 +120,7 @@ a {
   color: var(--on-paper);
 }
 .section--white {
-  background: #ffffff;
+  background: var(--surface);
   color: var(--on-paper);
 }
 
@@ -170,7 +170,7 @@ a {
   inset: 0 0 auto 0;
   z-index: 60;
   background: var(--teal);
-  transition: box-shadow 0.4s ease;
+  transition: box-shadow 0.4s var(--ease-out);
 }
 /* Subtle shadow for separation once the bar sits over other sections */
 .nav--scrolled {
@@ -220,7 +220,7 @@ a {
 .nav__mark {
   height: 38px;
   width: auto;
-  transition: filter 0.35s ease;
+  transition: filter 0.35s var(--ease-out);
 }
 /* Opaque teal bar: the mark reads the same over every section */
 .nav--light .nav__mark {
@@ -235,7 +235,7 @@ a {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--nav-fg);
-  transition: color 0.35s ease;
+  transition: color 0.35s var(--ease-out);
 }
 /* Opaque teal bar: marks stay dark for contrast over every section */
 .nav--light .nav__wordmark {
@@ -277,7 +277,7 @@ a {
   border-radius: 999px;
   padding: 0.32rem 0.7rem;
   cursor: pointer;
-  transition: color 0.35s ease, border-color 0.35s ease, background 0.2s ease;
+  transition: color 0.35s var(--ease-out), border-color 0.35s var(--ease-out), background 0.2s var(--ease-out);
 }
 .nav__lang-btn:hover {
   background: color-mix(in srgb, var(--nav-fg) 8%, transparent);
@@ -300,7 +300,7 @@ a {
   opacity: 0;
   visibility: hidden;
   transform: translateY(-6px);
-  transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s ease;
+  transition: opacity 0.25s var(--ease-out), transform 0.25s var(--ease-out), visibility 0.25s var(--ease-out);
 }
 .nav__lang.is-open .nav__lang-menu {
   opacity: 1;
@@ -349,8 +349,8 @@ a {
   height: 2px;
   margin-inline: auto;
   background: var(--nav-fg);
-  transition: transform 0.3s ease, opacity 0.3s ease,
-    background-color 0.35s ease, width 0.3s ease;
+  transition: transform 0.3s var(--ease-out), opacity 0.3s var(--ease-out),
+    background-color 0.35s var(--ease-out), width 0.3s var(--ease-out);
 }
 /* Subtle hover: middle bar shortens (closed state only) */
 .nav:not(.is-open) .nav__toggle:hover .nav__toggle-bar:nth-child(2) {
@@ -382,10 +382,9 @@ a {
     radial-gradient(60% 50% at 82% 8%, color-mix(in srgb, var(--teal) 16%, transparent), transparent 70%),
     radial-gradient(42% 42% at 8% 92%, color-mix(in srgb, var(--violet) 12%, transparent), transparent 70%),
     color-mix(in srgb, var(--ink) 94%, transparent);
-  backdrop-filter: blur(18px);
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.45s ease, visibility 0.45s ease;
+  transition: opacity 0.45s var(--ease-out), visibility 0.45s var(--ease-out);
 }
 .nav.is-open .nav__links {
   opacity: 1;
@@ -400,7 +399,7 @@ a {
   color: var(--on-ink);
   opacity: 0;
   transform: translateY(28px);
-  transition: opacity 0.5s ease, transform 0.5s ease, color 0.2s ease;
+  transition: opacity 0.5s var(--ease-out), transform 0.5s var(--ease-out), color 0.2s var(--ease-out);
 }
 .nav.is-open .nav__links a {
   opacity: 1;
@@ -436,7 +435,7 @@ a {
   font-weight: 500;
   border-radius: 999px;
   padding: 0.8rem 1.8rem;
-  transition: transform 0.2s ease, background 0.2s ease;
+  transition: transform 0.2s var(--ease-out), background 0.2s var(--ease-out);
 }
 .btn:hover {
   transform: translateY(-2px);
@@ -748,10 +747,10 @@ a {
   padding-inline: clamp(1rem, 2vw, 1.75rem);
   margin-inline: calc(-1 * clamp(1rem, 2vw, 1.75rem));
   border-radius: 16px;
-  transition: background-color 0.45s ease;
+  transition: background-color 0.45s var(--ease-out);
 }
 .pipeline .index-item:has(.program[open]) {
-  background-color: color-mix(in srgb, var(--teal) 14%, #ffffff);
+  background-color: color-mix(in srgb, var(--teal) 14%, var(--surface));
 }
 
 /* ===== Inline icons (currentColor mask — adapt to each section) ===== */
@@ -901,7 +900,7 @@ a {
   aspect-ratio: 16 / 6;
   color: inherit;
   border-radius: 12px;
-  background: color-mix(in srgb, var(--teal) 8%, #ffffff);
+  background: color-mix(in srgb, var(--teal) 8%, var(--surface));
   overflow: hidden;
 }
 .program__viz-cap {
@@ -1043,9 +1042,9 @@ a {
   border-radius: 12px;
   /* transparent cutouts sit on a light backdrop: white center, pale mint edge */
   background:
-    radial-gradient(75% 60% at 50% 35%, #ffffff, color-mix(in srgb, var(--teal) 14%, #ffffff) 72%),
-    color-mix(in srgb, var(--teal) 14%, #ffffff);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--teal) 28%, transparent);
+    radial-gradient(75% 60% at 50% 35%, var(--surface), color-mix(in srgb, var(--teal) 14%, var(--surface)) 72%),
+    color-mix(in srgb, var(--teal) 14%, var(--surface));
+  box-shadow: none;
   margin-bottom: 0;
 }
 @media (max-width: 640px) {
@@ -1130,9 +1129,7 @@ a {
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background:
-    radial-gradient(60% 50% at 82% 8%, color-mix(in srgb, var(--teal) 14%, transparent), transparent 70%),
-    radial-gradient(42% 42% at 8% 92%, color-mix(in srgb, var(--violet) 12%, transparent), transparent 70%);
+  background: none;
 }
 /* Hero: dark aurora instead of flat teal, with the network glowing on top */
 .section--teal {
@@ -1140,7 +1137,6 @@ a {
   color: var(--on-ink);
 }
 .hero__headline {
-  text-shadow: 0 0 48px color-mix(in srgb, var(--teal) 28%, transparent);
 }
 .eyebrow {
   color: var(--teal);
@@ -1153,11 +1149,10 @@ a {
 .btn--light {
   background: var(--teal-bar);
   color: var(--on-teal);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--teal-bar) 60%, transparent),
-    0 0 28px color-mix(in srgb, var(--teal-bar) 35%, transparent);
+  box-shadow: none;
 }
 .btn--light:hover {
-  box-shadow: 0 0 0 1px var(--teal-bar), 0 0 40px color-mix(in srgb, var(--teal-bar) 55%, transparent);
+  box-shadow: none;
 }
 /* Formerly-light sections become lifted dark glass */
 .section--white {
@@ -1167,7 +1162,6 @@ a {
 /* Pipeline: glass cards with luminous hairlines */
 .pipeline-group__title {
   color: var(--teal);
-  text-shadow: 0 0 32px color-mix(in srgb, var(--teal) 30%, transparent);
 }
 .pipeline-group__desc {
   color: var(--on-ink);
@@ -1177,10 +1171,9 @@ a {
   border-top: 0;
 }
 .pipeline .index-item {
-  background: color-mix(in srgb, #ffffff 3%, transparent);
+  background: var(--surface-dark);
   border: 1px solid color-mix(in srgb, var(--teal) 16%, transparent);
-  backdrop-filter: blur(10px);
-  transition: background-color 0.45s ease, border-color 0.45s ease, box-shadow 0.45s ease;
+  transition: background-color 0.45s var(--ease-out), border-color 0.45s var(--ease-out), box-shadow 0.45s var(--ease-out);
 }
 .pipeline .index-item + .index-item {
   margin-top: 0.75rem;
@@ -1188,7 +1181,7 @@ a {
 .pipeline .index-item:has(.program[open]) {
   background-color: color-mix(in srgb, var(--teal) 7%, transparent);
   border-color: color-mix(in srgb, var(--teal) 38%, transparent);
-  box-shadow: 0 0 40px color-mix(in srgb, var(--teal) 10%, transparent);
+  box-shadow: none;
 }
 .index-num {
   color: var(--teal);
@@ -1198,7 +1191,7 @@ a {
   background: color-mix(in srgb, var(--teal) 10%, transparent);
   border-color: color-mix(in srgb, var(--teal) 45%, transparent);
   color: var(--teal);
-  box-shadow: 0 0 16px color-mix(in srgb, var(--teal) 15%, transparent);
+  box-shadow: none;
 }
 .program__viz {
   background: color-mix(in srgb, var(--teal) 6%, transparent);
@@ -1211,13 +1204,11 @@ a {
 .member {
   padding: 1rem;
   border-radius: 16px;
-  background: color-mix(in srgb, #ffffff 3%, transparent);
+  background: var(--surface-dark);
   border: 1px solid color-mix(in srgb, var(--teal) 14%, transparent);
-  backdrop-filter: blur(10px);
 }
 .member__photo {
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--teal) 35%, transparent),
-    0 0 24px color-mix(in srgb, var(--teal) 18%, transparent);
+  box-shadow: none;
 }
 .team__advisors {
   border-top-color: color-mix(in srgb, var(--teal) 20%, transparent);
@@ -1258,7 +1249,7 @@ a {
 .index-links a {
   color: var(--teal);
   border-bottom: 1px solid color-mix(in srgb, var(--teal) 40%, transparent);
-  transition: border-color 0.2s ease;
+  transition: border-color 0.2s var(--ease-out);
 }
 .index-links a:hover {
   border-bottom-color: var(--teal);
@@ -1297,7 +1288,6 @@ a {
   background-color: var(--paper);
 }
 #hero .hero__headline {
-  text-shadow: none;
 }
 /* Mission on the dark slate: light text, luminous teal accents */
 #mission {
@@ -1305,52 +1295,48 @@ a {
   color: var(--on-ink);
 }
 .section--white {
-  background-color: #ffffff;
+  background-color: var(--surface);
 }
 .section--paper {
   background-color: var(--paper-dim);
 }
 .section--white .pipeline-group__title {
-  text-shadow: none;
 }
 /* Glass cards become paper cards: solid white, soft lift */
 .pipeline .index-item,
 .member {
-  background: #ffffff;
+  background: var(--surface);
   border-color: color-mix(in srgb, var(--teal) 22%, transparent);
-  box-shadow: 0 6px 24px color-mix(in srgb, var(--ink) 6%, transparent);
-  backdrop-filter: none;
+  box-shadow: var(--shadow-card);
 }
 .pipeline .index-item:has(.program[open]) {
-  background-color: #ffffff;
+  background-color: var(--surface);
   border-color: color-mix(in srgb, var(--teal) 45%, transparent);
-  box-shadow: 0 10px 36px color-mix(in srgb, var(--teal) 14%, transparent);
+  box-shadow: var(--shadow-card);
 }
 .member__photo {
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--teal) 35%, transparent),
-    0 6px 20px color-mix(in srgb, var(--ink) 10%, transparent);
+  box-shadow: none;
 }
 
 /* ===== "Currently Enrolling" — muted ochre badge with a slow glow breath ===== */
 .status-tag--live {
-  --live: #b8862b; /* burnt ochre: warm but low-saturation, reads on white */
+  --live: var(--copper-ink); /* burnt ochre: warm but low-saturation, reads on white */
   position: relative;
   background: color-mix(in srgb, var(--live) 12%, transparent);
   border-color: color-mix(in srgb, var(--live) 55%, transparent);
   color: color-mix(in srgb, var(--live) 85%, #2b1a00);
   font-weight: 500;
-  box-shadow: 0 0 0 0 transparent;
+  box-shadow: none;
   animation: livePulse 3.2s ease-in-out infinite;
 }
 @keyframes livePulse {
   0%,
   100% {
-    box-shadow: 0 0 0 0 transparent, 0 0 6px color-mix(in srgb, var(--live) 10%, transparent);
+    box-shadow: none;
     border-color: color-mix(in srgb, var(--live) 55%, transparent);
   }
   50% {
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--live) 12%, transparent),
-      0 0 14px color-mix(in srgb, var(--live) 28%, transparent);
+    box-shadow: none;
     border-color: color-mix(in srgb, var(--live) 80%, transparent);
   }
 }
@@ -1568,9 +1554,9 @@ a {
   margin: 0;
   border-radius: 16px;
   overflow: hidden;
-  background: #ffffff;
+  background: var(--surface);
   border: 1px solid color-mix(in srgb, var(--teal) 22%, transparent);
-  box-shadow: 0 10px 36px color-mix(in srgb, var(--ink) 8%, transparent);
+  box-shadow: var(--shadow-card);
 }
 .science__video video {
   display: block;
@@ -1601,9 +1587,9 @@ a {
   display: flex;
   flex-direction: column;
   border-radius: 14px;
-  background: #ffffff;
+  background: var(--surface);
   border: 1px solid color-mix(in srgb, var(--teal) 24%, transparent);
-  box-shadow: 0 6px 24px color-mix(in srgb, var(--ink) 6%, transparent);
+  box-shadow: var(--shadow-card);
   overflow: hidden;
 }
 .panel--wide {
@@ -1625,7 +1611,7 @@ a {
   place-items: center;
   border-radius: 5px;
   background: var(--teal);
-  color: #ffffff;
+  color: var(--paper);
   font-family: var(--font-mono);
   font-weight: 500;
   font-size: 0.78rem;
@@ -1721,8 +1707,8 @@ a {
   fill: color-mix(in srgb, var(--violet) 18%, transparent);
 }
 .ro-warm {
-  stroke: #b8862b;
-  fill: color-mix(in srgb, #b8862b 14%, transparent);
+  stroke: var(--copper-ink);
+  fill: color-mix(in srgb, var(--copper-ink) 14%, transparent);
 }
 svg text {
   fill: currentColor;
@@ -1736,8 +1722,8 @@ svg text {
   -webkit-overflow-scrolling: touch;
   border-radius: 16px;
   border: 1px solid color-mix(in srgb, var(--teal) 22%, transparent);
-  background: #ffffff;
-  box-shadow: 0 6px 24px color-mix(in srgb, var(--ink) 6%, transparent);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
 }
 .shape-table {
   width: 100%;
@@ -1833,11 +1819,11 @@ svg text {
   vertical-align: middle;
 }
 .xtalpi-mark {
-  color: #ffffff;
+  color: var(--paper);
   background: var(--violet);
 }
 .kong-mark {
-  color: #ffffff;
+  color: var(--paper);
   background: var(--teal);
 }
 .xtalpi-mark--lg {
@@ -1871,9 +1857,9 @@ svg text {
 .dmta__card {
   padding: 1rem 1.1rem 1.1rem;
   border-radius: 14px;
-  background: #ffffff;
+  background: var(--surface);
   border: 1px solid color-mix(in srgb, var(--teal) 22%, transparent);
-  box-shadow: 0 6px 24px color-mix(in srgb, var(--ink) 6%, transparent);
+  box-shadow: var(--shadow-card);
 }
 .dmta__side--xtalpi .dmta__card {
   border-color: color-mix(in srgb, var(--violet) 35%, transparent);
@@ -1924,7 +1910,7 @@ svg text {
   stroke: var(--teal);
 }
 .dmta__node circle {
-  fill: #ffffff;
+  fill: var(--surface);
   stroke-width: 3;
 }
 .dmta__node--xtalpi circle {
@@ -1954,7 +1940,7 @@ svg text {
   opacity: 0.6;
 }
 .dmta__runner {
-  fill: #ffffff;
+  fill: var(--surface);
   stroke: var(--teal);
   stroke-width: 3;
   filter: drop-shadow(0 0 6px color-mix(in srgb, var(--teal) 70%, transparent));
@@ -2025,9 +2011,9 @@ svg text {
 .tox__card {
   padding: 1.1rem 1.2rem 1.2rem;
   border-radius: 14px;
-  background: #ffffff;
+  background: var(--surface);
   border: 1px solid color-mix(in srgb, var(--teal) 22%, transparent);
-  box-shadow: 0 6px 24px color-mix(in srgb, var(--ink) 6%, transparent);
+  box-shadow: var(--shadow-card);
 }
 .tox__n {
   display: inline-grid;
@@ -2036,7 +2022,7 @@ svg text {
   height: 1.5rem;
   border-radius: 50%;
   background: var(--teal);
-  color: #ffffff;
+  color: var(--paper);
   font-family: var(--font-mono);
   font-size: 0.78rem;
 }
@@ -2100,7 +2086,7 @@ svg text {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #ffffff;
+  background: var(--surface);
   border: 2px solid color-mix(in srgb, var(--ink) 30%, transparent);
   box-sizing: border-box;
 }
@@ -2121,7 +2107,7 @@ svg text {
 }
 .milestones li.is-now::after {
   border-color: var(--teal);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--teal) 18%, transparent);
+  box-shadow: none;
 }
 /* Nine menu children now */
 .nav.is-open .nav__links a:nth-child(9) {
@@ -2175,7 +2161,7 @@ svg text {
   display: flex;
   align-items: center;
   gap: 0.45em;
-  transition: opacity 0.5s ease, transform 0.5s ease, color 0.2s ease;
+  transition: opacity 0.5s var(--ease-out), transform 0.5s var(--ease-out), color 0.2s var(--ease-out);
 }
 .nav__links a::before {
   content: "";
@@ -2187,7 +2173,7 @@ svg text {
   mask: var(--ic) center / contain no-repeat;
   opacity: 0.85;
   transform: scale(0.4) rotate(-25deg);
-  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease, filter 0.3s ease;
+  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s var(--ease-out), filter 0.3s var(--ease-out);
   transition-delay: inherit;
 }
 .nav.is-open .nav__links a::before {
@@ -2454,8 +2440,6 @@ main > section:nth-of-type(even)::after {
   border-radius: 8px;
   background: color-mix(in srgb, var(--ink) 78%, transparent);
   border: 1px solid color-mix(in srgb, var(--teal) 45%, transparent);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
   font-family: var(--font-mono);
   font-size: 0.66rem;
   letter-spacing: 0.1em;
@@ -2463,7 +2447,7 @@ main > section:nth-of-type(even)::after {
   color: var(--on-ink);
   white-space: nowrap;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.3s var(--ease-out);
   will-change: transform, opacity;
 }
 .globe-label__dot {
@@ -2471,7 +2455,7 @@ main > section:nth-of-type(even)::after {
   height: 6px;
   border-radius: 50%;
   background: var(--teal);
-  box-shadow: 0 0 8px var(--teal);
+  box-shadow: none;
 }
 .globe-label__text {
   font-weight: 500;
@@ -2508,7 +2492,7 @@ main > section:nth-of-type(even)::after {
   padding: 0.38rem 0.75rem;
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--teal) 40%, transparent);
-  background: color-mix(in srgb, #ffffff 55%, transparent);
+  background: var(--surface-dark);
   font-family: var(--font-mono);
   font-size: 0.68rem;
   letter-spacing: 0.08em;
@@ -2545,10 +2529,9 @@ main > section:nth-of-type(even)::after {
 }
 #partnership .dmta__card,
 #partnership .tox__card {
-  background: color-mix(in srgb, #ffffff 4%, transparent);
+  background: var(--surface-dark);
   border-color: color-mix(in srgb, var(--teal) 24%, transparent);
-  box-shadow: 0 0 32px color-mix(in srgb, var(--teal) 8%, transparent);
-  backdrop-filter: blur(10px);
+  box-shadow: none;
 }
 #partnership .dmta__side--xtalpi .dmta__card {
   border-color: color-mix(in srgb, var(--violet) 45%, transparent);
@@ -2558,7 +2541,7 @@ main > section:nth-of-type(even)::after {
   opacity: 0.85;
 }
 #partnership .dmta__track {
-  stroke: color-mix(in srgb, #ffffff 14%, transparent);
+  stroke: var(--surface-dark);
 }
 #partnership .dmta__node circle {
   fill: var(--ink-2);
@@ -2570,10 +2553,10 @@ main > section:nth-of-type(even)::after {
   fill: var(--on-ink);
 }
 #partnership .speed__bar {
-  background: color-mix(in srgb, #ffffff 10%, transparent);
+  background: var(--surface-dark);
 }
 #partnership .speed__bar i {
-  background: color-mix(in srgb, #ffffff 38%, transparent);
+  background: var(--surface-dark);
 }
 #partnership .speed__row--ai .speed__bar i {
   background: linear-gradient(90deg, var(--violet), var(--teal));
@@ -2592,10 +2575,9 @@ main > section:nth-of-type(even)::after {
 #science .science__video,
 #science .panel,
 #science .table-wrap {
-  background: color-mix(in srgb, #ffffff 4%, transparent);
+  background: var(--surface-dark);
   border-color: color-mix(in srgb, var(--teal) 24%, transparent);
-  box-shadow: 0 0 32px color-mix(in srgb, var(--teal) 8%, transparent);
-  backdrop-filter: blur(10px);
+  box-shadow: none;
 }
 #science .panel__tab {
   background: color-mix(in srgb, var(--teal) 10%, transparent);
@@ -2627,31 +2609,29 @@ main > section:nth-of-type(even)::after {
   opacity: 0.88;
 }
 #science .ro-warm {
-  stroke: #e0a94a; /* warmer ochre so rings and networks read on the slate */
+  stroke: var(--copper); /* warmer ochre so rings and networks read on the slate */
 }
 
 /* ===== Menu overlay: same teal as the toolbar, dark ink text ===== */
 .nav__links {
   background: var(--teal);
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
 }
 .nav__links a {
   color: var(--on-teal);
 }
 .nav__links a:hover,
 .nav__links a[aria-current="true"] {
-  color: #ffffff;
+  color: var(--paper);
 }
 .nav__links a:hover::before {
-  filter: drop-shadow(0 0 8px color-mix(in srgb, #ffffff 70%, transparent));
+  filter: drop-shadow(0 0 8px var(--surface-dark));
 }
 .nav__links a[aria-current="true"]::before {
   animation: menuIconBreatheTeal 2.4s ease-in-out infinite;
 }
 @keyframes menuIconBreatheTeal {
   0%, 100% { filter: drop-shadow(0 0 0 transparent); transform: scale(1); }
-  50% { filter: drop-shadow(0 0 10px color-mix(in srgb, #ffffff 80%, transparent)); transform: scale(1.08); }
+  50% { filter: drop-shadow(0 0 10px var(--surface-dark)); transform: scale(1.08); }
 }
 .nav__subdesc {
   color: var(--on-teal);
@@ -2688,12 +2668,12 @@ main > section:nth-of-type(even)::after {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--on-ink);
-  background: color-mix(in srgb, #ffffff 4%, transparent);
+  background: var(--surface-dark);
   border: 1px solid color-mix(in srgb, var(--teal) 35%, transparent);
   border-radius: 999px;
   padding: 0.36rem 0.7rem;
   cursor: pointer;
-  transition: background-color var(--dur-fast) ease, border-color var(--dur-fast) ease, color var(--dur-fast) ease;
+  transition: background-color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
 }
 .globe-site:hover {
   border-color: var(--teal);
@@ -2718,4 +2698,104 @@ main > section:nth-of-type(even)::after {
    neighbour keeps its name / role / bio together like every other card */
 .member {
   align-content: start;
+}
+
+/* =====================================================================
+   Impeccable refinement: one type system, OKLCH palette tinted to teal,
+   solid surfaces, two accents (teal, copper), orchestrated motion.
+   ===================================================================== */
+:root {
+  --teal: oklch(84% 0.13 178);
+  --teal-bar: oklch(84% 0.13 178);
+  --teal-bright: oklch(72% 0.12 178);
+  --teal-deep: oklch(32% 0.07 178);
+  --teal-ink: oklch(50% 0.10 178);
+  --ink: oklch(19% 0.02 200);
+  --ink-2: oklch(24% 0.022 200);
+  --paper: oklch(97.5% 0.008 178);
+  --paper-dim: oklch(93% 0.01 178);
+  --surface: oklch(99% 0.004 178);
+  --surface-dark: color-mix(in oklch, var(--ink-2) 86%, var(--teal));
+  --on-ink: oklch(95% 0.01 178);
+  --on-paper: oklch(22% 0.02 200);
+  --on-teal: oklch(25% 0.06 178);
+  --copper: oklch(70% 0.11 55);
+  --copper-ink: oklch(52% 0.11 55);
+  --violet: var(--copper); /* the partner accent is copper now; old references resolve here */
+  --shadow-card: 0 1px 2px oklch(0 0 0 / 0.06), 0 8px 24px oklch(0 0 0 / 0.05);
+
+  --font-display: "Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --font-body: "Albert Sans", "Avenir Next", system-ui, sans-serif;
+  --font-mono: "Red Hat Mono", ui-monospace, "SFMono-Regular", monospace;
+
+  --t-xs: 0.8rem;
+  --t-s: 1rem;
+  --t-m: clamp(1.25rem, 1.6vw, 1.5rem);
+  --t-l: clamp(2rem, 4.6vw, 3.6rem);
+  --t-xl: clamp(2.8rem, 7vw, 5.5rem);
+
+  --space-xs: 4px; --space-sm: 8px; --space-md: 12px; --space-lg: 16px;
+  --space-xl: 24px; --space-2xl: 32px; --space-3xl: 48px; --space-4xl: 64px; --space-5xl: 96px;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 0.2s; --dur: 0.35s; --dur-slow: 0.6s;
+}
+body { font-family: var(--font-body); font-size: var(--t-s); }
+.display, .section-title { font-family: var(--font-display); font-weight: 600; font-size: var(--t-l); line-height: 1.04; letter-spacing: -0.015em; }
+.hero__headline { font-size: var(--t-xl); font-weight: 600; letter-spacing: -0.02em; }
+.lead, .hero__mission, .partnership__lead { font-size: var(--t-m); line-height: 1.45; }
+.eyebrow, .science__h, .readout__num, .panel__def, .index-links, .status-tag, .hero__proof li, .globe-site, .contact__globe-cap, .speed__label, .speed__src, .milestones li, .dmta__who, .dmta__step, .example__label, .shape figcaption, .science__video figcaption, .program__summary { font-family: var(--font-mono); font-size: var(--t-xs); }
+.panel__def { font-size: var(--t-xs); }
+.panel__tab h4, .dmta__card h3, .tox__card h4, .member__name, .index-title, .program__title { font-family: var(--font-display); font-weight: 600; }
+.member__name { font-size: var(--t-m); }
+.index-title { font-size: clamp(1.5rem, 3vw, 2.4rem); }
+.science__intro p, .science__blurb, .panel__note, .dmta__card p, .tox__card p, .member__bio, .program__content p, .contact__list, .index-desc { max-width: 65ch; }
+#science p, #partnership p, #contact p, #science td, #science th { line-height: 1.65; }
+
+/* Surfaces: solid, tinted; light cards lift with one soft shadow, dark cards with a hairline */
+.panel, .readout, .dmta__card, .tox__card, .member, .science__video, .table-wrap, .pipeline .index-item { background: var(--surface); border: 1px solid color-mix(in oklch, var(--teal-ink) 22%, transparent); box-shadow: var(--shadow-card); }
+#science .panel, #science .science__video, #science .table-wrap, #partnership .dmta__card, #partnership .tox__card { background: var(--surface-dark); border-color: color-mix(in oklch, var(--teal) 22%, transparent); box-shadow: none; }
+.pipeline .index-item:has(.program[open]) { background: var(--surface); border-color: color-mix(in oklch, var(--teal-ink) 45%, transparent); box-shadow: var(--shadow-card); }
+.member__photo { box-shadow: none; border: 1px solid color-mix(in oklch, var(--teal-ink) 20%, transparent); }
+.nav__links { background: var(--teal); }
+.nav__lang-menu { box-shadow: var(--shadow-card); }
+.globe-label { background: var(--ink); }
+.btn--light { box-shadow: none; }
+.btn--light:hover { box-shadow: none; filter: brightness(1.04); }
+.hero__proof li { background: var(--surface); border-color: color-mix(in oklch, var(--teal-ink) 30%, transparent); }
+.status-tag--live { --live: var(--copper-ink); animation: none; box-shadow: none; }
+.xtalpi-mark { background: var(--copper); color: var(--ink); }
+.kong-mark { background: var(--teal); color: var(--on-teal); }
+.globe-site:hover { border-color: var(--copper); color: var(--copper); }
+.globe-site[aria-pressed="true"] { background: var(--teal); color: var(--on-teal); border-color: var(--teal); }
+.speed__row--ai .speed__bar i { background: linear-gradient(90deg, var(--copper), var(--teal)); }
+
+/* Rhythm: sections breathe differently by role */
+#science, #partnership, #contact { padding-block: clamp(5rem, 12vh, 9rem); }
+#pipeline, #team { padding-block: clamp(3.5rem, 8vh, 6rem); }
+
+/* Toxicity-first: a numbered three-column list, not three cards */
+.tox__grid { gap: var(--space-2xl) var(--space-3xl); }
+#partnership .tox__card, .tox__card { background: none; border: 0; border-top: 1px solid color-mix(in oklch, var(--teal) 30%, transparent); border-radius: 0; box-shadow: none; padding: var(--space-lg) 0 0; }
+.tox__n { background: none; color: var(--teal); font-size: var(--t-m); width: auto; height: auto; border-radius: 0; }
+
+/* Team: editorial lockup with a larger portrait on wide screens */
+.member__bio { max-width: 60ch; }
+@media (min-width: 900px) {
+  .member { grid-template-columns: 160px 1fr; column-gap: var(--space-xl); }
+  .member__photo { width: 160px; }
+}
+
+/* Motion: nothing ambient; entrances only */
+.nav__links a[aria-current="true"]::before, .nav__links a:hover::before { animation: none; filter: none; }
+.trial-stats__live { animation: none; }
+.an-breathe { animation-duration: 5s; }
+.an-stretch { animation-duration: 5.5s; }
+.an-wobble  { animation-duration: 5.5s; }
+.an-wiggle  { animation-duration: 4.5s; }
+.shape svg  { animation-duration: 6s; }
+
+/* Science section kicker — microscope icon (currentColor mask, like the other eyebrows) */
+[data-i18n="sci.eyebrow"] {
+  --ic: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 18h8'/><path d='M3 22h18'/><path d='M14 22a7 7 0 1 0 0-14h-1'/><path d='M9 14h2'/><path d='M9 12a2 2 0 0 1-2-2V6h6v4a2 2 0 0 1-2 2Z'/><path d='M12 6V3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3'/></svg>");
 }
