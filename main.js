@@ -75,11 +75,14 @@ document.addEventListener("DOMContentLoaded", () => {
   function initSectionVisibility() {
     const sections = document.querySelectorAll("main > section");
     if (!sections.length || typeof IntersectionObserver !== "function") {
-      sections.forEach((sec) => sec.classList.add("is-visible"));
+      sections.forEach((sec) => sec.classList.add("is-visible", "is-seen"));
       return;
     }
     const io = new IntersectionObserver((entries) => {
-      entries.forEach((e) => e.target.classList.toggle("is-visible", e.isIntersecting));
+      entries.forEach((e) => {
+        e.target.classList.toggle("is-visible", e.isIntersecting);
+        if (e.isIntersecting) e.target.classList.add("is-seen"); // one-shot hook for entrances
+      });
     }, { rootMargin: "120px 0px", threshold: 0 });
     sections.forEach((sec) => io.observe(sec));
   }
@@ -283,7 +286,8 @@ document.addEventListener("DOMContentLoaded", () => {
           delete d.dataset.userClosed;
           d.open = true; // reveal + expose to assistive tech, then grow in
           if (window.gsap) {
-            gsap.from(content.querySelectorAll(".program__viz-cap, p"),
+            content.querySelectorAll(".milestones li").forEach((li) => li.classList.add("is-in"));
+            gsap.from(content.querySelectorAll(".program__viz-cap, .milestones li, p"),
               { autoAlpha: 0, y: 10, duration: 0.3, stagger: 0.1, ease: "power2.out", overwrite: true });
           }
           const h = content.scrollHeight;
@@ -370,7 +374,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const detail = gsap.utils.toArray(
       ".science__intro p, .science__blurb, .panel__def, .panel__note, .readout p, " +
       ".dmta__card p, .speed__row, .speed__src, .tox__card p, .pipeline-group__desc, " +
-      ".index-desc, .index-links, .index-platform, .milestones li, " +
+      ".index-desc, .index-links, .index-platform, .board__summary, " +
       ".member__role, .member__bio, .contact__list li, .contact__globe-cap"
     );
     gsap.set(detail, { autoAlpha: 0, y: 10 });
@@ -381,6 +385,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Only what is on screen ripples in; copy jumped past (menu links, fast
         // scrolls) appears at once so a long batch never queues for seconds.
         const h = window.innerHeight;
+        batch.forEach((el) => el.classList.add("is-in")); // CSS hook for the icons inside
         const seen = batch.filter((el) => el.getBoundingClientRect().bottom > 0 && el.getBoundingClientRect().top < h);
         gsap.set(batch.filter((el) => !seen.includes(el)), { autoAlpha: 1, y: 0, overwrite: true });
         gsap.to(seen, { autoAlpha: 1, y: 0, duration: 0.3, stagger: 0.1, ease: "power2.out", overwrite: true });
