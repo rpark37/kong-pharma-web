@@ -1,4 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // Set while the menu drives a scroll, so passing cards don't auto-open mid-flight.
+  let programScrollBusy = false;
   // Core nav behavior — always runs, independent of GSAP / reduced motion.
   initNav();
 
@@ -7,6 +9,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Deep links to a drug (#cr-067 etc.) expand its overview before scrolling.
   initProgramLinks();
+
+  // Each drug's overview opens on its own as the card scrolls into the reading band.
+  initAutoOpenPrograms();
 
   // Mission explainer video plays only while it is on screen.
   initScienceVideo();
@@ -132,6 +137,25 @@ document.addEventListener("DOMContentLoaded", () => {
     ).observe(video);
   }
 
+  function initAutoOpenPrograms() {
+    const items = document.querySelectorAll(".pipeline .index-item");
+    if (!items.length || typeof IntersectionObserver !== "function") return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    // A card counts as "being read" once its top crosses the band between
+    // 15% and 55% of the viewport; that is when its overview unfolds.
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (!e.isIntersecting || programScrollBusy) return;
+        const d = e.target.querySelector("details.program");
+        if (!d || d.open || d.dataset.userClosed || d.dataset.animating) return;
+        const summary = d.querySelector("summary");
+        if (summary && !reduce) summary.click(); // animated grow-in via the accordion
+        else d.open = true;
+      });
+    }, { rootMargin: "-15% 0px -45% 0px", threshold: 0 });
+    items.forEach((li) => io.observe(li));
+  }
+
   function initProgramLinks() {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const NAV_OFFSET = 84; // matches .index-item { scroll-margin-top }
@@ -157,6 +181,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     // Scroll the item under the toolbar first; open it only once we've arrived.
     const scrollThenOpen = (item, d) => {
+      programScrollBusy = true;
       collapseOthers(d);
       const html = document.documentElement;
       const target = () =>
@@ -170,6 +195,7 @@ document.addEventListener("DOMContentLoaded", () => {
         done = true;
         window.removeEventListener("scrollend", finish);
         openProgram(d);
+        setTimeout(() => { programScrollBusy = false; }, 400);
       };
       // `scrollend` fires exactly when the smooth scroll settles; the frame
       // check is the fallback for browsers without it (long jumps can take >2 s)
@@ -254,7 +280,12 @@ document.addEventListener("DOMContentLoaded", () => {
         content.style.overflow = "hidden";
 
         if (!d.open) {
+          delete d.dataset.userClosed;
           d.open = true; // reveal + expose to assistive tech, then grow in
+          if (window.gsap) {
+            gsap.from(content.querySelectorAll(".program__viz-cap, p"),
+              { autoAlpha: 0, y: 10, duration: 0.3, stagger: 0.1, ease: "power2.out", overwrite: true });
+          }
           const h = content.scrollHeight;
           const anim = content.animate(
             [
@@ -276,6 +307,7 @@ document.addEventListener("DOMContentLoaded", () => {
             ],
             { duration: 200.0, easing: "cubic-bezier(0.4, 0, 0.2, 1)" }
           );
+          d.dataset.userClosed = "1"; // a deliberate close: scrolling won't reopen it
           anim.onfinish = anim.oncancel = () => {
             d.open = false; // collapse + hide from assistive tech
             content.style.overflow = "";
@@ -283,85 +315,6 @@ document.addEventListener("DOMContentLoaded", () => {
           };
         }
       });
-    });
-  }
-
-  // Split an element and reveal its parts (masked rise + fade), then revert to
-  // clean, selectable text. mode "chars" = per character, "words" = per word.
-  function splitAndReveal(el, mode) {
-    if (mode === "anime") {
-      const split = new SplitText(el, {
-        type: "words,chars",
-        charsClass: "split-char",
-        wordsClass: "split-word",
-      });
-      el.classList.remove("anim-hidden");
-      gsap.set(el, { autoAlpha: 1 });
-      // Anime "title-card" impact: each character zooms in slightly oversized
-      // and softly blurred, then snaps sharp — a rapid left-to-right slam.
-      gsap.from(split.chars, {
-        opacity: 0,
-        scale: 1.6,
-        filter: "blur(7px)",
-        rotation: () => gsap.utils.random(-8, 8),
-        y: () => gsap.utils.random(-14, 14),
-        transformOrigin: "50% 50%",
-        ease: "expo.out",
-        duration: 0.45,
-        stagger: { each: 0.02, from: "start" },
-        onComplete: () => split.revert(),
-      });
-    } else if (mode === "chars") {
-      const split = new SplitText(el, {
-        type: "words,chars",
-        charsClass: "split-char",
-        wordsClass: "split-word",
-      });
-      el.classList.remove("anim-hidden");
-      gsap.set(el, { autoAlpha: 1 });
-      // Scatter-and-assemble: each char drops in from a random height/rotation.
-      gsap.from(split.chars, {
-        opacity: 0,
-        yPercent: () => gsap.utils.random(-140, 140),
-        rotation: () => gsap.utils.random(-40, 40),
-        scale: 0.3,
-        transformOrigin: "50% 50%",
-        ease: "power1.out",
-        duration: 0.533,
-        stagger: { each: 0.013, from: "random" },
-        onComplete: () => split.revert(),
-      });
-    } else {
-      const split = new SplitText(el, {
-        type: "lines,words",
-        mask: "lines",
-        wordsClass: "split-word",
-        linesClass: "split-line",
-      });
-      el.classList.remove("anim-hidden");
-      gsap.set(el, { autoAlpha: 1 });
-      gsap.from(split.words, {
-        yPercent: 100,
-        opacity: 0,
-        ease: "power1.out",
-        duration: 0.4,
-        stagger: 0.02,
-        onComplete: () => split.revert(),
-      });
-    }
-  }
-
-  // Reveal an element the first time it scrolls into view.
-  function revealOnScroll(el, mode) {
-    if (!el) return;
-    el.classList.add("anim-hidden");
-    ScrollTrigger.create({
-      trigger: el,
-      // Fire as the element first enters from the bottom, so it never animates
-      // once it has scrolled up into a closer region of the viewport.
-      start: "top bottom",
-      once: true,
-      onEnter: () => splitAndReveal(el, mode),
     });
   }
 
@@ -412,19 +365,27 @@ document.addEventListener("DOMContentLoaded", () => {
     tl.to(heroTail, { autoAlpha: 1, y: 0, duration: 0.4, stagger: 0.08 }, "-=0.2")
       .from(heroTail, { y: 20, duration: 0.4, stagger: 0.08 }, "<");
 
-    // ---- Titles: per character (scatter) — mission ----
-    [
-      "#mission .eyebrow",
-    ].forEach((sel) =>
-      gsap.utils.toArray(sel).forEach((el) => revealOnScroll(el, "chars"))
+    // ---- Detailed text: fade-rise, 0.3s per tween, siblings staggered 0.1s ----
+    // Drug overview copy lives in closed <details>; initProgramAccordions animates it on open.
+    const detail = gsap.utils.toArray(
+      ".science__intro p, .science__blurb, .panel__def, .panel__note, .readout p, " +
+      ".dmta__card p, .speed__row, .speed__src, .tox__card p, .pipeline-group__desc, " +
+      ".index-desc, .index-links, .index-platform, .milestones li, " +
+      ".member__role, .member__bio, .contact__list li, .contact__globe-cap"
     );
-
-    // ---- Other text: per word — mission statement ----
-    [
-      ".mission__statement",
-    ].forEach((sel) =>
-      gsap.utils.toArray(sel).forEach((el) => revealOnScroll(el, "words"))
-    );
+    gsap.set(detail, { autoAlpha: 0, y: 10 });
+    ScrollTrigger.batch(detail, {
+      start: "top 88%",
+      once: true,
+      onEnter: (batch) => {
+        // Only what is on screen ripples in; copy jumped past (menu links, fast
+        // scrolls) appears at once so a long batch never queues for seconds.
+        const h = window.innerHeight;
+        const seen = batch.filter((el) => el.getBoundingClientRect().bottom > 0 && el.getBoundingClientRect().top < h);
+        gsap.set(batch.filter((el) => !seen.includes(el)), { autoAlpha: 1, y: 0, overwrite: true });
+        gsap.to(seen, { autoAlpha: 1, y: 0, duration: 0.3, stagger: 0.1, ease: "power2.out", overwrite: true });
+      },
+    });
 
     // ---- Active nav link highlighting ----
     gsap.utils.toArray("[data-nav-link]").forEach((link) => {

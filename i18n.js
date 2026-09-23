@@ -167,7 +167,7 @@
     "tag.phase1": { fr: "Phase 1 · 2025", de: "Phase 1 · 2025", ja: "第1相 · 2025", en: "Phase 1 · 2025", zh: "一期 · 2025", es: "Fase 1 · 2025", ko: "1상 · 2025" },
     "tag.ind": { en: "IND filed · FDA", zh: "IND 已提交 · FDA", es: "IND presentado · FDA", ko: "IND 제출 · FDA", fr: "IND déposé · FDA", de: "IND eingereicht · FDA", ja: "IND 申請済み · FDA" },
     "tag.dev": { fr: "En développement", de: "In Entwicklung", ja: "開発中", en: "In development", zh: "研发中", es: "En desarrollo", ko: "개발 중" },
-    "prog.overview": { fr: "Aperçu du programme", de: "Programmübersicht", ja: "プログラム概要", en: "Program overview", zh: "项目概览", es: "Resumen del programa", ko: "프로그램 개요" },
+    "prog.overview": { en: "Overview", zh: "概览", es: "Resumen", ko: "개요", fr: "Aperçu", de: "Überblick", ja: "概要" },
     "contact.eyebrow": { fr: "Contact", de: "Kontakt", ja: "お問い合わせ", en: "Contact", zh: "联系我们", es: "Contacto", ko: "문의" },
     "contact.title": { fr: "Faire progresser le rétablissement des patients, ensemble.", de: "Gemeinsam die Genesung der Patienten voranbringen.", ja: "共に、患者の回復を前進させる。",
     "contact.globe": { en: "Collaborating from Lowell, MA with", zh: "从马萨诸塞州洛厄尔出发，合作伙伴遍及", es: "Colaborando desde Lowell, MA con", ko: "매사추세츠주 로웰에서 협력 중:", fr: "Collaborations depuis Lowell, MA avec", de: "Zusammenarbeit von Lowell, MA aus mit", ja: "マサチューセッツ州ローウェルから連携：" },
@@ -273,8 +273,8 @@
     return ready;
   }
 
-  // Smooth text transition: pin the box to its final size, fade the old text
-  // out, swap, then fade the new text in with a small rise. No scrambling.
+  // Text transitions pin each box to its final size first, so nothing shifts.
+  // Long copy fades out, swaps and fades back in with a small rise.
   function lockToFinalSize(el, t) {
     const old = el.textContent;
     el.textContent = t;
@@ -302,6 +302,52 @@
     el._i18nTl = tl;
   }
 
+  // Signature decode for headings and short labels: the string is split into
+  // words (CJK runs into 4-character chunks), each scrambled on a short
+  // left-to-right stagger, then collapsed back to plain text. Size-locked, so
+  // nothing shifts while the characters churn.
+  function segments(text) {
+    const out = [];
+    text.split(/(\s+)/).forEach((part) => {
+      if (!part) return;
+      if (/^\s+$/.test(part)) { out.push(part); return; }
+      if (part.length > 10 && /[\u3000-\u9fff\uac00-\ud7af]/.test(part)) {
+        for (let k = 0; k < part.length; k += 4) out.push(part.slice(k, k + 4));
+      } else out.push(part);
+    });
+    return out;
+  }
+  function scrambleInto(el, t, lang, delay) {
+    if (el._i18nTl) el._i18nTl.kill();
+    lockToFinalSize(el, t);
+    el.textContent = "";
+    const wrap = document.createElement("span");
+    const spans = [];
+    segments(t).forEach((seg) => {
+      if (/^\s+$/.test(seg)) { wrap.appendChild(document.createTextNode(seg)); return; }
+      const sp = document.createElement("span");
+      wrap.appendChild(sp);
+      spans.push({ sp, seg });
+    });
+    el.appendChild(wrap);
+    const step = Math.min(0.05, 0.6 / Math.max(spans.length, 1));
+    const tl = gsap.timeline({ delay, onComplete: () => { el.textContent = t; unlock(el); el._i18nTl = null; } });
+    spans.forEach(({ sp, seg }, k) => {
+      tl.to(sp, {
+        duration: 0.7, ease: "power2.inOut",
+        scrambleText: { text: seg, chars: CHARS[lang] || "upperCase", speed: 0.5, revealDelay: 0.25, delimiter: "", tweenLength: false },
+      }, k * step);
+    });
+    el._i18nTl = tl;
+  }
+  // Headings and short labels get the decode; paragraphs and other long copy fade.
+  function transition(el, t, lang, delay) {
+    const heading = /^H[1-6]$/.test(el.tagName);
+    const short = t.length <= 90 && !/^(P|LI|TD)$/.test(el.tagName);
+    if ((heading || short) && window.ScrambleTextPlugin) scrambleInto(el, t, lang, delay);
+    else fadeInto(el, t, delay);
+  }
+
   function setLang(lang) {
     if (!I18N["nav.science"][lang]) return;
     const canScramble = ensurePlugin() && !reduce;
@@ -311,7 +357,7 @@
       const t = (I18N[el.dataset.i18n] || {})[lang];
       if (t == null) return;
       if (canScramble) {
-        fadeInto(el, t, Math.min(i * 0.012, 0.35)); // gentle top-to-bottom wave
+        transition(el, t, lang, Math.min(i * 0.012, 0.35)); // gentle top-to-bottom wave
         i++;
       } else {
         el.textContent = t;

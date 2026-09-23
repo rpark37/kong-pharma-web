@@ -2259,13 +2259,13 @@ svg text {
   background-size: 80px 80px, 80px 80px, 40px 40px, 40px 40px, 8px 8px, 8px 8px;
 }
 #mission,
+/* Dark sections: the membrane field (field.js) is the texture, so no graph
+   paper here; the corner plots ease back to sit over it */
 #science,
 #partnership,
 #contact {
-  --grid-fine: color-mix(in srgb, var(--teal) 3%, transparent);
-  --grid-minor: color-mix(in srgb, var(--teal) 6%, transparent);
-  --grid-major: color-mix(in srgb, var(--teal) 11%, transparent);
-  --plot-alpha: 0.16;
+  background-image: none;
+  --plot-alpha: 0.1;
 }
 /* A faint plotted chart in the corner of every section: dose-response
    curves on odd sections, a scatter with its regression line on even ones */
@@ -2798,4 +2798,115 @@ body { font-family: var(--font-body); font-size: var(--t-s); }
 /* Science section kicker — microscope icon (currentColor mask, like the other eyebrows) */
 [data-i18n="sci.eyebrow"] {
   --ic: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 18h8'/><path d='M3 22h18'/><path d='M14 22a7 7 0 1 0 0-14h-1'/><path d='M9 14h2'/><path d='M9 12a2 2 0 0 1-2-2V6h6v4a2 2 0 0 1-2 2Z'/><path d='M12 6V3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3'/></svg>");
+}
+
+/* ===== Drug pipeline: illustration as a side figure, not a banner ===== */
+.program__content {
+  display: flow-root; /* contains the floated figure */
+}
+.program__viz {
+  width: min(100%, 320px);
+  aspect-ratio: 16 / 6;
+  margin: 0 0 var(--space-xl);
+  border-radius: 10px;
+  box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--teal-ink) 22%, transparent);
+}
+.program__viz-cap {
+  margin-top: var(--space-sm);
+  max-width: 320px;
+}
+@media (min-width: 900px) {
+  .program__viz {
+    float: right;
+    width: 300px;
+    margin: var(--space-xs) 0 var(--space-lg) var(--space-2xl);
+    shape-outside: margin-box;
+  }
+  .program__viz-cap {
+    float: right;
+    clear: right;
+    width: 300px;
+    margin: var(--space-sm) 0 var(--space-lg) var(--space-2xl);
+  }
+  .program__content p {
+    max-width: 62ch;
+  }
+}
+/* the small emblem in the card corner stays modest */
+.index-viz {
+  width: clamp(44px, 6vw, 64px);
+}
+
+/* Program overview toggle: a quiet label with a chevron (no list icon, no +/–) */
+.program__summary {
+  gap: var(--space-sm);
+  font-size: var(--t-xs);
+  letter-spacing: 0.1em;
+  opacity: 0.7;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+.program__summary:hover,
+.program[open] .program__summary {
+  opacity: 0.95;
+}
+.program__summary::before {
+  display: none;
+}
+.program__summary::after,
+.program[open] .program__summary::after {
+  content: "";
+  width: 0.9em;
+  height: 0.9em;
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>") center / contain no-repeat;
+  mask: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>") center / contain no-repeat;
+  transition: transform var(--dur) var(--ease-out);
+}
+.program[open] .program__summary::after {
+  transform: rotate(180deg);
+}
+
+/* Membrane field (field.js): faint living contours behind the dark sections */
+.field {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+
+/* Light sections: the paper gets a light source (a hair brighter at the top),
+   the grid loses its 8px mesh and lives in the gutters, dissolving to clean
+   paper under the content column. Team is plain paper: faces want a quiet
+   ground. The hero keeps its full stage grid; the scale bar earns it. */
+#hero {
+  /* grid layers on top, the tonal drift underneath */
+  background-image:
+    linear-gradient(var(--grid-major) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-major) 1px, transparent 1px),
+    linear-gradient(var(--grid-minor) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-minor) 1px, transparent 1px),
+    linear-gradient(var(--grid-fine) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-fine) 1px, transparent 1px),
+    linear-gradient(180deg, var(--paper), color-mix(in oklch, var(--paper) 70%, var(--paper-dim)));
+  background-size: 80px 80px, 80px 80px, 40px 40px, 40px 40px, 8px 8px, 8px 8px, 100% 100%;
+}
+#pipeline {
+  background-image: linear-gradient(180deg, var(--surface), color-mix(in oklch, var(--surface) 70%, var(--paper-dim)));
+}
+#pipeline::before {
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--teal) 10%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--teal) 10%, transparent) 1px, transparent 1px),
+    linear-gradient(color-mix(in srgb, var(--teal) 5%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--teal) 5%, transparent) 1px, transparent 1px);
+  background-size: 80px 80px, 80px 80px, 40px 40px, 40px 40px;
+  -webkit-mask-image: linear-gradient(90deg, black 0%, transparent 30%, transparent 70%, black 100%);
+  mask-image: linear-gradient(90deg, black 0%, transparent 30%, transparent 70%, black 100%);
+}
+#team {
+  background-image: linear-gradient(180deg, var(--paper), color-mix(in oklch, var(--paper) 70%, var(--paper-dim)));
+  --plot-alpha: 0.09;
 }
