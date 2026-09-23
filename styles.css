@@ -2661,8 +2661,13 @@ svg text {
   --on-ink: oklch(95% 0.01 178);
   --on-paper: oklch(22% 0.02 200);
   --on-teal: oklch(25% 0.06 178);
-  --copper: oklch(70% 0.11 55);
-  --copper-ink: oklch(52% 0.11 55);
+  /* Secondary accent: a fluorophore magenta, the channel that sits beside
+     cyan in every immunofluorescence image. Two steps: luminous on slate,
+     ink-strength on paper. The copper names stay as aliases. */
+  --accent: oklch(68% 0.19 345);
+  --accent-ink: oklch(50% 0.18 345);
+  --copper: var(--accent);
+  --copper-ink: var(--accent-ink);
   --violet: var(--copper); /* the partner accent is copper now; old references resolve here */
   --shadow-card: 0 1px 2px oklch(0 0 0 / 0.06), 0 8px 24px oklch(0 0 0 / 0.05);
 
@@ -3197,3 +3202,85 @@ body { font-family: var(--font-body); font-size: var(--t-s); }
   .rail li.is-live::after { animation: none; display: none; }
   #pipeline .index-item::before, #pipeline .index-item::after { transition: none; }
 }
+
+/* ===== Key selling points: the clinic and the FDA filing. Solid badges in
+   the two brand accents, stamped in on arrival, with a light sweep every
+   few seconds so the eye returns to them. ===== */
+@keyframes stampIn {
+  0% { opacity: 0; transform: scale(1.3); }
+  55% { opacity: 1; transform: scale(0.96); }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes sheen {
+  0% { transform: translateX(-130%) skewX(-18deg); }
+  18%, 100% { transform: translateX(160%) skewX(-18deg); }
+}
+.status-tag--live,
+.status-tag[data-i18n="tag.ind"],
+.hero__proof li:nth-child(-n + 2) {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  border-color: transparent;
+  font-weight: 600;
+}
+.status-tag--live::after,
+.status-tag[data-i18n="tag.ind"]::after,
+.hero__proof li:nth-child(-n + 2)::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 45%;
+  background: linear-gradient(105deg, transparent 0%, oklch(100% 0 0 / 0.42) 50%, transparent 100%);
+  transform: translateX(-130%) skewX(-18deg);
+  pointer-events: none;
+}
+/* in the clinic: copper */
+.status-tag--live,
+.hero__proof li:nth-child(1) {
+  background: var(--copper);
+  color: var(--ink);
+  animation: none;
+}
+.status-tag--live::before { animation: none; }
+/* filed with the FDA: the third fluorescence channel, a warm yellow */
+:root {
+  --accent-2: oklch(86% 0.16 95);
+  --accent-2-ink: oklch(58% 0.13 90);
+}
+.status-tag[data-i18n="tag.ind"],
+.hero__proof li:nth-child(2) {
+  background: var(--accent-2);
+  color: var(--ink);
+}
+.hero__proof li:nth-child(-n + 2) .hero__proof-k,
+.hero__proof li:nth-child(-n + 2) .hero__proof-k::after { color: inherit; background-color: currentColor; }
+.hero__proof li:nth-child(-n + 2) .hero__proof-k { background: none; }
+.hero__proof li:nth-child(-n + 2) span:last-child { opacity: 0.9; }
+
+/* motion: stamp on arrival, then a sweep every six seconds (offset so the
+   two badges never flash together) */
+.js-anim .hero__proof li:nth-child(1) { animation: stampIn 0.7s var(--ease-out) 1.3s both; }
+.js-anim .hero__proof li:nth-child(2) { animation: stampIn 0.7s var(--ease-out) 1.5s both; }
+.js-anim .hero__proof li:nth-child(1)::after { animation: sheen 6s ease-in-out 2.4s infinite; }
+.js-anim .hero__proof li:nth-child(2)::after { animation: sheen 6s ease-in-out 3.6s infinite; }
+.js-anim .index-item.js-reveal:not(.is-in) .status-tag--live,
+.js-anim .index-item.js-reveal:not(.is-in) .status-tag[data-i18n="tag.ind"] { opacity: 0; }
+.js-anim .index-item.is-in .status-tag--live,
+.js-anim .index-item.is-in .status-tag[data-i18n="tag.ind"] { animation: stampIn 0.7s var(--ease-out) 0.35s both; }
+.js-anim .index-item.is-in .status-tag--live::after { animation: sheen 6s ease-in-out 1.6s infinite; }
+.js-anim .index-item.is-in .status-tag[data-i18n="tag.ind"]::after { animation: sheen 6s ease-in-out 2.8s infinite; }
+/* the enrolling badge keeps its live pulse on the icon, after the stamp */
+.js-anim .index-item.is-in .status-tag--live::before { animation: icLive 3.2s ease-in-out 1.4s infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .status-tag--live, .status-tag[data-i18n="tag.ind"], .hero__proof li:nth-child(-n + 2),
+  .status-tag--live::after, .status-tag[data-i18n="tag.ind"]::after, .hero__proof li:nth-child(-n + 2)::after,
+  .status-tag--live::before { animation: none !important; opacity: 1; }
+}
+
+/* On light surfaces the accent drops to its ink step for lines and labels */
+#pipeline .viz-copper { stroke: var(--accent-ink); }
+#pipeline .viz-label.copper { fill: var(--accent-ink); }
+#pipeline .index-viz .viz-copper { stroke: var(--accent-ink); }

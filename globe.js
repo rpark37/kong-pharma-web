@@ -12,7 +12,7 @@ function init() {
 
   const TEAL = 0x44e0cc;
   const MINT = 0xe6fff8;
-  const AMBER = 0xcf8a5c; // copper: the site's one secondary accent
+  const AMBER = 0xe0559f; // fluorophore magenta: the site's secondary accent
   const INK = 0x121c24;
   const R = 1;
 
