@@ -1801,86 +1801,6 @@ svg text {
   }
 }
 
-/* ===== CR-067 simulated live trial counter ===== */
-.trial-stats {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 0.75rem 1.75rem;
-  margin: 1rem 0 0;
-  padding: 0.85rem 1rem;
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--teal) 6%, transparent);
-  border: 1px solid color-mix(in srgb, var(--teal) 18%, transparent);
-}
-.trial-stats__item {
-  display: grid;
-  gap: 0.15rem;
-}
-.trial-stats dt {
-  font-family: var(--font-mono);
-  font-size: 0.66rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  opacity: 0.65;
-}
-.trial-stats dd {
-  margin: 0;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: clamp(1.4rem, 2.4vw, 1.9rem);
-  line-height: 1;
-  color: var(--teal);
-  font-variant-numeric: tabular-nums;
-}
-.trial-stats dd.is-tick {
-  animation: statTick 0.6s ease-out;
-}
-@keyframes statTick {
-  0% { transform: translateY(-0.25em); opacity: 0.2; }
-  100% { transform: none; opacity: 1; }
-}
-.trial-stats__note {
-  flex-basis: 100%;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  opacity: 0.55;
-}
-.trial-stats__live {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--teal);
-  animation: liveDot 1.6s ease-in-out infinite;
-}
-@keyframes liveDot {
-  0%, 100% { opacity: 0.35; }
-  50% { opacity: 1; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .trial-stats dd.is-tick,
-  .trial-stats__live {
-    animation: none;
-  }
-}
-
-/* Science section kicker — microscope icon */
-[data-i18n="sci.eyebrow"] {
-  --ic: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 18h8'/><path d='M3 22h18'/><path d='M14 22a7 7 0 1 0 0-14h-1'/><path d='M9 14h2'/><path d='M9 12a2 2 0 0 1-2-2V6h6v4a2 2 0 0 1-2 2Z'/><path d='M12 6V3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3'/></svg>");
-}
-.science-section .eyebrow {
-  margin-bottom: 2rem;
-}
-/* Eight menu children now: keep the staggered entrance going */
-.nav.is-open .nav__links a:nth-child(8) {
-  transition-delay: 0.5s;
-}
-
 /* ===== Partnership: Designed with XtalPi ===== */
 [data-i18n="part.eyebrow"] {
   --ic: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71'/><path d='M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71'/></svg>");
@@ -2465,8 +2385,6 @@ main > section:nth-of-type(even)::after {
 .shape figcaption { opacity: 0.9; }
 .contact__globe-cap { opacity: 0.85; }
 .speed__src { opacity: 0.8; }
-.trial-stats dt { opacity: 0.85; }
-.trial-stats__note { opacity: 0.8; }
 .science__video figcaption { opacity: 0.85; }
 .index-links__label { opacity: 0.8; }
 .program__viz-cap { opacity: 0.85; }
@@ -2486,9 +2404,7 @@ main > section:nth-of-type(even)::after {
 /* Perpetual loops only run while their section is on screen */
 .section:not(.is-visible) [class*="an-"],
 .section:not(.is-visible) .shape svg,
-.section:not(.is-visible) .status-tag--live,
-.section:not(.is-visible) .trial-stats__live,
-.section:not(.is-visible) .trial-stats dd.is-tick {
+.section:not(.is-visible) .status-tag--live {
   animation-play-state: paused;
 }
 /* Footer rows */

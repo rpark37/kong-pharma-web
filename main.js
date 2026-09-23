@@ -11,9 +11,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // Mission explainer video plays only while it is on screen.
   initScienceVideo();
 
-  // CR-067 live enrolment counter (figures set in initTrialCounter).
-  initTrialCounter();
-
   // Partnership speed bars grow in when they scroll into view.
   initSpeedBars();
 
@@ -68,78 +65,6 @@ document.addEventListener("DOMContentLoaded", () => {
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") setOpen(false);
     });
-  }
-
-  function initTrialCounter() {
-    const box = document.querySelector("[data-trial-stats]");
-    if (!box) return;
-    // Current CR-067 figures (update here as the trial progresses).
-    const stats = { enrolled: 1, testing: 14, sites: 1, excluded: 1, cancelled: 5 };
-    const SIMULATE_DRIFT = false; // true = demo mode: numbers tick over on their own
-    const els = {};
-    box.querySelectorAll("[data-stat]").forEach((el) => (els[el.dataset.stat] = el));
-    const fmt = (n) => n.toLocaleString(document.documentElement.lang || "en");
-    const show = (key, tick) => {
-      const el = els[key];
-      if (!el) return;
-      el.textContent = fmt(stats[key]);
-      if (tick) {
-        el.classList.remove("is-tick");
-        void el.offsetWidth; // restart the animation
-        el.classList.add("is-tick");
-      }
-    };
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    // Count up from zero the first time the panel scrolls into view
-    let started = false;
-    const countUp = () => {
-      if (started) return;
-      started = true;
-      if (reduce) {
-        Object.keys(stats).forEach((k) => show(k));
-        return drift();
-      }
-      const t0 = performance.now();
-      const DUR = 1800;
-      const step = (now) => {
-        const p = Math.min(1, (now - t0) / DUR);
-        const e = 1 - Math.pow(1 - p, 3);
-        Object.keys(stats).forEach((k) => {
-          if (els[k]) els[k].textContent = fmt(Math.round(stats[k] * e));
-        });
-        if (p < 1) requestAnimationFrame(step);
-        else drift();
-      };
-      requestAnimationFrame(step);
-    };
-
-    // Then drift: a new patient every so often moves from testing to enrolled,
-    // and new candidates enter screening.
-    const drift = () => {
-      if (!SIMULATE_DRIFT) return;
-      const next = 5000 + Math.random() * 9000;
-      setTimeout(() => {
-        const roll = Math.random();
-        if (roll < 0.55 && stats.testing > 0) {
-          stats.testing -= 1;
-          stats.enrolled += 1;
-          show("testing", true);
-          show("enrolled", true);
-        } else {
-          stats.testing += 1 + ((Math.random() * 2) | 0);
-          show("testing", true);
-        }
-        drift();
-      }, next);
-    };
-
-    if (typeof IntersectionObserver === "function") {
-      const io = new IntersectionObserver(([e]) => {
-        if (e.isIntersecting) { countUp(); io.disconnect(); }
-      }, { threshold: 0.3 });
-      io.observe(box);
-    } else countUp();
   }
 
   function initSectionVisibility() {
