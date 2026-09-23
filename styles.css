@@ -2713,3 +2713,9 @@ main > section:nth-of-type(even)::after {
 .team__grid--advisors {
   margin-bottom: 1.5rem;
 }
+
+/* Team cards: rows pack at the top, so a card stretched to match its row
+   neighbour keeps its name / role / bio together like every other card */
+.member {
+  align-content: start;
+}
