@@ -307,7 +307,7 @@ document.addEventListener("DOMContentLoaded", () => {
         y: () => gsap.utils.random(-14, 14),
         transformOrigin: "50% 50%",
         ease: "expo.out",
-        duration: 0.3,
+        duration: 0.45,
         stagger: { each: 0.02, from: "start" },
         onComplete: () => split.revert(),
       });
@@ -326,8 +326,8 @@ document.addEventListener("DOMContentLoaded", () => {
         rotation: () => gsap.utils.random(-40, 40),
         scale: 0.3,
         transformOrigin: "50% 50%",
-        ease: "expo.out",
-        duration: 0.3,
+        ease: "power1.out",
+        duration: 0.533,
         stagger: { each: 0.013, from: "random" },
         onComplete: () => split.revert(),
       });
@@ -343,8 +343,8 @@ document.addEventListener("DOMContentLoaded", () => {
       gsap.from(split.words, {
         yPercent: 100,
         opacity: 0,
-        ease: "expo.out",
-        duration: 0.3,
+        ease: "power1.out",
+        duration: 0.4,
         stagger: 0.02,
         onComplete: () => split.revert(),
       });
@@ -377,7 +377,7 @@ document.addEventListener("DOMContentLoaded", () => {
       (el) => el && el.classList.add("anim-hidden")
     );
 
-    const tl = gsap.timeline({ defaults: { ease: "expo.out" } });
+    const tl = gsap.timeline({ defaults: { ease: "power1.out" } });
 
     if (heroEyebrow) {
       const s = new SplitText(heroEyebrow, { type: "chars", charsClass: "split-char" });
@@ -386,8 +386,8 @@ document.addEventListener("DOMContentLoaded", () => {
       tl.from(s.chars, {
         opacity: 0, yPercent: () => gsap.utils.random(-90, 90),
         rotation: () => gsap.utils.random(-30, 30), scale: 0.4,
-        transformOrigin: "50% 50%", ease: "expo.out",
-        duration: 0.3, stagger: { each: 0.01, from: "random" },
+        transformOrigin: "50% 50%", ease: "power1.out",
+        duration: 0.4, stagger: { each: 0.01, from: "random" },
         onComplete: () => s.revert(),
       }, 0);
     }
@@ -398,8 +398,8 @@ document.addEventListener("DOMContentLoaded", () => {
       tl.from(s.chars, {
         opacity: 0, yPercent: () => gsap.utils.random(-160, 160),
         rotation: () => gsap.utils.random(-45, 45), scale: 0.3,
-        transformOrigin: "50% 50%", ease: "expo.out",
-        duration: 0.3, stagger: { each: 0.013, from: "random" },
+        transformOrigin: "50% 50%", ease: "power1.out",
+        duration: 0.6, stagger: { each: 0.013, from: "random" },
         onComplete: () => s.revert(),
       }, 0.15);
     }
@@ -407,10 +407,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const s = new SplitText(heroMission, { type: "lines,words", mask: "lines", wordsClass: "split-word" });
       heroMission.classList.remove("anim-hidden");
       gsap.set(heroMission, { autoAlpha: 1 });
-      tl.from(s.words, { yPercent: 100, opacity: 0, duration: 0.3, stagger: 0.02, onComplete: () => s.revert() }, "-=0.2");
+      tl.from(s.words, { yPercent: 100, opacity: 0, duration: 0.333, stagger: 0.02, onComplete: () => s.revert() }, "-=0.25");
     }
-    tl.to(heroTail, { autoAlpha: 1, y: 0, duration: 0.3, stagger: 0.1 }, "-=0.15")
-      .from(heroTail, { y: 20, duration: 0.3, stagger: 0.1 }, "<");
+    tl.to(heroTail, { autoAlpha: 1, y: 0, duration: 0.4, stagger: 0.08 }, "-=0.2")
+      .from(heroTail, { y: 20, duration: 0.4, stagger: 0.08 }, "<");
 
     // ---- Titles: per character (scatter) — mission ----
     [
@@ -428,12 +428,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // ---- Active nav link highlighting ----
     gsap.utils.toArray("[data-nav-link]").forEach((link) => {
-      // Not every nav link points at a section on this page — the Labs link is href="/app/",
-      // which querySelector throws on rather than returning null, so the `!section` guard below
-      // never got the chance to run and the throw took the rest of the loop with it.
-      const href = link.getAttribute("href");
-      if (!href || !href.startsWith("#")) return;
-      const section = document.querySelector(href);
+      const section = document.querySelector(link.getAttribute("href"));
       if (!section) return;
       ScrollTrigger.create({
         trigger: section,

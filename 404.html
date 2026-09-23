@@ -1,22 +1,6 @@
 <!doctype html>
 <html lang="en">
   <head>
-<script>
-  // Deep links into the Angular labs app (<prefix>/app/<route>) are served by this 404 page on
-  // GitHub Pages. Hand the requested path to the app, which navigates to it after bootstrap.
-  // The prefix is whatever precedes /app/ — empty at a domain root, /<repo> on project pages —
-  // so this works either way and must not assume the site is served from the root.
-  (function () {
-    var p = location.pathname;
-    var i = p.indexOf('/app/');
-    if (i < 0) return;
-    var base = p.slice(0, i + 5); // through the trailing slash of /app/
-    var route = p.slice(i + 5);
-    if (!route) return; // already the app shell
-    location.replace(base + '?r=' + encodeURIComponent('/' + route + location.search + location.hash));
-  })();
-</script>
-
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Page not found | Kong's Pharmaceutical Co.</title>

@@ -79,11 +79,11 @@
     var tl = g.timeline();
     tl.from(s.querySelectorAll(".draw"), {
       strokeDashoffset: 1,
-      duration: 0.3,
+      duration: 0.7,
       stagger: 0.06,
-      ease: "expo.out",
+      ease: "power2.out",
     })
-      .from(s.querySelector(".merge"), { scale: 0, opacity: 0, transformOrigin: "50% 50%", ease: "expo.out", duration: 0.3 }, "-=0.2")
+      .from(s.querySelector(".merge"), { scale: 0, opacity: 0, transformOrigin: "50% 50%", ease: "back.out(1.7)", duration: 0.5 }, "-=0.2")
       .fromTo(s.querySelector(".dilate"), { scaleY: 0.2, transformOrigin: "50% 50%" }, { scaleY: 1, yoyo: true, repeat: -1, duration: 1.1, ease: "sine.inOut" }, ">-0.1")
       .fromTo(s.querySelector(".flow"), { attr: { cx: 96 } }, { attr: { cx: 544 }, repeat: -1, duration: 2.2, ease: "none" }, "<");
     return tl;
@@ -127,11 +127,11 @@
   }
   function k119Anim(s, g) {
     var tl = g.timeline();
-    tl.from(s.querySelectorAll(".draw"), { strokeDashoffset: 1, duration: 0.3, stagger: 0.05, ease: "expo.out" })
-      .from(s.querySelector(".coat"), { opacity: 0, duration: 0.3 }, "-=0.3")
-      .to(s.querySelector(".knob"), { attr: { cx: 345 }, duration: 0.3, ease: "power3.inOut" }, ">")
-      .to(s.querySelector(".on-lab"), { opacity: 0.4, duration: 0.3 }, "<")
-      .to(s.querySelector(".cell"), { scale: 0.62, opacity: 0.75, transformOrigin: "50% 50%", duration: 0.3, ease: "power3.inOut" }, "<")
+    tl.from(s.querySelectorAll(".draw"), { strokeDashoffset: 1, duration: 0.7, stagger: 0.05, ease: "power2.out" })
+      .from(s.querySelector(".coat"), { opacity: 0, duration: 0.4 }, "-=0.4")
+      .to(s.querySelector(".knob"), { attr: { cx: 345 }, duration: 0.6, ease: "power2.inOut" }, ">")
+      .to(s.querySelector(".on-lab"), { opacity: 0.4, duration: 0.6 }, "<")
+      .to(s.querySelector(".cell"), { scale: 0.62, opacity: 0.75, transformOrigin: "50% 50%", duration: 0.7, ease: "power2.inOut" }, "<")
       .to(s.querySelectorAll(".particle"), { x: 300, opacity: 0, stagger: 0.14, repeat: -1, repeatDelay: 0.2, duration: 1.6, ease: "power1.in" }, ">-0.2")
       .to(s.querySelector(".cell"), { scale: 0.55, transformOrigin: "50% 50%", yoyo: true, repeat: -1, duration: 1.4, ease: "sine.inOut" }, "<");
     return tl;
@@ -179,10 +179,10 @@
   }
   function xtlAnim(s, g) {
     var tl = g.timeline();
-    tl.from(s.querySelectorAll(".node"), { opacity: 0, scale: 0, transformOrigin: "center", stagger: { each: 0.02, from: "start" }, duration: 0.3, ease: "expo.out" })
-      .from(s.querySelector(".sel"), { opacity: 0, scale: 0, transformOrigin: "50% 50%", duration: 0.3, ease: "expo.out" }, "-=0.1")
-      .from(s.querySelectorAll(".netg .draw"), { strokeDashoffset: 1, stagger: 0.1, duration: 0.3, ease: "expo.out" }, ">-0.1")
-      .from(s.querySelectorAll(".brain"), { strokeDashoffset: 1, stagger: 0.1, duration: 0.3, ease: "expo.out" }, "<")
+    tl.from(s.querySelectorAll(".node"), { opacity: 0, scale: 0, transformOrigin: "center", stagger: { each: 0.02, from: "start" }, duration: 0.4, ease: "back.out(2)" })
+      .from(s.querySelector(".sel"), { opacity: 0, scale: 0, transformOrigin: "50% 50%", duration: 0.5, ease: "back.out(2.5)" }, "-=0.1")
+      .from(s.querySelectorAll(".netg .draw"), { strokeDashoffset: 1, stagger: 0.12, duration: 0.6, ease: "power2.out" }, ">-0.1")
+      .from(s.querySelectorAll(".brain"), { strokeDashoffset: 1, stagger: 0.15, duration: 0.8, ease: "power2.out" }, "<")
       .fromTo(s.querySelector(".scan"), { attr: { x1: 60, x2: 60 } }, { attr: { x1: 300, x2: 300 }, repeat: -1, duration: 2.4, ease: "none" }, 0)
       .to(s.querySelector(".sel"), { scale: 1.25, transformOrigin: "50% 50%", yoyo: true, repeat: -1, duration: 0.9, ease: "sine.inOut" }, ">");
     return tl;
