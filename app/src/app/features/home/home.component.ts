@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { ShaderBackdropComponent } from '../../shared/ui/shader-backdrop.component';
 
 interface LabCard {
   path: string;
@@ -11,8 +12,10 @@ interface LabCard {
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink],
+  imports: [RouterLink, ShaderBackdropComponent],
   template: `
+    <!-- The colour field runs the full viewport width behind the hero and fades out by the cards. -->
+    <div class="field"><app-shader-backdrop [amount]="0.85" /></div>
     <section class="hero">
       <p class="eyebrow" data-reveal>Visualization labs</p>
       <h1 data-reveal>Four ways to look at data.</h1>
@@ -36,7 +39,10 @@ interface LabCard {
     </section>
   `,
   styles: `
-    :host { display: block; padding: clamp(2rem, 6vh, 4rem) var(--pad-x) 4rem; max-width: 1200px; margin: 0 auto; width: 100%; }
+    :host { display: block; position: relative; padding: clamp(2rem, 6vh, 4rem) var(--pad-x) 4rem; max-width: 1200px; margin: 0 auto; width: 100%; }
+    .field { position: absolute; top: 0; left: 50%; width: 100vw; height: min(72vh, 640px); transform: translateX(-50%); z-index: 0; pointer-events: none;
+             mask-image: linear-gradient(to bottom, black 55%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, black 55%, transparent 100%); }
+    .hero, .grid { position: relative; z-index: 1; }
     .hero { max-width: 760px; margin-bottom: 2.5rem; }
     h1 { font-size: clamp(2rem, 5vw, 3.6rem); font-weight: 700; margin: 8px 0 14px; }
     .lede { color: var(--on-ink-dim); font-size: 17px; }
