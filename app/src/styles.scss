@@ -1,0 +1,258 @@
+@use "styles/tokens";
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html, body { height: 100%; margin: 0; }
+
+body {
+  background: var(--ink);
+  color: var(--on-ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+
+h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.02em; margin: 0; }
+
+/* Theme switch: the whole page crossfades between its two snapshots (ThemeService). */
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 0.5s; animation-timing-function: var(--ease-out); }
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+}
+p { margin: 0; }
+a { color: var(--teal); text-decoration: none; }
+button { font: inherit; color: inherit; }
+code, kbd, .mono { font-family: var(--font-mono); }
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--teal);
+}
+
+// Was a dark translucent pane. On paper that concept does not survive: it is now a solid
+// panel with a hairline and a shadow, because a light theme signals elevation with shadow
+// rather than by making a surface lighter than its background. backdrop-filter is dropped
+// rather than ported — it buys almost nothing on light and costs compositing.
+.glass {
+  background: var(--panel);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--hairline);
+  background: transparent;
+  color: var(--on-ink);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+  &:hover { background: color-mix(in srgb, var(--teal) 10%, transparent); border-color: color-mix(in srgb, var(--teal) 40%, transparent); }
+  &.active, &[aria-pressed="true"] { background: var(--teal); color: var(--ink); border-color: var(--teal); }
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
+  &.small { padding: 5px 10px; font-size: 13px; }
+  &.icon { padding: 8px; }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  label { font-size: 12px; color: var(--on-ink-dim); }
+  input, select, textarea {
+    font: inherit;
+    color: var(--on-ink);
+    background: var(--ink-3);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-sm);
+    padding: 6px 8px;
+    &:focus { outline: 2px solid var(--glow); border-color: var(--teal); }
+  }
+}
+
+input[type="range"] { accent-color: var(--teal); }
+input[type="checkbox"], input[type="radio"] { accent-color: var(--teal); }
+
+/* ------------------------------------------------------------------------------------------------
+ * Instrument keys, shared by the Bayes panel, the camera module and the atlas.
+ *
+ * A .keyrail is a segmented strip of .key buttons with hairline dividers; one key may be .on. A
+ * .key.lone is a single key with its own border. Keys are 26 px, mono codes or 16 px glyphs, and
+ * never rounded individually: the rail is the shape.
+ * ---------------------------------------------------------------------------------------------- */
+.keyrail {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--well);
+  &.column { grid-auto-flow: row; grid-auto-columns: auto; }
+  .key + .key { border-left: 1px solid var(--hairline); }
+  &.column .key + .key { border-left: 0; border-top: 1px solid var(--hairline); }
+}
+.keyrail .key, .key.lone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 2px;
+  border: 0;
+  background: none;
+  color: var(--on-ink-dim);
+  cursor: pointer;
+  font: 500 9px/1 var(--font-mono);
+  letter-spacing: 0.02em;
+  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+  &:hover { background: color-mix(in srgb, var(--teal) 8%, transparent); color: var(--on-ink); }
+  &:active { background: color-mix(in srgb, var(--teal) 16%, transparent); }
+  &:focus-visible { outline: 2px solid var(--teal); outline-offset: -2px; }
+  &:disabled { opacity: 0.35; cursor: not-allowed; background: none; color: var(--on-ink-dim); }
+  &.on, &[aria-pressed="true"] { background: var(--teal); color: var(--ink); }
+  &.on:hover, &[aria-pressed="true"]:hover { background: color-mix(in srgb, var(--teal) 90%, transparent); color: var(--ink); }
+  svg { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  svg .solid, svg .fill { fill: currentColor; stroke: none; }
+  app-glyph { width: 14px; height: 14px; vertical-align: 0; }
+}
+.key.lone { border: 1px solid var(--hairline); border-radius: 6px; background: var(--well); }
+.key.wide { padding: 0 10px; }
+
+/* ------------------------------------------------------------------------------------------------
+ * Chart-client paneling, shared by /morphcharts, /vega-charts and /sanddance-specs.
+ *
+ * All three are the same thing — a plot on the left, its specification and controls on the right —
+ * and they held three drifting copies of this layout before it moved here. Column widths stay with
+ * the pages, because two of the three are draggable, and so does every ::ng-deep block: those reach
+ * into renderer internals that have nothing in common.
+ * ---------------------------------------------------------------------------------------------- */
+.chart-shell {
+  flex: 1;
+  display: grid;
+  gap: 16px;
+  padding: 12px var(--pad-x) 16px;
+  min-height: 0;
+}
+
+.chart-column {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+}
+
+/* The row above the stage: controls, then the page title, then status pushed right. */
+.chart-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  h1 { font-size: 18px; margin: 0; line-height: 1; }
+  .spacer { flex: 1; }
+}
+
+/* The card the plot sits in. Clipped, so a renderer that oversizes itself cannot escape it. */
+.chart-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+.chart-pane {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  gap: 6px;
+}
+
+.chart-pane-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Vega inside a chart stage: the plot takes the whole card and its signal bindings float over the
+ * bottom-left, rather than stacking underneath and pushing the plot out of the frame. Scoped to
+ * .chart-stage on purpose — the inline charts on the data pages want the ordinary stacked layout.
+ */
+.chart-stage {
+  app-vega-chart { position: absolute; inset: 0; }
+
+  .vega-embed {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+  }
+
+  /* Vega sizes the plot inline from the spec's own width, which overflows a narrower card and gets
+     clipped. Contained rather than stretched: it scales down and keeps its aspect, so a wide facet
+     grid stays whole. !important because the inline style would otherwise win. */
+  .vega-embed canvas.marks,
+  .vega-embed svg {
+    display: block;
+    width: auto !important;
+    height: auto !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+  }
+
+  .vega-bindings {
+    position: absolute;
+    left: 12px;
+    bottom: 12px;
+    width: auto;
+    max-width: min(340px, 60%);
+    max-height: calc(100% - 24px);
+    overflow: auto;
+    z-index: 2;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--panel) 88%, transparent);
+    border: 1px solid var(--hairline);
+    box-shadow: var(--shadow-sm);
+    font-size: 12px;
+    color: var(--on-ink-dim);
+  }
+
+  .vega-bind { display: flex; align-items: center; gap: 6px; }
+  .vega-bind input[type="range"] { max-width: 120px; }
+  .vega-bind-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .vega-bindings:empty { display: none; }
+}
+
+/* Drag handle between the columns. Sized in the pages, which own the width signal. */
+.chart-divider {
+  cursor: col-resize;
+  border-radius: 999px;
+  background: var(--ink-3);
+  transition: background var(--dur-fast) var(--ease-out);
+  &:hover { background: var(--teal); }
+}
+
+[data-reveal] { will-change: transform, opacity; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}

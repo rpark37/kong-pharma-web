@@ -1,0 +1,11 @@
+{
+  "name": "@microsoft/morphcharts-spec",
+  "version": "1.0.0",
+  "author": "David Brown",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "type": "module",
+  "dependencies": {
+    "@microsoft/morphcharts-core": "^1.0.0"
+  }
+}

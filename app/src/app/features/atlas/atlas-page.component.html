@@ -1,0 +1,179 @@
+<main class="studio">
+  <div class="stage" #stage (pointerdown)="onPointerDown($event)" (pointerup)="onPointerUp($event)">
+    @if (mode() === 'anatomy') {
+      <div #anatomyHost class="anatomy-host"></div>
+      @if (viewerError()) {
+        <div class="fallback-wrap"><div class="glass viewer-error"><p class="eyebrow">3D viewer</p><p>{{ viewerError() }}</p><button type="button" class="key lone wide" (click)="setMode('data')">OPEN THE DATA VIEW</button></div></div>
+      }
+    } @else if (!fallback()) {
+      <app-morphcharts-canvas (hostReady)="onHost($event)" (failed)="onFailed($event)" />
+    } @else {
+      <div class="fallback-wrap">
+        @if (fallbackSpec(); as spec) {
+          <app-vega-chart class="fallback-chart" [spec]="spec" [height]="520" />
+        }
+        <app-webgpu-fallback title="The 3D atlas needs WebGPU">
+          <p class="small">The treemap above shows the same 2,234 structures grouped by system.</p>
+        </app-webgpu-fallback>
+      </div>
+    }
+  </div>
+
+  <header class="identity" data-reveal>
+    <p class="eyebrow"><app-glyph name="body" />Interactive anatomy</p>
+    <h1>Human Atlas</h1>
+    <p class="identity-meta"><b>{{ parts().length ? (parts().length | number) : '2,234' }}</b> pieces<i>·</i><b>{{ activeSystems().length || 15 }}</b> systems<i>·</i>BodyParts3D<i>·</i>{{ mode() === 'anatomy' ? 'three.js' : 'MorphCharts' }}</p>
+  </header>
+
+  <nav class="top-actions" aria-label="Explorer panels" data-reveal>
+    <div class="keyrail" role="radiogroup" aria-label="Rendering mode">
+      <button type="button" class="key wide" role="radio" [attr.aria-checked]="mode() === 'anatomy'" [class.on]="mode() === 'anatomy'" (click)="setMode('anatomy')" title="Real BodyParts3D meshes in three.js">ANATOMY</button>
+      <button type="button" class="key wide" role="radio" [attr.aria-checked]="mode() === 'data'" [class.on]="mode() === 'data'" (click)="setMode('data')" title="Spec-driven MorphCharts scene of the catalogue">DATA</button>
+    </div>
+    <button type="button" class="key lone wide" [class.on]="panel() === 'search'" (click)="openPanel('search')" aria-label="Search anatomy" title="Find a structure (/)"><app-glyph name="search" /><span>FIND</span><kbd>/</kbd></button>
+    <button type="button" class="key lone" aria-label="About this atlas" title="Source & scope" (click)="openAbout()"><app-glyph name="info" /></button>
+  </nav>
+
+  <!-- Systems as a mixer: the row toggles a system, S solos it. -->
+  <section class="layers-panel glass" [class.mobile-open]="panel() === 'layers'" aria-label="Anatomical layers" data-reveal>
+    <div class="panel-heading">
+      <span class="label"><app-glyph name="layers" />Systems</span>
+      <output class="badge" [attr.aria-label]="visibleCount() + ' of ' + parts().length + ' pieces visible'">{{ visibleCount() | number }}<i>/</i>{{ parts().length | number }}</output>
+      <button type="button" class="key lone mobile-only" (click)="panel.set(null)" aria-label="Close systems"><app-glyph name="close" /></button>
+    </div>
+    <div class="keyrail presets" role="group" aria-label="Layer presets">
+      <button type="button" class="key" [class.on]="allVisible()" [attr.aria-pressed]="allVisible()" (click)="showAll()">ALL</button>
+      <button type="button" class="key" [class.on]="skeletonOnly()" [attr.aria-pressed]="skeletonOnly()" (click)="showSkeleton()">BONES</button>
+      <button type="button" class="key" [class.on]="organsOnly()" [attr.aria-pressed]="organsOnly()" (click)="showOrgans()">ORGANS</button>
+      <button type="button" class="key" [class.on]="visible().length === 0" [attr.aria-pressed]="visible().length === 0" (click)="hideAll()">NONE</button>
+    </div>
+    <ul class="system-list" role="list">
+      @for (s of activeSystems(); track s.id) {
+        <li class="system-row" [class.enabled]="visible().includes(s.id)" [style.--c]="s.color">
+          <button type="button" class="system-toggle" role="switch" [attr.aria-checked]="visible().includes(s.id)" (click)="toggle(s.id)" [attr.aria-label]="'Show ' + s.name.toLowerCase()">
+            <span class="system-dot"></span><span class="system-name">{{ s.name }}</span><span class="system-count">{{ count(s.id) }}</span>
+          </button>
+          <button type="button" class="key lone solo" [class.on]="soloed() === s.id" (click)="showOnly(s.id)" [attr.aria-pressed]="soloed() === s.id" [attr.aria-label]="'Show only ' + s.name.toLowerCase()" [title]="'Only ' + s.name.toLowerCase()">S</button>
+        </li>
+      }
+    </ul>
+  </section>
+
+  @if (panel() === 'search') {
+    <section class="search-panel glass" role="dialog" aria-label="Find a structure">
+      <div class="search-box">
+        <app-glyph name="search" />
+        <input class="search-input" type="search" autofocus placeholder="Heart, femur, cranial nerve…" aria-label="Search named anatomical structures" role="combobox" aria-expanded="true" aria-controls="atlas-results" aria-autocomplete="list" [attr.aria-activedescendant]="results().length ? 'atlas-option-' + cursor() : null" [value]="query()" (input)="onQuery($any($event.target).value)" (keydown)="onSearchKey($event)">
+        <button type="button" class="key lone" (click)="panel.set(null)" aria-label="Close search"><app-glyph name="close" /></button>
+      </div>
+      <ul class="search-results" id="atlas-results" role="listbox" aria-label="Matching structures">
+        @for (c of results(); track c.id; let i = $index) {
+          <li role="option" [id]="'atlas-option-' + i" [attr.aria-selected]="i === cursor()" [class.active]="i === cursor()" (mousemove)="cursor.set(i)" (click)="choose(c)">
+            <span class="search-result-name">{{ c.name }}</span><span class="small-number">{{ c.elements.length }}<i>{{ c.elements.length === 1 ? ' piece' : ' pieces' }}</i></span>
+          </li>
+        } @empty {
+          <li class="empty">No structures match.</li>
+        }
+      </ul>
+      <p class="search-note"><kbd>↑</kbd><kbd>↓</kbd> move <i>·</i> <kbd>↵</kbd> select <i>·</i> {{ query() ? 'up to 80 matches, shortest names first' : 'or start with a major organ' }}</p>
+    </section>
+  }
+
+  <!-- Data mode borrows the shared camera panel; Anatomy mode keeps its own three.js camera. -->
+  <nav class="view-controls glass" aria-label="Camera controls" data-reveal>
+    @if (mode() === 'data' && rig(); as r) {
+      <app-morphcharts-camera [rig]="r" />
+    } @else {
+      <p class="label"><app-glyph name="camera" />Camera</p>
+      <div class="keyrail" role="group" aria-label="View">
+        @for (v of views; track v.id) {
+          <button type="button" class="key" [class.on]="view() === v.id" [attr.aria-pressed]="view() === v.id" [disabled]="explode() > 0.8 && v.id !== 'front'" (click)="setView(v.id)" [title]="v.name">{{ v.code }}</button>
+        }
+      </div>
+      <div class="rowline">
+        <button type="button" class="key lone" [disabled]="explode() >= 0.4" [attr.aria-label]="rotate() ? 'Pause rotation' : 'Orbit slowly'" [title]="rotate() ? 'Pause' : 'Orbit slowly'" [class.on]="rotate()" [attr.aria-pressed]="rotate()" (click)="toggleRotate()"><app-glyph [name]="rotate() ? 'pause' : 'orbit'" /></button>
+      </div>
+    }
+    <button type="button" class="key lone wide reset" aria-label="Reset view and layers" title="Reset view and layers" (click)="reset()"><app-glyph name="reset" />RESET</button>
+  </nav>
+
+  <div class="scene-caption" data-reveal><span class="caption-line"></span><span>{{ caption() }}</span><span class="caption-line"></span></div>
+
+  <div class="bottom-dock glass" data-reveal>
+    <button type="button" class="key lone mobile-only" (click)="openPanel('layers')" aria-label="Open system layers"><app-glyph name="layers" /></button>
+    <label class="field explode-control">
+      <span title="Fan the systems out, then lay every piece on a grid"><i><app-glyph name="explode" />Explode</i><output>{{ (explode() * 100) | number: '1.0-0' }}<small>%</small></output></span>
+      <input type="range" min="0" max="100" step="1" aria-label="Explode anatomy" [value]="explode() * 100" (input)="onExplodeInput(+$any($event.target).value, false)" (change)="onExplodeInput(+$any($event.target).value, true)">
+      <span class="endpoints"><span>Assembled</span><span>Every piece</span></span>
+    </label>
+  </div>
+
+  <footer class="studio-footer" data-reveal>
+    <span class="hint">{{ explode() > 0.8 ? 'Drag to pan' : 'Drag to orbit' }}<i>·</i>Wheel to zoom<i>·</i>Tap to inspect<i>·</i>{{ mode() === 'anatomy' ? 'three.js · BodyParts3D meshes' : 'MorphCharts · path traced' }}</span>
+    <button type="button" class="key lone wide" (click)="openAbout()">SOURCE &amp; CREDITS<app-glyph name="external" /></button>
+  </footer>
+
+  @if (progress() < 100 && !error()) {
+    <div class="loading glass" role="status">
+      <span class="label">Preparing the anatomy</span>
+      <span class="mono">{{ progress() }} %<i>·</i>{{ parts().length ? (parts().length | number) : '2,234' }} pieces</span>
+      <div class="loading-track"><i [style.width.%]="progress()"></i></div>
+    </div>
+  }
+  @if (error()) {
+    <div class="loading glass error" role="alert"><p>{{ error() }}</p><button type="button" class="key lone wide" (click)="reload()">RELOAD VIEWER</button></div>
+  }
+
+  <aside class="detail-sheet glass" [class.open]="details() && selectedParts().length > 0" [class.is-isolated]="isolate()" aria-label="Structure details" [style.--c]="selectedSystem()?.color">
+    <header class="sheet-head">
+      <p class="eyebrow"><span class="system-dot"></span>{{ selectedSystem()?.name ?? 'Anatomy' }}</p>
+      <h2 class="structure-title">{{ chosen()?.name }}</h2>
+      <button type="button" class="key lone close" (click)="details.set(false)" aria-label="Close details"><app-glyph name="close" /></button>
+    </header>
+    <div class="detail-scroll">
+      <p class="structure-description">{{ explanationText() }}</p>
+      @if (chosen() && !hasExplanation()) { <p class="context-note">System overview — this structure has no note of its own.</p> }
+      <dl class="readout">
+        <div><dt>Atlas ref</dt><dd>{{ chosen()?.id }}</dd></div>
+        <div><dt>Pieces</dt><dd>{{ selected().length | number }}</dd></div>
+        <div><dt>Extent</dt><dd>{{ selectedExtent() }}</dd></div>
+      </dl>
+      @if (selectedParts().length > 1) {
+        <div class="member-list">
+          <p class="label">Included structures</p>
+          <ul role="list">
+            @for (p of selectedParts().slice(0, 50); track p.id) { <li><button type="button" class="member" (click)="choosePart(p.id)"><span>{{ p.name }}</span><app-glyph name="chevron" /></button></li> }
+          </ul>
+          @if (selectedParts().length > 50) { <p class="context-note">And {{ selectedParts().length - 50 }} more modeled pieces.</p> }
+        </div>
+      }
+      <a class="source-link" href="https://lifesciencedb.jp/bp3d/" target="_blank" rel="noreferrer">View anatomical source<app-glyph name="external" /></a>
+    </div>
+    <div class="detail-actions">
+      <button type="button" class="key lone wide" [class.on]="isolate()" [attr.aria-pressed]="isolate()" (click)="toggleIsolate()"><app-glyph name="isolate" />{{ isolate() ? 'SHOW SURROUNDINGS' : 'ISOLATE' }}</button>
+      <button type="button" class="key lone wide" (click)="clearSelection()">CLEAR</button>
+    </div>
+  </aside>
+
+  <aside class="about-sheet glass" [class.open]="about()" aria-label="Source and scope">
+    <header class="sheet-head">
+      <p class="eyebrow"><app-glyph name="info" />Source &amp; scope</p>
+      <h2 class="structure-title">A body, as a dataset</h2>
+      <button type="button" class="key lone close" (click)="about.set(false)" aria-label="Close"><app-glyph name="close" /></button>
+    </header>
+    <div class="about-copy">
+      <p class="structure-description">The adult male reference anatomy from BodyParts3D, twice over: the meshes themselves in three.js, and the same {{ parts().length | number }} structures as MorphCharts primitives at their bounding boxes, coloured by system, from a Vega-style specification.</p>
+      <dl class="readout">
+        <div><dt>Pieces</dt><dd>{{ parts().length | number }}</dd></div>
+        <div><dt>Named concepts</dt><dd>{{ concepts().length | number }}</dd></div>
+        <div><dt>Systems</dt><dd>{{ activeSystems().length }}</dd></div>
+      </dl>
+      <p>This reference does not contain every human structure or variation. Named concepts can contain multiple pieces; each source mesh is represented once. Shapes in Data mode are bounding-box proxies of the simplified web geometry. This is an anatomical reference, not a diagnostic or surgical tool.</p>
+      <p class="label">Source</p>
+      <p>BodyParts3D, © The Database Center for Life Science, licensed under CC Attribution 4.0 International. Catalogue packaged by <a href="https://github.com/ashemag/human-atlas" target="_blank" rel="noreferrer">ashemag/human-atlas</a> (MIT).</p>
+      <a class="source-link" href="https://dbarchive.biosciencedbc.jp/en/bodyparts3d/lic.html" target="_blank" rel="noreferrer">Dataset license<app-glyph name="external" /></a>
+      <a class="source-link" href="https://dbarchive.biosciencedbc.jp/en/bodyparts3d/download.html" target="_blank" rel="noreferrer">Original geometry &amp; metadata<app-glyph name="external" /></a>
+      <a class="source-link" href="https://academic.oup.com/nar/article/37/suppl_1/D782/1000752" target="_blank" rel="noreferrer">Source publication<app-glyph name="external" /></a>
+    </div>
+  </aside>
+</main>

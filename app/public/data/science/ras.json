@@ -1,0 +1,559 @@
+{
+  "captured": "2026-09-22T06:00:43Z",
+  "genes": [
+    {
+      "id": "ENSG00000133703",
+      "symbol": "KRAS",
+      "name": "KRas proto-oncogene, GTPase",
+      "smallMolecule": [
+        "Approved Drug",
+        "High-Quality Ligand",
+        "Structure with Ligand"
+      ],
+      "diseaseCount": 2404,
+      "diseases": [
+        {
+          "id": "MONDO_0018997",
+          "name": "Noonan syndrome",
+          "score": 0.8335596693339207,
+          "evidence": {
+            "genetic_literature": 0.8629165362838598,
+            "affected_pathway": 0.9190679877429972,
+            "literature": 0.19660652663001532,
+            "genetic_association": 0.865553665248194,
+            "animal_model": 0.42259118864826517
+          }
+        },
+        {
+          "id": "MONDO_0012371",
+          "name": "Noonan syndrome 3",
+          "score": 0.8289370225629306,
+          "evidence": {
+            "literature": 0.015198269940290528,
+            "animal_model": 0.2732648935264237,
+            "genetic_association": 0.9396777399450155,
+            "genetic_literature": 0.8671804074341221
+          }
+        },
+        {
+          "id": "MONDO_0014112",
+          "name": "cardiofaciocutaneous syndrome 2",
+          "score": 0.8215703552237353,
+          "evidence": {
+            "genetic_association": 0.9040142374476581,
+            "genetic_literature": 0.8689251067895126
+          }
+        },
+        {
+          "id": "MONDO_0015280",
+          "name": "cardiofaciocutaneous syndrome",
+          "score": 0.8161317445014307,
+          "evidence": {
+            "genetic_literature": 0.8761385704020979,
+            "affected_pathway": 0.607930797611621,
+            "literature": 0.21709989128981708,
+            "genetic_association": 0.8288810939683653,
+            "animal_model": 0.2517441432909723
+          }
+        },
+        {
+          "id": "MONDO_0005233",
+          "name": "non-small cell lung carcinoma",
+          "score": 0.803548887170282,
+          "evidence": {
+            "literature": 0.9968241901038705,
+            "affected_pathway": 0.6934634586610258,
+            "somatic_mutation": 0.8400963905230843,
+            "clinical": 0.946132266361988
+          }
+        },
+        {
+          "id": "MONDO_0001056",
+          "name": "gastric cancer",
+          "score": 0.7683306344975595,
+          "evidence": {
+            "literature": 0.945210157059969,
+            "genetic_association": 0.8962321024194934,
+            "somatic_mutation": 0.6839221473130737,
+            "genetic_literature": 0.607930797611621
+          }
+        },
+        {
+          "id": "MONDO_0018874",
+          "name": "acute myeloid leukemia",
+          "score": 0.7492709863151713,
+          "evidence": {
+            "genetic_literature": 0.607930797611621,
+            "affected_pathway": 0.5687800579559478,
+            "literature": 0.8838104942134808,
+            "genetic_association": 0.8026003573206445,
+            "somatic_mutation": 0.7889010007828839,
+            "animal_model": 0.6117468344555025
+          }
+        },
+        {
+          "id": "MONDO_0008097",
+          "name": "linear nevus sebaceous syndrome",
+          "score": 0.7419245697430973,
+          "evidence": {
+            "literature": 0.09364949728634052,
+            "genetic_association": 0.8114077197780352,
+            "somatic_mutation": 0.7258693723482754,
+            "genetic_literature": 0.7295169571339454
+          }
+        },
+        {
+          "id": "MONDO_0010854",
+          "name": "Toriello-Lacassie-Droste syndrome",
+          "score": 0.7397670716208318,
+          "evidence": {
+            "literature": 0.1449196665459445,
+            "genetic_association": 0.8729279391985548,
+            "somatic_mutation": 0.7789113344398895,
+            "genetic_literature": 0.607930797611621
+          }
+        },
+        {
+          "id": "Orphanet_2612",
+          "name": "Linear nevus sebaceus syndrome",
+          "score": 0.7343089034254375,
+          "evidence": {
+            "literature": 0.09364949728634052,
+            "genetic_association": 0.8114077197780352,
+            "somatic_mutation": 0.7933496908831654,
+            "genetic_literature": 0.7295169571339454
+          }
+        },
+        {
+          "id": "Orphanet_268114",
+          "name": "RAS-associated autoimmune leukoproliferative disease",
+          "score": 0.7220803572137094,
+          "evidence": {
+            "genetic_literature": 0.8332873668929289,
+            "literature": 0.04420163507634495,
+            "genetic_association": 0.885308464063211,
+            "somatic_mutation": 0.8136984856365543,
+            "animal_model": 0.26979968798003745
+          }
+        },
+        {
+          "id": "MONDO_0013767",
+          "name": "autoimmune lymphoproliferative syndrome type 4",
+          "score": 0.7219245177083174,
+          "evidence": {
+            "genetic_literature": 0.8332873668929289,
+            "literature": 0.012158615952232422,
+            "genetic_association": 0.885308464063211,
+            "somatic_mutation": 0.8136984856365543,
+            "animal_model": 0.26979968798003745
+          }
+        }
+      ],
+      "drugCount": 3,
+      "drugs": [
+        {
+          "id": "CHEMBL4535757",
+          "name": "Sotorasib",
+          "type": "Small molecule",
+          "stage": "Approved"
+        },
+        {
+          "id": "CHEMBL4594350",
+          "name": "Adagrasib",
+          "type": "Small molecule",
+          "stage": "Approved"
+        },
+        {
+          "id": "CHEMBL23293",
+          "name": "Salirasib",
+          "type": "Small molecule",
+          "stage": "Phase 2"
+        }
+      ]
+    },
+    {
+      "id": "ENSG00000174775",
+      "symbol": "HRAS",
+      "name": "HRas proto-oncogene, GTPase",
+      "smallMolecule": [
+        "Advanced Clinical",
+        "Druggable Family",
+        "High-Quality Ligand",
+        "High-Quality Pocket",
+        "Structure with Ligand"
+      ],
+      "diseaseCount": 2998,
+      "diseases": [
+        {
+          "id": "MONDO_0009026",
+          "name": "Costello syndrome",
+          "score": 0.8837170402861935,
+          "evidence": {
+            "genetic_literature": 0.9051214126221097,
+            "affected_pathway": 0.8897742701710087,
+            "literature": 0.2550577516604023,
+            "genetic_association": 0.9338394624554561,
+            "animal_model": 0.31679273863541574
+          }
+        },
+        {
+          "id": "MONDO_0008097",
+          "name": "linear nevus sebaceous syndrome",
+          "score": 0.7631602530595742,
+          "evidence": {
+            "genetic_literature": 0.8139517901355594,
+            "literature": 0.08157586955617939,
+            "genetic_association": 0.8274676529099978,
+            "somatic_mutation": 0.668723877372783,
+            "animal_model": 0.2887063357857589
+          }
+        },
+        {
+          "id": "Orphanet_2612",
+          "name": "Linear nevus sebaceus syndrome",
+          "score": 0.7534189573061832,
+          "evidence": {
+            "genetic_literature": 0.8139517901355594,
+            "literature": 0.08199287424161593,
+            "genetic_association": 0.8274676529099978,
+            "somatic_mutation": 0.6839221473130737,
+            "animal_model": 0.3531470003325907
+          }
+        },
+        {
+          "id": "MONDO_0001187",
+          "name": "urinary bladder cancer",
+          "score": 0.7218882576469503,
+          "evidence": {
+            "literature": 0.7274485432313287,
+            "genetic_association": 0.8730224656479578,
+            "somatic_mutation": 0.7713966343027459,
+            "genetic_literature": 0.607930797611621
+          }
+        },
+        {
+          "id": "MONDO_0008093",
+          "name": "nevus, epidermal",
+          "score": 0.7187635614718378,
+          "evidence": {
+            "literature": 0.10512136708700948,
+            "genetic_association": 0.8730224656479578,
+            "somatic_mutation": 0.7708805686034401,
+            "genetic_literature": 0.607930797611621
+          }
+        },
+        {
+          "id": "MONDO_0004986",
+          "name": "urinary bladder carcinoma",
+          "score": 0.688484147106561,
+          "evidence": {
+            "literature": 0.7193755544605216,
+            "genetic_association": 0.8730224656479578,
+            "somatic_mutation": 0.5957721816593886,
+            "genetic_literature": 0.607930797611621
+          }
+        },
+        {
+          "id": "MONDO_0018997",
+          "name": "Noonan syndrome",
+          "score": 0.6828745308849584,
+          "evidence": {
+            "literature": 0.05622354825820105,
+            "affected_pathway": 0.9190679877429972,
+            "animal_model": 0.512422702113051,
+            "genetic_association": 0.7684751890808901
+          }
+        },
+        {
+          "id": "MONDO_0008566",
+          "name": "thyroid cancer, nonmedullary, 2",
+          "score": 0.6604357685972846,
+          "evidence": {
+            "literature": 0.04547564752690978,
+            "genetic_association": 0.8730224656479578,
+            "somatic_mutation": 0.547137717850459,
+            "genetic_literature": 0.607930797611621
+          }
+        },
+        {
+          "id": "MONDO_0004992",
+          "name": "cancer",
+          "score": 0.6533401898510187,
+          "evidence": {
+            "literature": 0.9011830878772117,
+            "affected_pathway": 0.9045280488140353
+          }
+        },
+        {
+          "id": "MONDO_0044792",
+          "name": "large congenital melanocytic nevus",
+          "score": 0.6201503654150567,
+          "evidence": {
+            "literature": 0.028876712886552,
+            "animal_model": 0.29162440361429465,
+            "genetic_association": 0.8730224656479578,
+            "somatic_mutation": 0.4109612191854558
+          }
+        },
+        {
+          "id": "MONDO_0800299",
+          "name": "myopathy, congenital, with excess of muscle spindles",
+          "score": 0.6069835807842497,
+          "evidence": {
+            "genetic_association": 0.7789113344398895,
+            "genetic_literature": 0.607930797611621
+          }
+        },
+        {
+          "id": "MONDO_0021060",
+          "name": "RASopathy",
+          "score": 0.5622861608976487,
+          "evidence": {
+            "literature": 0.42607967776948547,
+            "genetic_association": 0.9036140546558854
+          }
+        }
+      ],
+      "drugCount": 1,
+      "drugs": [
+        {
+          "id": "CHEMBL23293",
+          "name": "Salirasib",
+          "type": "Small molecule",
+          "stage": "Phase 2"
+        }
+      ]
+    },
+    {
+      "id": "ENSG00000213281",
+      "symbol": "NRAS",
+      "name": "NRAS proto-oncogene, GTPase",
+      "smallMolecule": [
+        "Advanced Clinical",
+        "High-Quality Ligand",
+        "Structure with Ligand"
+      ],
+      "diseaseCount": 1202,
+      "diseases": [
+        {
+          "id": "MONDO_0018997",
+          "name": "Noonan syndrome",
+          "score": 0.8281933043526261,
+          "evidence": {
+            "literature": 0.3169241971226419,
+            "affected_pathway": 0.9190679877429972,
+            "genetic_association": 0.8204177292326961,
+            "genetic_literature": 0.8629165362838598
+          }
+        },
+        {
+          "id": "MONDO_0013186",
+          "name": "Noonan syndrome 6",
+          "score": 0.806590656792601,
+          "evidence": {
+            "literature": 0.03706689168770857,
+            "genetic_association": 0.8829562050726292,
+            "genetic_literature": 0.860273678088712
+          }
+        },
+        {
+          "id": "MONDO_0044792",
+          "name": "large congenital melanocytic nevus",
+          "score": 0.7069174735695414,
+          "evidence": {
+            "literature": 0.05206648081919975,
+            "genetic_association": 0.8000369296568934,
+            "somatic_mutation": 0.7489707426575173,
+            "genetic_literature": 0.607930797611621
+          }
+        },
+        {
+          "id": "MONDO_0008093",
+          "name": "nevus, epidermal",
+          "score": 0.6999123820233032,
+          "evidence": {
+            "genetic_association": 0.7592380183505134,
+            "somatic_mutation": 0.6869618013011318,
+            "genetic_literature": 0.607930797611621
+          }
+        },
+        {
+          "id": "MONDO_0018874",
+          "name": "acute myeloid leukemia",
+          "score": 0.6991063332561024,
+          "evidence": {
+            "literature": 0.8157251306724962,
+            "affected_pathway": 0.58458625869385,
+            "genetic_association": 0,
+            "somatic_mutation": 0.8100631133054279
+          }
+        },
+        {
+          "id": "MONDO_0013767",
+          "name": "autoimmune lymphoproliferative syndrome type 4",
+          "score": 0.6829920923262006,
+          "evidence": {
+            "animal_model": 0.2887063357857589,
+            "genetic_association": 0.7732987822206061,
+            "somatic_mutation": 0.4377101742803672,
+            "genetic_literature": 0.7109412938735902
+          }
+        },
+        {
+          "id": "MONDO_0005105",
+          "name": "melanoma",
+          "score": 0.67886250782775,
+          "evidence": {
+            "literature": 0.9925441416903599,
+            "affected_pathway": 0.5094460269511141,
+            "genetic_association": 0,
+            "somatic_mutation": 0.838132289091163
+          }
+        },
+        {
+          "id": "MONDO_0004992",
+          "name": "cancer",
+          "score": 0.6532709243663363,
+          "evidence": {
+            "literature": 0.8960559470530333,
+            "affected_pathway": 0.9045280488140353
+          }
+        },
+        {
+          "id": "MONDO_0011908",
+          "name": "juvenile myelomonocytic leukemia",
+          "score": 0.6443453815862927,
+          "evidence": {
+            "literature": 0.28370551629482516,
+            "genetic_association": 0.7173583411817128,
+            "somatic_mutation": 0.668723877372783,
+            "genetic_literature": 0.607930797611621
+          }
+        },
+        {
+          "id": "MONDO_0009693",
+          "name": "plasma cell myeloma",
+          "score": 0.6420331913337674,
+          "evidence": {
+            "literature": 0.29997389383228146,
+            "affected_pathway": 0.5858021202890732,
+            "somatic_mutation": 0.7835552502549783
+          }
+        },
+        {
+          "id": "Orphanet_268114",
+          "name": "RAS-associated autoimmune leukoproliferative disease",
+          "score": 0.6394199107222587,
+          "evidence": {
+            "genetic_literature": 0.7366939179390825,
+            "literature": 0.09245614213676738,
+            "genetic_association": 0.8146407783728523,
+            "somatic_mutation": 0.4377101742803672,
+            "animal_model": 0.2887063357857589
+          }
+        },
+        {
+          "id": "EFO_0000625",
+          "name": "nevus",
+          "score": 0.6375349683646356,
+          "evidence": {
+            "literature": 0.13637469857477225,
+            "genetic_association": 0.8274613634158176,
+            "genetic_literature": 0.607930797611621
+          }
+        }
+      ],
+      "drugCount": 1,
+      "drugs": [
+        {
+          "id": "CHEMBL23293",
+          "name": "Salirasib",
+          "type": "Small molecule",
+          "stage": "Phase 2"
+        }
+      ]
+    }
+  ],
+  "literature": [
+    {
+      "year": 2007,
+      "count": 638
+    },
+    {
+      "year": 2008,
+      "count": 999
+    },
+    {
+      "year": 2009,
+      "count": 1440
+    },
+    {
+      "year": 2010,
+      "count": 2002
+    },
+    {
+      "year": 2011,
+      "count": 2445
+    },
+    {
+      "year": 2012,
+      "count": 2928
+    },
+    {
+      "year": 2013,
+      "count": 3493
+    },
+    {
+      "year": 2014,
+      "count": 4247
+    },
+    {
+      "year": 2015,
+      "count": 4791
+    },
+    {
+      "year": 2016,
+      "count": 5258
+    },
+    {
+      "year": 2017,
+      "count": 6018
+    },
+    {
+      "year": 2018,
+      "count": 6258
+    },
+    {
+      "year": 2019,
+      "count": 7213
+    },
+    {
+      "year": 2020,
+      "count": 9061
+    },
+    {
+      "year": 2021,
+      "count": 11358
+    },
+    {
+      "year": 2022,
+      "count": 11758
+    },
+    {
+      "year": 2023,
+      "count": 11190
+    },
+    {
+      "year": 2024,
+      "count": 11685
+    },
+    {
+      "year": 2025,
+      "count": 13751
+    },
+    {
+      "year": 2026,
+      "count": 9825
+    }
+  ]
+}
