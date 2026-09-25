@@ -1,19 +1,12 @@
+import type { ColumnDef } from '../../shared/duck/column-def';
 import { GENE_ORDER } from '../science/gene-stories';
+
+export type { ColumnDef } from '../../shared/duck/column-def';
 
 export const SCREEN_TABLE = 'screen';
 export const ROW_COUNTS = [1_000_000, 5_000_000, 10_000_000] as const;
 export const DEFAULT_ROWS = 1_000_000;
 export const SEED = 2026;
-
-/** One grid column: which table column, how wide, how to show a cell. */
-export interface ColumnDef {
-  key: string;
-  label: string;
-  width: number;
-  align?: 'left' | 'right';
-  format?: (v: unknown) => string;
-  sortable?: boolean;
-}
 
 const LIBRARIES = ['LIB-A', 'LIB-B', 'LIB-C', 'LIB-D'];
 const SITES = ['Boston', 'Basel', 'Shanghai', 'Seoul', 'Oxford'];
