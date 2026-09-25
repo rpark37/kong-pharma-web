@@ -4,6 +4,7 @@ import { Component, ElementRef, afterNextRender, computed, effect, inject, input
 import { Title } from '@angular/platform-browser';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
+import type { gsap } from 'gsap';
 import { GsapService } from '../../shared/animation/gsap.service';
 import { GlyphComponent } from '../../shared/ui/glyph.component';
 import { MorphchartsSceneComponent } from '../../shared/morphcharts/morphcharts-scene.component';
@@ -47,7 +48,7 @@ interface GeneData {
       <article class="story">
         <header class="head">
           <p class="eyebrow" data-reveal><app-glyph name="body" />Research · {{ index() + 1 }} of {{ order.length }} · {{ s.role }}</p>
-          <h1 data-reveal>{{ s.symbol }}</h1>
+          <h1 data-reveal tabindex="-1" translate="no">{{ s.symbol }}</h1>
           <p class="lead" data-reveal>{{ s.hook }}</p>
           @if (data(); as d) {
             <dl class="ledger" data-reveal>
@@ -63,9 +64,9 @@ interface GeneData {
         </header>
 
         <nav class="thread" aria-label="Genes" data-reveal>
-          @if (prev(); as p) { <a [routerLink]="'/gene-' + p.toLowerCase()"><app-glyph name="prev" />{{ p }}</a> } @else { <span></span> }
+          @if (prev(); as p) { <a [routerLink]="'/gene-' + p.toLowerCase()" [attr.aria-label]="'Previous gene, ' + p" translate="no"><app-glyph name="prev" />{{ p }}</a> } @else { <span></span> }
           <a class="dossier" routerLink="/science" [fragment]="chapterFragment()">The dossier · {{ stationLabel() }}</a>
-          @if (next(); as n) { <a class="next" [routerLink]="'/gene-' + n.toLowerCase()">{{ n }}<app-glyph name="next" /></a> } @else { <span></span> }
+          @if (next(); as n) { <a class="next" [routerLink]="'/gene-' + n.toLowerCase()" [attr.aria-label]="'Next gene, ' + n" translate="no">{{ n }}<app-glyph name="next" /></a> } @else { <span></span> }
         </nav>
 
         <section class="part" data-reveal>
@@ -78,20 +79,22 @@ interface GeneData {
             <p class="kicker">The protein</p>
             <dl class="ledger tight">
               <div><dt>Model</dt><dd>{{ st.model }}<small>AlphaFold DB v{{ st.version }}</small></dd></div>
-              <div><dt>Residues</dt><dd>{{ st.length | number }}<small>Cα trace</small></dd></div>
+              <div><dt>Residues</dt><dd>{{ st.length | number }}<small>Cα&nbsp;trace</small></dd></div>
               <div><dt>Mean pLDDT</dt><dd>{{ st.meanPlddt | number: '1.0-0' }}<small>{{ meanBand() }}</small></dd></div>
-              <div><dt>Confident</dt><dd>{{ confident() | number: '1.0-0' }}%<small>residues at pLDDT ≥ 70</small></dd></div>
+              <div><dt>Confident</dt><dd>{{ confident() | number: '1.0-0' }}%<small>residues at pLDDT&nbsp;≥&nbsp;70</small></dd></div>
             </dl>
-            <div class="scene-box">
-              <app-morphcharts-scene [spec]="structureSpec()" [maxFrames]="300" [fallbackTitle]="s.symbol + ' in 3D needs WebGPU'" (hostReady)="onStructureHost($event)" (loaded)="rig()?.apply(); rig()?.applyRenderMode()">
-                <p class="context-note">The confidence strip below carries the same model.</p>
-              </app-morphcharts-scene>
-            </div>
-            <app-morphcharts-camera class="scene-camera" [rig]="rig()" layout="row" />
-            <figcaption><b>Fig. 1</b> {{ s.symbol }} as beads on a string: every residue's alpha-carbon, coloured by how sure AlphaFold is of its position — <span class="band b0">very high</span>, <span class="band b1">confident</span>, <span class="band b2">low</span>, <span class="band b3">very low</span>. A loose thread of red is disorder, not error. AlphaFold DB, EMBL-EBI &amp; DeepMind, CC BY 4.0.</figcaption>
+            <figure class="structure-figure">
+              <div class="scene-box" role="img" [attr.aria-label]="s.symbol + ' as an AlphaFold alpha-carbon trace, ' + st.length + ' residues coloured by confidence; mean pLDDT ' + (st.meanPlddt | number: '1.0-0') + '. Use the camera controls below to turn it.'">
+                <app-morphcharts-scene [spec]="structureSpec()" [maxFrames]="maxFrames" [fallbackTitle]="s.symbol + ' in 3D needs WebGPU'" (hostReady)="onStructureHost($event)" (loaded)="rig()?.apply(); rig()?.applyRenderMode()">
+                  <p class="context-note">The confidence strip below carries the same model.</p>
+                </app-morphcharts-scene>
+              </div>
+              <app-morphcharts-camera class="scene-camera" [rig]="rig()" layout="row" />
+              <figcaption><b>Fig.&nbsp;1</b> {{ s.symbol }} as beads on a string: every residue's alpha-carbon, coloured by how sure AlphaFold is of its position — <span class="band b0">very high</span>, <span class="band b1">confident</span>, <span class="band b2">low</span>, <span class="band b3">very low</span>. A loose thread of red is disorder, not error. AlphaFold DB, EMBL-EBI &amp; DeepMind, CC&nbsp;BY&nbsp;4.0.</figcaption>
+            </figure>
             <figure>
               <div class="chart strip-chart"><app-vega-chart [spec]="plddtStrip()" [fill]="true" /></div>
-              <figcaption><b>Fig. 2</b> Confidence along the chain, one bar per residue. Long low stretches are the flexible regions a crystal never resolves.</figcaption>
+              <figcaption><b>Fig.&nbsp;2</b> Confidence along the chain, one bar per residue. Long low stretches are the flexible regions a crystal never resolves.</figcaption>
             </figure>
           </section>
         }
@@ -113,7 +116,7 @@ interface GeneData {
               <rect class="node" x="846" y="12" width="104" height="40" rx="8" /><text class="label" x="898" y="30">HIF1A · MTOR</text><text class="label small" x="898" y="44">sensing</text>
             </g>
           </svg>
-          <figcaption><b>Fig. 3</b> The route, with {{ s.symbol }}'s station lit. HIF1A turns the programme up under hypoxia; MTOR reads what the lysosome releases.</figcaption>
+          <figcaption><b>Fig.&nbsp;3</b> The route, with {{ s.symbol }}'s station lit. HIF1A turns the programme up under hypoxia; MTOR reads what the lysosome releases.</figcaption>
         </figure>
 
         <section class="part" data-reveal>
@@ -127,24 +130,24 @@ interface GeneData {
             <p class="prose">
               Open Targets ties {{ s.symbol }} to {{ d.diseaseCount | number }} diseases with some evidence. Of the top
               {{ d.diseases.length }}, {{ malignancies() }} {{ malignancies() === 1 ? 'is a malignancy' : 'are malignancies' }} by name;
-              the strongest association is {{ d.diseases[0].name }} at {{ d.diseases[0].score | number: '1.2-2' }}.
+              @if (d.diseases[0]; as top) { the strongest association is {{ top.name }} at {{ top.score | number: '1.2-2' }}. }
               @if (d.papers !== undefined) { Europe PMC holds {{ d.papers | number }} papers that name the gene alongside macropinocytosis. }
               @if (d.literature) { Publications per year reached {{ peakPapers() | number }} in {{ peakYear() }}. }
             </p>
             <figure>
               <div class="chart tall"><app-vega-chart [spec]="associations()" [fill]="true" /></div>
-              <figcaption><b>Fig. 4</b> Top {{ d.diseases.length }} associations, each score stacked by the evidence type behind it.</figcaption>
+              <figcaption><b>Fig.&nbsp;4</b> Top {{ d.diseases.length }} associations, each score stacked by the evidence type behind it.</figcaption>
             </figure>
             @if (d.interactors) {
               <figure>
                 <div class="chart"><app-vega-chart [spec]="interactors()" [fill]="true" /></div>
-                <figcaption><b>Fig. 5</b> STRING interaction partners, combined score; the solid bar is experimental evidence alone. The exchange factors that carry the RAS signal stay bright.</figcaption>
+                <figcaption><b>Fig.&nbsp;5</b> STRING interaction partners, combined score; the solid bar is experimental evidence alone. The exchange factors that carry the RAS signal stay bright.</figcaption>
               </figure>
             }
             @if (d.literature) {
               <figure>
                 <div class="chart"><app-vega-chart [spec]="literature()" [fill]="true" /></div>
-                <figcaption><b>Fig. {{ d.interactors ? 6 : 5 }}</b> Publications per year, Europe PMC; the last year is partial.</figcaption>
+                <figcaption><b>Fig.&nbsp;{{ d.interactors ? 6 : 5 }}</b> Publications per year, Europe PMC; the last year is partial.</figcaption>
               </figure>
             }
             <div class="split">
@@ -155,7 +158,7 @@ interface GeneData {
                     <thead><tr><th>Candidate</th><th>Stage</th><th>Modality</th></tr></thead>
                     <tbody>
                       @for (r of d.drugs; track r.id) {
-                        <tr><td><a [href]="'https://platform.opentargets.org/drug/' + r.id" target="_blank" rel="noopener">{{ r.name }}</a></td><td class="mono" [class.on]="r.stage === 'Approved'">{{ r.stage }}</td><td class="dim">{{ r.type }}</td></tr>
+                        <tr><td><a [href]="'https://platform.opentargets.org/drug/' + r.id" target="_blank" rel="noopener" translate="no" [title]="r.name + ' on Open Targets (opens in a new tab)'">{{ r.name }}</a></td><td class="mono" [class.on]="r.stage === 'Approved'">{{ r.stage }}</td><td class="dim">{{ r.type }}</td></tr>
                       }
                     </tbody>
                   </table>
@@ -167,16 +170,16 @@ interface GeneData {
               <div>
                 <p class="kicker">Tractability</p>
                 @if (d.smallMolecule.length) {
-                  <ul class="tags">@for (t of d.smallMolecule; track t) { <li><span class="mono">SM</span>{{ t }}</li> }</ul>
+                  <ul class="tags">@for (t of d.smallMolecule; track t) { <li><span class="mono" translate="no">SM</span>{{ t }}</li> }</ul>
                 } @else {
                   <p class="prose small">Open Targets carries no small-molecule tractability flag for it.</p>
                 }
-                <a class="source-link" [href]="'https://platform.opentargets.org/target/' + targetId()" target="_blank" rel="noopener">Open Targets entry<app-glyph name="external" /></a>
+                <a class="source-link" [href]="'https://platform.opentargets.org/target/' + targetId()" target="_blank" rel="noopener" title="Opens in a new tab">Open Targets entry<app-glyph name="external" /><span class="sr-only"> (opens in a new tab)</span></a>
               </div>
             </div>
           </section>
         } @else if (error()) { <p class="error" role="alert">{{ error() }}</p> }
-        @else { <p class="loading">Loading the snapshot…</p> }
+        @else { <p class="loading" aria-live="polite">Loading the snapshot…</p> }
 
         <section class="part kong" data-reveal>
           <p class="kicker">For Kong</p>
@@ -184,9 +187,9 @@ interface GeneData {
         </section>
 
         <nav class="thread foot" aria-label="Genes">
-          @if (prev(); as p) { <a [routerLink]="'/gene-' + p.toLowerCase()"><app-glyph name="prev" />{{ p }}</a> } @else { <span></span> }
+          @if (prev(); as p) { <a [routerLink]="'/gene-' + p.toLowerCase()" [attr.aria-label]="'Previous gene, ' + p" translate="no"><app-glyph name="prev" />{{ p }}</a> } @else { <span></span> }
           <a class="dossier" routerLink="/science" [fragment]="chapterFragment()">Back to the dossier</a>
-          @if (next(); as n) { <a class="next" [routerLink]="'/gene-' + n.toLowerCase()">{{ n }}<app-glyph name="next" /></a> } @else { <span></span> }
+          @if (next(); as n) { <a class="next" [routerLink]="'/gene-' + n.toLowerCase()" [attr.aria-label]="'Next gene, ' + n" translate="no">{{ n }}<app-glyph name="next" /></a> } @else { <span></span> }
         </nav>
       </article>
     } @else {
@@ -197,18 +200,21 @@ interface GeneData {
     :host { display: block; padding: clamp(1.5rem, 4vh, 3rem) var(--pad-x) 6rem; max-width: 1100px; margin: 0 auto; width: 100%; }
     .head { margin-bottom: 20px; }
     .eyebrow { display: inline-flex; align-items: center; margin: 0; app-glyph { margin-right: 8px; } }
-    h1 { font-family: var(--font-mono); font-size: clamp(2.6rem, 7vw, 5rem); line-height: 0.95; margin: 10px 0 14px; letter-spacing: 0.02em; }
+    h1 { font-family: var(--font-mono); font-size: clamp(2.6rem, 7vw, 5rem); line-height: 0.95; margin: 10px 0 14px; letter-spacing: 0.02em; text-wrap: balance; }
+    h1:focus { outline: none; } /* focused programmatically when the story turns; the ring belongs on :focus-visible */
+    h1:focus-visible { outline: 2px solid var(--teal); outline-offset: 6px; border-radius: 4px; }
+    .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
     .lead { font-size: clamp(1.05rem, 1.5vw, 1.25rem); line-height: 1.5; color: var(--on-ink-dim); max-width: 60ch; }
     .ledger { display: flex; flex-wrap: wrap; gap: 12px 32px; margin: 22px 0 0; padding: 14px 0; border-top: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline); }
     .ledger div { display: flex; flex-direction: column; gap: 4px; }
     .ledger dt, .kicker, th, .tags .mono, figcaption b { font: 500 9px/1.2 var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--on-ink-faint); }
     .ledger dd { margin: 0; font-family: var(--font-display); font-weight: 600; font-size: 22px; line-height: 1; color: var(--on-ink); font-variant-numeric: tabular-nums; }
     .ledger dd small { display: block; margin-top: 4px; font: 400 11px/1.3 var(--font-mono); color: var(--on-ink-dim); max-width: 22ch; }
-    .ledger div:first-child dd { font-family: var(--font-body); font-weight: 400; font-size: 13px; color: var(--on-ink-dim); max-width: 26ch; line-height: 1.3; }
+    .ledger div:first-child dd { font-family: var(--font-body); font-weight: 400; font-size: 13px; color: var(--on-ink-dim); max-width: 26ch; line-height: 1.3; text-wrap: pretty; }
 
     /* The thread: previous gene, the chapter this belongs to, next gene. */
     .thread { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; margin: 18px 0 8px; }
-    .thread a { display: inline-flex; align-items: center; gap: 8px; font: 500 11px/1 var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--on-ink-dim); padding: 8px 0; }
+    .thread a { display: inline-flex; align-items: center; gap: 8px; font: 500 11px/1 var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--on-ink-dim); padding: 8px 0; touch-action: manipulation; }
     .thread a:hover { color: var(--teal); }
     .thread .next { justify-self: end; }
     .thread .dossier { color: var(--teal); padding: 8px 14px; border: 1px solid color-mix(in srgb, var(--teal) 40%, transparent); border-radius: 6px; }
@@ -245,7 +251,9 @@ interface GeneData {
     .ledger-table td.on { color: var(--teal); font-weight: 500; }
     .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
     .source-link { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; app-glyph { width: 11px; height: 11px; } }
-    a { color: var(--teal); }
+    a { color: var(--teal); touch-action: manipulation; }
+    .ledger-table a:hover, .source-link:hover { color: var(--teal-bright); }
+    .structure-figure { margin: 0; }
 
     /* Fig. 1 in the glyph hand; the story's own station is the lit one. */
     .pathway svg { width: 100%; height: auto; display: block; color: var(--on-ink-faint); font-family: var(--font-mono); }
@@ -294,6 +302,8 @@ export class GenePageComponent {
   readonly plddtStrip = computed(() => { const st = this.structure(); return st ? plddtStripSpec(st) : {}; });
   readonly confident = computed(() => { const st = this.structure(); return st ? confidentShare(st) * 100 : 0; });
   readonly meanBand = computed(() => { const m = this.structure()?.meanPlddt ?? 0; return (PLDDT_BANDS.find((b) => m >= b.min) ?? PLDDT_BANDS[3]).label.toLowerCase(); });
+  /** Ten seconds of path tracing beside prose is autoplay motion; reduced motion gets a quick settle instead. */
+  readonly maxFrames = matchMedia('(prefers-reduced-motion: reduce)').matches ? 60 : 300;
   onStructureHost(host: MorphChartsHost): void { this.rig.set(new CameraRig(host, { reducedMotion: () => this.gsap.reducedMotion })); }
   readonly malignancies = computed(() => (this.data()?.diseases ?? []).filter((d) => isCancer(d.name)).length);
   readonly approved = computed(() => (this.data()?.drugs ?? []).filter((d) => /approv/i.test(d.stage)).map((d) => d.name).slice(0, 2).join(', '));
@@ -312,32 +322,50 @@ export class GenePageComponent {
   private readonly theme = inject(ThemeService);
   private readonly el = inject<ElementRef<HTMLElement>>(ElementRef);
 
+  private firstStory = true;
+
   constructor() {
     afterNextRender(() => { this.reveal(); });
-    // The symbol input changes in place when the thread links are followed: reload, retitle, re-reveal.
+    // The symbol input changes in place when the thread links are followed: reload, retitle, re-reveal,
+    // and hand focus to the new heading so keyboard and screen-reader users know the page turned.
     effect(() => {
       const story = this.story();
       untracked(() => {
         this.title.setTitle(story ? `${story.symbol} · ${story.role}` : 'Research');
         this.data.set(null);
         this.structure.set(null);
-        if (story) { void this.load(story).then(() => this.reveal()); void this.loadStructure(story.symbol); }
+        const turned = !this.firstStory;
+        if (turned) this.turn();
+        this.firstStory = false;
+        if (story) {
+          // Focus the heading only once the reveal has made it visible: a hidden element cannot take focus.
+          void this.load(story).then(() => this.reveal(false).then(() => { if (turned) this.el.nativeElement.querySelector<HTMLElement>('h1')?.focus({ preventScroll: true }); }));
+          void this.loadStructure(story.symbol);
+        }
       });
     });
   }
 
+  /** A new story in the same component: back to the top. Focus follows once the heading is visible. */
+  private turn(): void {
+    this.el.nativeElement.scrollIntoView({ block: 'start', behavior: this.gsap.reducedMotion ? 'auto' : 'smooth' });
+  }
+
   stationX(i: number): number { return 76 + i * 130; }
 
-  private reveal(): void {
+  /** Fade the story in; `drawRoute` is false after data lands mid-read, so the strip does not redraw under the reader. */
+  private reveal(drawRoute = true): gsap.core.Tween {
     const host = this.el.nativeElement;
-    host.scrollIntoView({ block: 'start' });
-    this.gsap.reveal(host.querySelectorAll('[data-reveal]'), { delay: this.gsap.MOTION.delay.short, stagger: 0.05 });
+    const tween = this.gsap.reveal(host.querySelectorAll('[data-reveal]'), { delay: this.gsap.MOTION.delay.short, stagger: 0.05 });
     const svg = host.querySelector<SVGSVGElement>('.pathway svg');
-    if (svg && !this.gsap.reducedMotion) {
+    if (svg && drawRoute && !this.gsap.reducedMotion) {
       const edges = Array.from(svg.querySelectorAll<SVGPathElement>('.edge'));
-      for (const p of edges) { const len = p.getTotalLength(); p.style.strokeDasharray = p.classList.contains('direct') ? '4 5' : `${len}`; p.style.strokeDashoffset = `${len}`; }
+      // All layout reads first, then all style writes: interleaving them forces a reflow per edge.
+      const lengths = edges.map((p) => p.getTotalLength());
+      edges.forEach((p, i) => { p.style.strokeDasharray = p.classList.contains('direct') ? '4 5' : `${lengths[i]}`; p.style.strokeDashoffset = `${lengths[i]}`; });
       this.gsap.tweenObject(edges as unknown as object, { strokeDashoffset: 0, duration: this.gsap.MOTION.duration.slow, stagger: 0.05, delay: 0.2 });
     }
+    return tween;
   }
 
   private async loadStructure(symbol: string): Promise<void> {

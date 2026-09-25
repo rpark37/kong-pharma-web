@@ -16,6 +16,8 @@ import { isWebGpuAvailable } from '../webgpu/webgpu-support';
   styles: `
     :host { display: block; position: relative; width: 100%; height: 100%; min-height: 240px; }
     .container { width: 100%; height: 100%; overflow: auto; outline: none; background: var(--ink-2); }
+    /* The container is the page's one focusable canvas host; keyboard users need to see they are on it. */
+    .container:focus-visible { outline: 2px solid var(--teal); outline-offset: -2px; }
     canvas { display: block; touch-action: none; }
     canvas.hidden { display: none; }
   `,
