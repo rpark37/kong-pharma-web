@@ -40,6 +40,7 @@ export class AtlasPageComponent {
   private readonly el = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly destroyRef = inject(DestroyRef);
   readonly stage = viewChild<ElementRef<HTMLDivElement>>('stage');
+  readonly findKey = viewChild<ElementRef<HTMLButtonElement>>('findKey');
   readonly anatomyHost = viewChild<ElementRef<HTMLDivElement>>('anatomyHost');
   /** 'anatomy' = real BodyParts3D meshes in three.js; 'data' = MorphCharts spec of the catalogue. */
   readonly mode = signal<'anatomy' | 'data'>('anatomy');
@@ -122,7 +123,7 @@ export class AtlasPageComponent {
   private tapStart: { x: number; y: number } | null = null;
   private readonly onKey = (e: KeyboardEvent) => {
     if (e.key === '/' && !(e.target instanceof HTMLInputElement) && !(e.target instanceof HTMLTextAreaElement)) { e.preventDefault(); this.openPanel('search'); }
-    if (e.key === 'Escape') { this.panel.set(null); this.details.set(false); this.about.set(false); }
+    if (e.key === 'Escape') { if (this.panel() === 'search') this.closeSearch(); else this.panel.set(null); this.details.set(false); this.about.set(false); }
   };
 
   constructor() {
@@ -159,11 +160,11 @@ export class AtlasPageComponent {
     effect(() => { const rot = this.rotate(); untracked(() => this.scene?.rig.setOrbit(rot)); });
     effect(() => {
       const open = this.details() && this.selectedParts().length > 0;
-      untracked(() => { const sheet = this.el.nativeElement.querySelector('.detail-sheet'); if (sheet) open ? this.gsap.slideIn(sheet, 'right') : this.gsap.slideOut(sheet, 'right'); });
+      untracked(() => { const sheet = this.el.nativeElement.querySelector('.detail-sheet'); if (sheet) open ? this.gsap.slideIn(sheet, 'right').then(() => this.focusTitle(sheet)) : this.gsap.slideOut(sheet, 'right'); });
     });
     effect(() => {
       const open = this.about();
-      untracked(() => { const sheet = this.el.nativeElement.querySelector('.about-sheet'); if (sheet) open ? this.gsap.slideIn(sheet, 'right') : this.gsap.slideOut(sheet, 'right'); });
+      untracked(() => { const sheet = this.el.nativeElement.querySelector('.about-sheet'); if (sheet) open ? this.gsap.slideIn(sheet, 'right').then(() => this.focusTitle(sheet)) : this.gsap.slideOut(sheet, 'right'); });
     });
     effect(() => {
       const p = this.panel();
@@ -360,6 +361,10 @@ export class AtlasPageComponent {
   }
 
   openPanel(next: 'layers' | 'search'): void { this.details.set(false); this.cursor.set(0); this.panel.set(this.panel() === next ? null : next); }
+  /** Closing the palette hands focus back to the key that opened it, so Tab carries on from there. */
+  closeSearch(): void { this.panel.set(null); this.findKey()?.nativeElement.focus(); }
+  /** A sheet that slides in takes focus on its title, once visible; only shown on :focus-visible. */
+  private focusTitle(sheet: Element): void { sheet.querySelector<HTMLElement>('.structure-title')?.focus({ preventScroll: true }); }
   onQuery(value: string): void { this.query.set(value); this.cursor.set(0); }
   /** Arrow keys walk the results, Enter picks; Escape is handled at the window. */
   onSearchKey(e: KeyboardEvent): void {

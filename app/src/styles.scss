@@ -105,6 +105,7 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--teal); }
 }
 .keyrail .key, .key.lone {
   display: flex;
+  touch-action: manipulation;
   align-items: center;
   justify-content: center;
   gap: 6px;
