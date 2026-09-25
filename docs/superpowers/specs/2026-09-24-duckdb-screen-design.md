@@ -21,7 +21,7 @@ are the exhibit: boot time, generation time, time to first row, brush latency, s
 | Engine | `@duckdb/duckdb-wasm` in its worker, `eh` bundle | `coi` needs cross-origin isolation headers GitHub Pages cannot set |
 | Coordination | `@uwdata/mosaic-core` `Coordinator` + one `Selection.crossfilter()` | Selections carry state; the coordinator's data-cube optimizer pre-aggregates grouped queries so brushing at 10M rows stays interactive |
 | Charts | The existing `VegaChartComponent`, fed by Mosaic clients | One chart grammar on the site; no vgplot |
-| Grid | Own component on `@angular/cdk` virtual scroll | Already installed; FUI styling native; no theme to reskin |
+| Grid | Own component: a scroller with a scaled scrollbar (spacer capped at 15M px, scroll position mapped to a row index; wheel and keys move the index directly) | CDK's fixed-size strategy needs `rows × 28 px` of scroll height; at 5M rows that passes Chrome's ~33.5M px element limit. FUI styling stays native |
 | Pagination | `ORDER BY … LIMIT n OFFSET k` | A scrollbar needs random access; keyset only fits sequential scrolling. DuckDB runs the offset as a top-N in low milliseconds at 10M rows |
 | Arrow decoding | Whatever the coordinator returns (`flechette`) | Every query goes through the coordinator, so one decoder and one cache |
 | Zones | None | The app is zoneless; signals drive change detection. There is no `runOutsideAngular` to call |
@@ -147,11 +147,7 @@ error:      Signal<string | null>
 interface ColumnDef { key: string; label: string; width: number; align?: 'left' | 'right'; format?: (v: unknown) => string; sortable?: boolean }
 ```
 
-Template: a sticky header row of `<button>` sort headers (`aria-sort`), a
-`cdk-virtual-scroll-viewport [itemSize]="rowHeight"` and `*cdkVirtualFor` over a `GridSource`.
-`GridSource extends DataSource<Row | undefined>` emits a **sparse array of length `total`** so
-the scrollbar length is right (a holey array costs nothing at 10M) and fills entries as windows
-arrive. Unfetched rows render each cell as a dash. `viewChange` ranges are debounced 30 ms and
+Template: a sticky header row of `<button>` sort headers (`aria-sort`), then a scroller (`tabindex="0"`, `role="grid"`, `aria-rowcount`) containing a sticky window of rendered rows and a spacer whose height is `min(total × rowHeight, 15,000,000)`. Scroll position maps proportionally to a row index; wheel and arrow keys move the index directly and write the matching scroll position back. Unfetched rows render each cell as a dash. `viewChange` ranges are debounced 30 ms and
 turned into one window query with one screen of overscan each side; a stale response (a newer
 range or predicate has since been issued) is dropped by token. The component's Mosaic client
 runs `count(*)`; its `queryResult` sets `total`, resets the array and refetches. Header click
@@ -185,7 +181,7 @@ median and the counting are exported for tests.
 ### Reuse
 
 `VegaChartComponent` (`spec`, `data`, `viewReady`), `vegaConfig`, `ThemeService`, `GsapService`,
-`.keyrail`/`.key`, `.eyebrow`, `glass`, `GlyphComponent`, `url-state.ts`, `@angular/cdk/scrolling`,
+`.keyrail`/`.key`, `.eyebrow`, `glass`, `GlyphComponent`, `url-state.ts`,
 `GENE_ORDER` from `gene-stories.ts`.
 
 ## Failure modes

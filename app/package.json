@@ -28,6 +28,8 @@
     "@microsoft/morphcharts-core": "^1.0.0",
     "@microsoft/morphcharts-spec": "^1.0.0",
     "@microsoft/morphcharts-webgpuraytrace": "^1.0.0",
+    "@uwdata/mosaic-core": "^0.31.0",
+    "@uwdata/mosaic-sql": "^0.31.0",
     "d3": "7.9",
     "gsap": "3.15",
     "rxjs": "~7.8.0",

@@ -13,6 +13,7 @@ export const NAV_ICONS = {
   data: { motion: 'slide', d: 'M3 4.5c0-1.4 2.2-2.5 5-2.5s5 1.1 5 2.5v7c0 1.4-2.2 2.5-5 2.5s-5-1.1-5-2.5z', b: 'M3 4.5c0 1.4 2.2 2.5 5 2.5s5-1.1 5-2.5M3 8c0 1.4 2.2 2.5 5 2.5s5-1.1 5-2.5' },
   people: { motion: 'bob', d: 'M6 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM1.5 14c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4', b: 'M11 7.5a2 2 0 1 0 0-4M12 10c1.5.5 2.5 1.8 2.5 4' },
   merchandise: { motion: 'swing', d: 'M2 2h5.5L14 8.5 8.5 14 2 7.5z', b: 'M5 4.5a.6.6 0 1 0 .01 0' },
+  screen: { motion: 'pulse', d: 'M2 3h12v10H2zM2 6.5h12M2 10h12M6 3v10M10 3v10' },
   charts: { motion: 'grow', d: 'M2 14h12', b: 'M4 13V7M8 13V3M12 13V9' },
   morphcharts: { motion: 'spin', d: 'M8 2 14 5v6l-6 3-6-3V5z', b: 'M8 8 14 5M8 8 2 5M8 8v6' },
   vega: { motion: 'draw', d: 'M2 2v12h12', b: 'M4 11l3-4 3 2 3-5' },

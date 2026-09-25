@@ -26,6 +26,7 @@ export class App {
       children: [
         { path: '/ares', label: 'People', icon: 'people' },
         { path: '/merchandise', label: 'Merchandise', icon: 'merchandise' },
+        { path: '/screen', label: 'Screen', icon: 'screen' },
       ],
     },
     {
