@@ -1,19 +1,19 @@
 <main class="studio">
   <div class="stage" #stage (pointerdown)="onPointerDown($event)" (pointerup)="onPointerUp($event)">
     @if (mode() === 'anatomy') {
-      <div #anatomyHost class="anatomy-host"></div>
+      <div #anatomyHost class="anatomy-host" role="img" [attr.aria-label]="sceneLabel()"></div>
       @if (viewerError()) {
-        <div class="fallback-wrap"><div class="glass viewer-error"><p class="eyebrow">3D viewer</p><p>{{ viewerError() }}</p><button type="button" class="key lone wide" (click)="setMode('data')">OPEN THE DATA VIEW</button></div></div>
+        <div class="fallback-wrap"><div class="glass viewer-error" role="alert"><p class="eyebrow">3D viewer</p><p>{{ viewerError() }}</p><button type="button" class="key lone wide" (click)="setMode('data')">OPEN THE DATA VIEW</button></div></div>
       }
     } @else if (!fallback()) {
-      <app-morphcharts-canvas (hostReady)="onHost($event)" (failed)="onFailed($event)" />
+      <app-morphcharts-canvas [label]="sceneLabel()" (hostReady)="onHost($event)" (failed)="onFailed($event)" />
     } @else {
       <div class="fallback-wrap">
         @if (fallbackSpec(); as spec) {
           <app-vega-chart class="fallback-chart" [spec]="spec" [height]="520" />
         }
         <app-webgpu-fallback title="The 3D atlas needs WebGPU">
-          <p class="small">The treemap above shows the same 2,234 structures grouped by system.</p>
+          <p class="small">The treemap shows the same {{ 2234 | number }} structures grouped by system.</p>
         </app-webgpu-fallback>
       </div>
     }
@@ -22,7 +22,7 @@
   <header class="identity" data-reveal>
     <p class="eyebrow"><app-glyph name="body" />Interactive anatomy</p>
     <h1>Human Atlas</h1>
-    <p class="identity-meta"><b>{{ parts().length ? (parts().length | number) : '2,234' }}</b> pieces<i>·</i><b>{{ activeSystems().length || 15 }}</b> systems<i>·</i>BodyParts3D<i>·</i>{{ mode() === 'anatomy' ? 'three.js' : 'MorphCharts' }}</p>
+    <p class="identity-meta"><b>{{ (parts().length || 2234) | number }}</b> pieces<i>·</i><b>{{ activeSystems().length || 15 }}</b> systems<i>·</i>BodyParts3D<i>·</i>{{ mode() === 'anatomy' ? 'three.js' : 'MorphCharts' }}</p>
   </header>
 
   <nav class="top-actions" aria-label="Explorer panels" data-reveal>
@@ -30,7 +30,7 @@
       <button type="button" class="key wide" [attr.aria-pressed]="mode() === 'anatomy'" [class.on]="mode() === 'anatomy'" (click)="setMode('anatomy')" title="Real BodyParts3D meshes in three.js">ANATOMY</button>
       <button type="button" class="key wide" [attr.aria-pressed]="mode() === 'data'" [class.on]="mode() === 'data'" (click)="setMode('data')" title="Spec-driven MorphCharts scene of the catalogue">DATA</button>
     </div>
-    <button type="button" class="key lone wide" #findKey [class.on]="panel() === 'search'" [attr.aria-expanded]="panel() === 'search'" (click)="openPanel('search')" aria-label="Search anatomy" title="Find a structure (/)"><app-glyph name="search" /><span>FIND</span><kbd>/</kbd></button>
+    <button type="button" class="key lone wide" #findKey [class.on]="panel() === 'search'" [attr.aria-expanded]="panel() === 'search'" (click)="openPanel('search')" aria-label="Search anatomy" title="Find a structure (/)"><app-glyph name="search" /><span>FIND</span><kbd aria-hidden="true">/</kbd></button>
     <button type="button" class="key lone" aria-label="About this atlas" title="Source & scope" (click)="openAbout()"><app-glyph name="info" /></button>
   </nav>
 
@@ -63,7 +63,7 @@
     <section class="search-panel glass" role="dialog" aria-label="Find a structure">
       <div class="search-box">
         <app-glyph name="search" />
-        <input class="search-input" type="search" autofocus autocomplete="off" spellcheck="false" enterkeyhint="search" placeholder="Heart, femur, cranial nerve…" aria-label="Search named anatomical structures" role="combobox" aria-expanded="true" aria-controls="atlas-results" aria-autocomplete="list" [attr.aria-activedescendant]="results().length ? 'atlas-option-' + cursor() : null" [value]="query()" (input)="onQuery($any($event.target).value)" (keydown)="onSearchKey($event)">
+        <input class="search-input" type="search" name="q" autocomplete="off" spellcheck="false" enterkeyhint="search" placeholder="Heart, femur, cranial nerve…" aria-label="Search named anatomical structures" role="combobox" aria-expanded="true" aria-controls="atlas-results" aria-autocomplete="list" [attr.aria-activedescendant]="results().length ? 'atlas-option-' + cursor() : null" [value]="query()" (input)="onQuery($any($event.target).value)" (keydown)="onSearchKey($event)">
         <button type="button" class="key lone" (click)="closeSearch()" aria-label="Close search"><app-glyph name="close" /></button>
       </div>
       <ul class="search-results" id="atlas-results" role="listbox" aria-label="Matching structures">
@@ -75,7 +75,7 @@
           <li class="empty">No structures match.</li>
         }
       </ul>
-      <p class="search-note"><kbd>↑</kbd><kbd>↓</kbd> move <i>·</i> <kbd>↵</kbd> select <i>·</i> {{ query() ? 'up to 80 matches, shortest names first' : 'or start with a major organ' }}</p>
+      <p class="search-note"><kbd aria-hidden="true">↑</kbd><kbd aria-hidden="true">↓</kbd><span class="sr-only">Arrow keys</span> move <i>·</i> <kbd aria-hidden="true">↵</kbd><span class="sr-only">Enter</span> select <i>·</i> {{ query() ? 'up to 80 matches, shortest names first' : 'or start with a major organ' }}</p>
     </section>
   }
 
@@ -87,41 +87,42 @@
       <p class="label"><app-glyph name="camera" />Camera</p>
       <div class="keyrail" role="group" aria-label="View">
         @for (v of views; track v.id) {
-          <button type="button" class="key" [class.on]="view() === v.id" [attr.aria-pressed]="view() === v.id" [disabled]="explode() > 0.8 && v.id !== 'front'" (click)="setView(v.id)" [title]="v.name">{{ v.code }}</button>
+          <button type="button" class="key" [class.on]="view() === v.id" [attr.aria-pressed]="view() === v.id" [attr.aria-disabled]="(explode() > 0.8 && v.id !== 'front') || null" (click)="!(explode() > 0.8 && v.id !== 'front') && setView(v.id)" [title]="v.name">{{ v.code }}</button>
         }
       </div>
       <div class="rowline">
-        <button type="button" class="key lone" [disabled]="explode() >= 0.4" [attr.aria-label]="rotate() ? 'Pause rotation' : 'Orbit slowly'" [title]="rotate() ? 'Pause' : 'Orbit slowly'" [class.on]="rotate()" [attr.aria-pressed]="rotate()" (click)="toggleRotate()"><app-glyph [name]="rotate() ? 'pause' : 'orbit'" /></button>
+        <button type="button" class="key lone" [attr.aria-disabled]="explode() >= 0.4 || null" [attr.aria-label]="rotate() ? 'Pause rotation' : 'Orbit slowly'" [title]="rotate() ? 'Pause' : 'Orbit slowly'" [class.on]="rotate()" [attr.aria-pressed]="rotate()" (click)="explode() < 0.4 && toggleRotate()"><app-glyph [name]="rotate() ? 'pause' : 'orbit'" /></button>
       </div>
     }
     <button type="button" class="key lone wide reset" aria-label="Reset view and layers" title="Reset view and layers" (click)="reset()"><app-glyph name="reset" />RESET</button>
   </nav>
 
-  <div class="scene-caption" data-reveal><span class="caption-line"></span><span>{{ caption() }}</span><span class="caption-line"></span></div>
+  <div class="scene-caption" data-reveal aria-live="polite"><span class="caption-line"></span><span>{{ caption() }}</span><span class="caption-line"></span></div>
 
   <div class="bottom-dock glass" data-reveal>
     <button type="button" class="key lone mobile-only" (click)="openPanel('layers')" aria-label="Open system layers"><app-glyph name="layers" /></button>
     <label class="field explode-control">
       <span title="Fan the systems out, then lay every piece on a grid"><i><app-glyph name="explode" />Explode</i><output>{{ (explode() * 100) | number: '1.0-0' }}<small>%</small></output></span>
-      <input type="range" min="0" max="100" step="1" aria-label="Explode anatomy" [attr.aria-valuetext]="(explode() * 100 | number: '1.0-0') + '% exploded'" [value]="explode() * 100" (input)="onExplodeInput(+$any($event.target).value, false)" (change)="onExplodeInput(+$any($event.target).value, true)">
+      <small id="atlas-explode-help" class="sr-only">Fan the systems out, then lay every piece on a grid.</small>
+      <input type="range" min="0" max="100" step="1" aria-label="Explode anatomy" aria-describedby="atlas-explode-help" [attr.aria-valuetext]="(explode() * 100 | number: '1.0-0') + '% exploded'" [value]="explode() * 100" (input)="onExplodeInput(+$any($event.target).value, false)" (change)="onExplodeInput(+$any($event.target).value, true)">
       <span class="endpoints"><span>Assembled</span><span>Every piece</span></span>
     </label>
   </div>
 
   <footer class="studio-footer" data-reveal>
-    <span class="hint">{{ explode() > 0.8 ? 'Drag to pan' : 'Drag to orbit' }}<i>·</i>Wheel to zoom<i>·</i>Tap to inspect<i>·</i>{{ mode() === 'anatomy' ? 'three.js · BodyParts3D meshes' : 'MorphCharts · path traced' }}</span>
+    <span class="hint">{{ explode() > 0.8 ? 'Drag to pan' : 'Drag to orbit' }}<i>·</i>Wheel to zoom<i>·</i>Tap to inspect<i>·</i><kbd aria-hidden="true">/</kbd><span class="sr-only">Slash</span> to find<i>·</i>{{ mode() === 'anatomy' ? 'three.js · BodyParts3D meshes' : 'MorphCharts · path traced' }}</span>
     <button type="button" class="key lone wide" (click)="openAbout()">SOURCE &amp; CREDITS<app-glyph name="external" /></button>
   </footer>
 
   @if (progress() < 100 && !error()) {
     <div class="loading glass" role="status">
       <span class="label">Preparing the anatomy</span>
-      <span class="mono">{{ progress() }}&nbsp;%<i>·</i>{{ parts().length ? (parts().length | number) : '2,234' }} pieces</span>
+      <span class="mono">{{ progress() }}&nbsp;%<i>·</i>{{ (parts().length || 2234) | number }} pieces</span>
       <div class="loading-track" role="progressbar" aria-label="Loading the anatomy" [attr.aria-valuenow]="progress()" aria-valuemin="0" aria-valuemax="100"><i [style.transform]="'scaleX(' + progress() / 100 + ')'"></i></div>
     </div>
   }
   @if (error()) {
-    <div class="loading glass error" role="alert"><p>{{ error() }}</p><button type="button" class="key lone wide" (click)="reload()">RELOAD VIEWER</button></div>
+    <div class="loading glass error" role="alert"><p>Could not load the anatomy catalogue. {{ error() }}</p><button type="button" class="key lone wide" (click)="reload()">RELOAD VIEWER</button></div>
   }
 
   <aside class="detail-sheet glass" [class.open]="details() && selectedParts().length > 0" [class.is-isolated]="isolate()" aria-label="Structure details" [style.--c]="selectedSystem()?.color">

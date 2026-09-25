@@ -93,6 +93,14 @@ export class AtlasPageComponent {
     if (!term) return DEFAULT_SEARCH.map((n) => all.find((c) => c.name.toLowerCase() === n)).filter((c): c is Concept => !!c);
     return all.filter((c) => c.name.toLowerCase().includes(term) || c.id.toLowerCase().includes(term)).sort((a, b) => a.name.length - b.name.length).slice(0, 80);
   });
+  /** The stage's accessible name: what is on screen, and what is selected. */
+  readonly sceneLabel = computed(() => {
+    const sel = this.chosen()?.name;
+    const base = `Human Atlas, adult male reference anatomy, ${this.activeSystems().length || 15} systems, ${(this.parts().length || 2234).toLocaleString()} pieces, ${this.mode() === 'anatomy' ? 'meshes' : 'bounding boxes'}`;
+    return sel ? `${base}; ${sel} selected` : base;
+  });
+  /** The palette takes focus when opened on pointer-fine devices only; on a phone the keyboard would cover the results. */
+  private readonly finePointer = typeof matchMedia === 'function' && matchMedia('(pointer: fine)').matches;
   readonly caption = computed(() => this.isolate() ? (this.chosen()?.name ?? 'SELECTED STRUCTURE').toUpperCase() : this.explode() > 0.95 ? 'ANATOMICAL INVENTORY' : this.explode() > 0.05 ? 'SEPARATED STRUCTURES' : 'ADULT HUMAN · MALE');
   readonly explanationText = computed(() => { const c = this.chosen(); const p = this.selectedPart(); return c && p ? explanation(c.name, p.system) : ''; });
   readonly hasExplanation = computed(() => !!EXPLANATIONS[(this.chosen()?.name ?? '').toLowerCase()]);
@@ -132,9 +140,9 @@ export class AtlasPageComponent {
     // `?mode=data&select=FMA7088` links to a mode and a selection: a concept id when the selection
     // is a whole concept, otherwise the part ids. Defaults leave the URL bare.
     effect(() => {
-      const mode = this.mode(), sel = this.selected();
+      const mode = this.mode(), sel = this.selected(), view = this.view(), explode = Math.round(this.explode() * 100);
       const concept = this.concepts().find((c) => c.elements.length === sel.length && c.elements.every((e) => sel.includes(e)));
-      writeQuery({ mode: mode === 'data' ? mode : null, select: !sel.length ? null : concept ? concept.id : sel.join(',') });
+      writeQuery({ mode: mode === 'data' ? mode : null, select: !sel.length ? null : concept ? concept.id : sel.join(','), view: view === 'three-quarter' ? null : view, explode: explode > 0 ? explode : null });
     });
     afterNextRender(() => {
       this.gsap.reveal(this.el.nativeElement.querySelectorAll('[data-reveal]'), { delay: this.gsap.MOTION.delay.medium });
@@ -186,6 +194,10 @@ export class AtlasPageComponent {
     if (q.get('mode') === 'data') this.mode.set('data');
     const ids = (q.get('select') ?? '').split(',').filter((id) => /^[A-Z]+\d+$/.test(id));
     if (ids.length) { this.selected.set(ids); this.details.set(true); }
+    const view = q.get('view');
+    if (view && this.views.some((v) => v.id === view)) this.view.set(view as View);
+    const explode = Number(q.get('explode'));
+    if (Number.isFinite(explode) && explode > 0 && explode <= 100) { this.explode.set(explode / 100); this.explodeAnim.t = explode / 100; }
   }
 
   private async loadCatalogue(): Promise<void> {
@@ -387,7 +399,13 @@ export class AtlasPageComponent {
     this.scene?.goToView(0);
   }
 
-  openPanel(next: 'layers' | 'search'): void { this.details.set(false); this.cursor.set(0); this.panel.set(this.panel() === next ? null : next); }
+  openPanel(next: 'layers' | 'search'): void {
+    this.details.set(false);
+    this.cursor.set(0);
+    this.panel.set(this.panel() === next ? null : next);
+    // A dynamically inserted `autofocus` is ignored once the document has processed one, so focus is explicit.
+    if (this.panel() === 'search' && this.finePointer) requestAnimationFrame(() => this.el.nativeElement.querySelector<HTMLInputElement>('.search-input')?.focus());
+  }
   /** Closing the palette hands focus back to the key that opened it, so Tab carries on from there. */
   closeSearch(): void { this.panel.set(null); this.findKey()?.nativeElement.focus(); }
   /** A sheet that slides in takes focus on its title, once visible; only shown on :focus-visible. */
