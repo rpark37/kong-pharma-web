@@ -82,6 +82,13 @@ export class HomeComponent {
       tags: ['Vega-Lite', 'FastAPI', '3D revenue cube'],
     },
     {
+      path: '/screen',
+      eyebrow: 'Data · DuckDB-wasm + Mosaic',
+      title: 'Screen',
+      blurb: 'Ten million assay wells generated inside the browser, a windowed grid and four linked charts that each query DuckDB, brushing coordinated by Mosaic. The bench numbers are on the page.',
+      tags: ['DuckDB-wasm', 'Mosaic', 'Vega-Lite'],
+    },
+    {
       path: '/atlas',
       eyebrow: 'Anatomy · three.js + MorphCharts',
       title: 'Human Atlas',
