@@ -8,12 +8,12 @@ export interface TileSettings { tilesX: number; tilesY: number; tileOffsetX: num
   template: `
     <div class="col">
       <div class="row">
-        <label>X tiles</label><input type="number" min="1" [value]="tilesX()" (change)="tilesX.set(num($event, 1))">
-        <label>offset</label><input type="number" min="0" [value]="tileOffsetX()" (change)="tileOffsetX.set(num($event, 0))">
+        <label for="tt-x">X tiles</label><input id="tt-x" type="number" inputmode="numeric" autocomplete="off" min="1" [value]="tilesX()" (change)="tilesX.set(num($event, 1))">
+        <label for="tt-xo">offset</label><input id="tt-xo" type="number" inputmode="numeric" autocomplete="off" min="0" [value]="tileOffsetX()" (change)="tileOffsetX.set(num($event, 0))">
       </div>
       <div class="row">
-        <label>Y tiles</label><input type="number" min="1" [value]="tilesY()" (change)="tilesY.set(num($event, 1))">
-        <label>offset</label><input type="number" min="0" [value]="tileOffsetY()" (change)="tileOffsetY.set(num($event, 0))">
+        <label for="tt-y">Y tiles</label><input id="tt-y" type="number" inputmode="numeric" autocomplete="off" min="1" [value]="tilesY()" (change)="tilesY.set(num($event, 1))">
+        <label for="tt-yo">offset</label><input id="tt-yo" type="number" inputmode="numeric" autocomplete="off" min="0" [value]="tileOffsetY()" (change)="tileOffsetY.set(num($event, 0))">
       </div>
       <label class="row"><input type="checkbox" [checked]="autoTile()" (change)="autoTile.set($any($event.target).checked)"> Auto — render all remaining tiles</label>
       <div class="row">

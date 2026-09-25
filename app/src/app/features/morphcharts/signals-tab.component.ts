@@ -20,7 +20,7 @@ import type { SignalInfo } from '../../shared/morphcharts/morphcharts-host';
   styles: `
     :host { display: block; padding: 8px 4px; }
     .table { border-collapse: collapse; width: 100%; font-size: 13px; }
-    th, td { border: 1px solid var(--hairline); padding: 6px 10px; text-align: left; }
+    th, td { border: 1px solid var(--hairline); padding: 6px 10px; text-align: left; overflow-wrap: anywhere; }
     th { color: var(--on-ink-dim); font-weight: 500; }
     .empty { color: var(--on-ink-dim); font-size: 13px; }
   `,

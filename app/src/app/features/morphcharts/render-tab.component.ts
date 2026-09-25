@@ -15,23 +15,23 @@ const DEGREES_PER_RADIAN = 180 / Math.PI;
     <div class="col">
       <label class="row"><input type="checkbox" [checked]="debug()" (change)="debugChange.emit($any($event.target).checked)"> Debug overlay</label>
 
-      <div class="group">
-        <span class="heading">Size</span>
+      <div class="group" role="group" aria-labelledby="rt-size">
+        <span class="heading" id="rt-size">Size</span>
         <div class="row wrap">
           @for (size of sizes; track size.value) {
             <label class="row" [class.dim]="size.disabled()">
               <input type="radio" name="size" [value]="size.value" [checked]="sizeType() === size.value" [disabled]="size.disabled()" (change)="sizeType.set(size.value)"> {{ size.label }}
             </label>
           }
-          <input type="number" [disabled]="sizeType() !== 'custom'" [value]="customWidth()" (change)="customWidth.set(+$any($event.target).value)" aria-label="Width"> ×
-          <input type="number" [disabled]="sizeType() !== 'custom'" [value]="customHeight()" (change)="customHeight.set(+$any($event.target).value)" aria-label="Height"> px
+          <input type="number" inputmode="numeric" autocomplete="off" min="1" [disabled]="sizeType() !== 'custom'" [value]="customWidth()" (change)="customWidth.set(+$any($event.target).value)" aria-label="Width"> ×
+          <input type="number" inputmode="numeric" autocomplete="off" min="1" [disabled]="sizeType() !== 'custom'" [value]="customHeight()" (change)="customHeight.set(+$any($event.target).value)" aria-label="Height"> px
           <button type="button" class="btn small" (click)="requestResize()">Resize</button>
         </div>
-        @if (sizeError()) { <p class="err">{{ sizeError() }}</p> }
+        @if (sizeError()) { <p class="err" role="alert">{{ sizeError() }}</p> }
       </div>
 
-      <div class="group">
-        <span class="heading">Mode</span>
+      <div class="group" role="group" aria-labelledby="rt-mode">
+        <span class="heading" id="rt-mode">Mode</span>
         <div class="row wrap">
           @for (mode of modes; track mode) {
             <label class="row"><input type="radio" name="mode" [value]="mode" [checked]="renderMode() === mode" (change)="setRenderMode(mode)"> {{ modeLabel[mode] }}</label>
@@ -40,33 +40,33 @@ const DEGREES_PER_RADIAN = 180 / Math.PI;
       </div>
 
       <div class="group">
-        <div class="row"><label class="w">Max frames</label><input type="number" min="1" [value]="maxFrames()" (change)="setMaxFrames(+$any($event.target).value)"> <span class="val mono">{{ frameCount() }}</span></div>
-        <div class="row"><label class="w">Field of view</label><input type="range" min="0" max="100" step="0.1" [value]="fov()" (input)="setFov(+$any($event.target).value)"><span class="val mono">{{ fov().toFixed(1) }}°</span></div>
+        <div class="row"><label class="w" for="rt-frames">Max frames</label><input id="rt-frames" type="number" inputmode="numeric" autocomplete="off" min="1" [value]="maxFrames()" (change)="setMaxFrames(+$any($event.target).value)"> <span class="val mono">{{ frameCount() }}</span></div>
+        <div class="row"><label class="w" for="rt-fov">Field of view</label><input id="rt-fov" type="range" min="0" max="100" step="0.1" [value]="fov()" (input)="setFov(+$any($event.target).value)" [attr.aria-valuetext]="fov().toFixed(1) + ' degrees'"><span class="val mono">{{ fov().toFixed(1) }}°</span></div>
         @if (renderMode() === 'raytrace' || renderMode() === 'color') {
-          <div class="row"><label class="w">Aperture</label><input type="range" min="0" max="100" step="0.1" [value]="aperture()" (input)="setAperture(+$any($event.target).value)"><span class="val mono">{{ aperture().toFixed(1) }}mm</span></div>
-          <div class="row"><label class="w">Focus distance</label><input type="range" min="0" max="4" step="0.01" [value]="focus()" (input)="setFocus(+$any($event.target).value)"><span class="val mono">{{ focus().toFixed(3) }}</span><button type="button" class="btn small" (click)="resetFocus()">Reset</button></div>
-          <div class="row"><label class="w">Max bounces</label><input type="range" min="1" max="64" step="1" [value]="maxBounces()" (input)="setMaxBounces(+$any($event.target).value)"><span class="val mono">{{ maxBounces() }}</span></div>
+          <div class="row"><label class="w" for="rt-aperture">Aperture</label><input id="rt-aperture" type="range" min="0" max="100" step="0.1" [value]="aperture()" (input)="setAperture(+$any($event.target).value)" [attr.aria-valuetext]="aperture().toFixed(1) + ' millimetres'"><span class="val mono">{{ aperture().toFixed(1) }}mm</span></div>
+          <div class="row"><label class="w" for="rt-focus">Focus distance</label><input id="rt-focus" type="range" min="0" max="4" step="0.01" [value]="focus()" (input)="setFocus(+$any($event.target).value)" [attr.aria-valuetext]="focus().toFixed(3)"><span class="val mono">{{ focus().toFixed(3) }}</span><button type="button" class="btn small" (click)="resetFocus()">Reset</button></div>
+          <div class="row"><label class="w" for="rt-bounces">Max bounces</label><input id="rt-bounces" type="range" min="1" max="64" step="1" [value]="maxBounces()" (input)="setMaxBounces(+$any($event.target).value)" [attr.aria-valuetext]="maxBounces() + ' bounces'"><span class="val mono">{{ maxBounces() }}</span></div>
         }
         @if (renderMode() === 'edge') {
-          <div class="row"><label class="w">Thickness</label><input type="range" min="1" max="8" step="1" [value]="edgeThickness()" (input)="setEdgeThickness(+$any($event.target).value)"><span class="val mono">{{ edgeThickness() }}</span></div>
-          <div class="row"><label class="w">Foreground</label><input type="color" [value]="edgeFg()" (input)="setEdgeColor('fg', $any($event.target).value)"></div>
-          <div class="row"><label class="w">Background</label><input type="color" [value]="edgeBg()" (input)="setEdgeColor('bg', $any($event.target).value)"></div>
+          <div class="row"><label class="w" for="rt-thickness">Thickness</label><input id="rt-thickness" type="range" min="1" max="8" step="1" [value]="edgeThickness()" (input)="setEdgeThickness(+$any($event.target).value)" [attr.aria-valuetext]="edgeThickness() + ' pixels'"><span class="val mono">{{ edgeThickness() }}</span></div>
+          <div class="row"><label class="w" for="rt-fg">Foreground</label><input id="rt-fg" type="color" [value]="edgeFg()" (input)="setEdgeColor('fg', $any($event.target).value)"></div>
+          <div class="row"><label class="w" for="rt-bg">Background</label><input id="rt-bg" type="color" [value]="edgeBg()" (input)="setEdgeColor('bg', $any($event.target).value)"></div>
         }
         @if (renderMode() === 'depth') {
           <label class="row"><span class="w">Auto depth</span><input type="checkbox" [checked]="depthAuto()" (change)="setDepthAuto($any($event.target).checked)"></label>
-          <div class="row"><label class="w">Min depth</label><input type="range" min="0" max="25" step="0.01" [disabled]="depthAuto()" [value]="depthMin()" (input)="setDepth('min', +$any($event.target).value)"><span class="val mono">{{ depthMin().toFixed(2) }}</span></div>
-          <div class="row"><label class="w">Max depth</label><input type="range" min="0" max="25" step="0.01" [disabled]="depthAuto()" [value]="depthMax()" (input)="setDepth('max', +$any($event.target).value)"><span class="val mono">{{ depthMax().toFixed(2) }}</span></div>
+          <div class="row"><label class="w" for="rt-dmin">Min depth</label><input id="rt-dmin" type="range" min="0" max="25" step="0.01" [disabled]="depthAuto()" [value]="depthMin()" (input)="setDepth('min', +$any($event.target).value)" [attr.aria-valuetext]="depthMin().toFixed(2)"><span class="val mono">{{ depthMin().toFixed(2) }}</span></div>
+          <div class="row"><label class="w" for="rt-dmax">Max depth</label><input id="rt-dmax" type="range" min="0" max="25" step="0.01" [disabled]="depthAuto()" [value]="depthMax()" (input)="setDepth('max', +$any($event.target).value)" [attr.aria-valuetext]="depthMax().toFixed(2)"><span class="val mono">{{ depthMax().toFixed(2) }}</span></div>
         }
         @if (renderMode() === 'segment') {
-          <div class="row"><label class="w">ID source</label>
+          <div class="row" role="group" aria-labelledby="rt-idsrc"><span class="w" id="rt-idsrc">ID source</span>
             <label class="row"><input type="radio" name="idsource" value="segment" [checked]="idSource() === 'segment'" (change)="setIdSource('segment')"> Segment</label>
             <label class="row"><input type="radio" name="idsource" value="pick" [checked]="idSource() === 'pick'" (change)="setIdSource('pick')"> Pick</label>
           </div>
         }
       </div>
 
-      <div class="group">
-        <span class="heading">Camera</span>
+      <div class="group" role="group" aria-labelledby="rt-cam">
+        <span class="heading" id="rt-cam">Camera</span>
         <div class="row wrap">
           <label class="row"><input type="radio" name="cam" value="perspective" [checked]="cameraMode() === 'perspective'" (change)="setCameraMode('perspective')"> Perspective</label>
           <label class="row"><input type="radio" name="cam" value="cylindrical" [checked]="cameraMode() === 'cylindrical'" (change)="setCameraMode('cylindrical')"> Cylindrical</label>

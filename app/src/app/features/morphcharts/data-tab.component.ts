@@ -1,3 +1,4 @@
+import { DecimalPipe } from '@angular/common';
 import { Component, computed, signal } from '@angular/core';
 import type { DatasetInfo } from '../../shared/morphcharts/morphcharts-host';
 
@@ -11,17 +12,18 @@ const MAX_CELL = 50;
  */
 @Component({
   selector: 'app-data-tab',
+  imports: [DecimalPipe],
   template: `
     <div class="col" (dragover)="$event.preventDefault()" (drop)="onDrop($event)">
       <label class="upload">
-        <input type="file" accept=".csv,.jpg,.jpeg,.png" (change)="onFile($event)">
+        <input class="sr-only" type="file" accept=".csv,.jpg,.jpeg,.png" (change)="onFile($event)">
         <span class="btn small">Add CSV or image…</span>
         <span class="hint">Reference uploads in a spec with <code>"file": "name.csv"</code></span>
       </label>
       @if (fileNames().length) {
         <div class="row">
-          <label>Files</label>
-          <select [value]="selectedFile()" (change)="selectedFile.set($any($event.target).value)">
+          <label for="dt-files">Files</label>
+          <select id="dt-files" [value]="selectedFile()" (change)="selectedFile.set($any($event.target).value)">
             @for (name of fileNames(); track name) { <option [value]="name">{{ name }}</option> }
           </select>
           <button type="button" class="btn small" (click)="deleteFile()">Delete</button>
@@ -29,15 +31,15 @@ const MAX_CELL = 50;
       }
       @if (datasets().length) {
         <div class="row">
-          <label>Datasets</label>
-          <select [value]="selectedIndex()" (change)="selectDataset(+$any($event.target).value)">
+          <label for="dt-datasets">Datasets</label>
+          <select id="dt-datasets" [value]="selectedIndex()" (change)="selectDataset(+$any($event.target).value)">
             @for (d of datasets(); track d.name; let i = $index) { <option [value]="i">{{ d.name }}</option> }
           </select>
-          <span class="hint">{{ rowCount() }} rows</span>
+          <span class="hint">{{ rowCount() | number }} rows</span>
         </div>
         <div class="row">
-          <label>Page</label>
-          <input type="number" min="1" [max]="totalPages()" [value]="page() + 1" (change)="goTo(+$any($event.target).value)"> of {{ totalPages() }}
+          <label for="dt-page">Page</label>
+          <input id="dt-page" type="number" inputmode="numeric" autocomplete="off" min="1" [max]="totalPages()" [value]="page() + 1" (change)="goTo(+$any($event.target).value)"> of {{ totalPages() }}
           <button type="button" class="btn small" [disabled]="page() === 0" (click)="page.set(page() - 1)">Prev</button>
           <button type="button" class="btn small" [disabled]="page() >= totalPages() - 1" (click)="page.set(page() + 1)">Next</button>
         </div>
@@ -68,8 +70,10 @@ const MAX_CELL = 50;
     :host { display: block; padding: 8px 4px; font-size: 13px; }
     .col { display: flex; flex-direction: column; gap: 10px; }
     .row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-    .upload input { display: none; }
-    .upload { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+    /* The file input stays in the tab order, just off-screen; the label's button shows its focus. */
+    .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+    .upload { position: relative; display: flex; align-items: center; gap: 10px; cursor: pointer; }
+    .upload:focus-within .btn { outline: 2px solid var(--teal); outline-offset: 2px; }
     label { color: var(--on-ink-dim); }
     .hint { color: var(--on-ink-faint); font-size: 12px; }
     code { color: var(--teal); }

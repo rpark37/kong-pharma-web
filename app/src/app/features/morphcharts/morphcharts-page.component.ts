@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, DestroyRef, ElementRef, afterNextRender, computed, inject, signal, viewChild } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { Component, DestroyRef, ElementRef, afterNextRender, computed, effect, inject, signal, viewChild } from '@angular/core';
+import { readQuery, writeQuery } from '../../shared/url-state';
 import { GsapService } from '../../shared/animation/gsap.service';
 import { MorphchartsCameraComponent } from '../../shared/morphcharts/morphcharts-camera.component';
 import { GlyphComponent } from '../../shared/ui/glyph.component';
@@ -18,6 +18,9 @@ import { SpecEditorComponent } from '../../shared/ui/spec-editor.component';
 import { TileSettings, TilesTabComponent } from './tiles-tab.component';
 
 const PANEL_MIN = 320;
+const PANEL_MAX = 900;
+/** Arrow keys on the divider move it by this many pixels; Shift makes it four times as far. */
+const DIVIDER_STEP = 16;
 /** How long play leaves each example up: long enough for the path tracer to settle. */
 const DEMO_DWELL_MS = 7000;
 const DEFAULT_SAMPLE = 'line4'; // "Multi Series Line Chart" — generated in-spec, so it needs no data file
@@ -45,7 +48,7 @@ const DEFAULT_SAMPLE = 'line4'; // "Multi Series Line Chart" — generated in-sp
             <button type="button" class="key" (click)="step(1)" [disabled]="!samples().length" aria-label="Next example" title="Next example (→)"><app-glyph name="next" /></button>
           </div>
           <output class="counter" [attr.aria-label]="'Example ' + (sampleIndex() + 1) + ' of ' + samples().length">{{ sampleIndex() + 1 }}<i>/</i>{{ samples().length }}<b>{{ currentSample()?.title }}</b></output>
-          <a href="#" (click)="$event.preventDefault(); showSamples.set(true)">Show examples</a>
+          <button type="button" class="btn small" #examplesKey (click)="showSamples.set(true)" aria-haspopup="dialog" [attr.aria-expanded]="showSamples()">Show examples</button>
         </div>
         <!-- Render mode lives in the Render tab, so the shared panel shows only the pose controls. -->
         <app-morphcharts-camera class="toolbar-camera" [rig]="rig()" layout="row" [showRender]="false" />
@@ -63,18 +66,19 @@ const DEFAULT_SAMPLE = 'line4'; // "Multi Series Line Chart" — generated in-sp
         </div>
       </div>
 
-      <div class="chart-divider" (pointerdown)="startDivider($event)" role="separator" aria-orientation="vertical"></div>
+      <!-- Drag, or focus it and use ← → (Shift for larger steps). -->
+      <div class="chart-divider" (pointerdown)="startDivider($event)" (keydown)="onDividerKey($event)" role="separator" tabindex="0" aria-orientation="vertical" aria-label="Resize control panel" [attr.aria-valuenow]="panelWidth()" [attr.aria-valuemin]="panelMin" [attr.aria-valuemax]="panelMax" aria-valuetext="{{ panelWidth() }} pixels wide"></div>
 
       <div class="chart-column" #right>
         <!-- The five panels have always existed behind activeTab; until now nothing switched it. -->
         <div class="tabs" role="tablist" aria-label="Control panels">
           @for (t of tabs; track t) {
-            <button type="button" class="btn small" role="tab" [class.active]="activeTab() === t"
-                    [attr.aria-selected]="activeTab() === t" (click)="activeTab.set(t)">{{ t }}</button>
+            <button type="button" class="btn small" role="tab" [id]="'mc-tab-' + t" [attr.aria-controls]="'mc-panel-' + t" [tabindex]="activeTab() === t ? 0 : -1" [class.active]="activeTab() === t"
+                    [attr.aria-selected]="activeTab() === t" (click)="activeTab.set(t)" (keydown)="onTabKey($event)">{{ t }}</button>
           }
         </div>
         <div class="tab-body" #tabBody>
-          <div [hidden]="activeTab() !== 'Plot'" class="plot-tab">
+          <div [hidden]="activeTab() !== 'Plot'" class="plot-tab" role="tabpanel" id="mc-panel-Plot" aria-labelledby="mc-tab-Plot">
             <div class="chart-pane-head">
               <span class="eyebrow">Specification</span>
               <span class="row">
@@ -84,32 +88,32 @@ const DEFAULT_SAMPLE = 'line4'; // "Multi Series Line Chart" — generated in-sp
             </div>
             <app-spec-editor #editor [(value)]="specText" (changed)="onSpecChanged()" />
           </div>
-          <div [hidden]="activeTab() !== 'Render'">
+          <div [hidden]="activeTab() !== 'Render'" role="tabpanel" id="mc-panel-Render" aria-labelledby="mc-tab-Render">
             <app-render-tab #renderTab [host]="host()" [frameCount]="frameCount()" [debug]="debug()" (debugChange)="debug.set($event)" (resizeRequest)="onResize($event)" />
           </div>
-          <div [hidden]="activeTab() !== 'Data'">
+          <div [hidden]="activeTab() !== 'Data'" role="tabpanel" id="mc-panel-Data" aria-labelledby="mc-tab-Data">
             <app-data-tab #dataTab />
           </div>
-          <div [hidden]="activeTab() !== 'Signals'">
+          <div [hidden]="activeTab() !== 'Signals'" role="tabpanel" id="mc-panel-Signals" aria-labelledby="mc-tab-Signals">
             <app-signals-tab [signals]="signals()" />
           </div>
-          <div [hidden]="activeTab() !== 'Tiles'">
+          <div [hidden]="activeTab() !== 'Tiles'" role="tabpanel" id="mc-panel-Tiles" aria-labelledby="mc-tab-Tiles">
             <app-tiles-tab [current]="tiles()" (changed)="onTiles($event)" />
           </div>
         </div>
       </div>
     </div>
     @if (showSamples()) {
-      <app-samples-dialog (pick)="loadSample($event)" (close)="showSamples.set(false)" />
+      <app-samples-dialog (pick)="loadSample($event)" (close)="closeSamples()" />
     }
   `,
   styles: `
     .toolbar-camera { margin: -4px 0 12px; }
     .keys .key { width: 30px; height: 28px; }
     .key.play { background: var(--teal); color: var(--ink); }
-    .counter { font: 500 10px/1 var(--font-mono); color: var(--on-ink-dim); font-variant-numeric: tabular-nums; i { margin: 0 3px; color: var(--hairline); } b { font-weight: 500; color: var(--on-ink); margin-left: 8px; } }
+    .counter { display: inline-flex; align-items: center; min-width: 0; max-width: 40%; font: 500 10px/1 var(--font-mono); color: var(--on-ink-dim); font-variant-numeric: tabular-nums; i { margin: 0 3px; color: var(--hairline); } b { font-weight: 500; color: var(--on-ink); margin-left: 8px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } }
     /* Shell, stage, panes, toolbar and divider come from styles.scss. */
-    :host { display: block; height: calc(100vh - var(--nav-h)); display: flex; flex-direction: column; }
+    :host { display: block; height: calc(100dvh - var(--nav-h)); display: flex; flex-direction: column; }
     app-morphcharts-canvas { position: absolute; inset: 0; }
     .fallback-wrap { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 24px; overflow: auto; }
     .small { font-size: 12px; color: var(--on-ink-faint); }
@@ -134,6 +138,8 @@ const DEFAULT_SAMPLE = 'line4'; // "Multi Series Line Chart" — generated in-sp
 export class MorphchartsPageComponent {
   readonly tabs = ['Plot', 'Render', 'Data', 'Signals', 'Tiles'] as const;
   readonly activeTab = signal<string>('Plot');
+  readonly panelMin = PANEL_MIN;
+  readonly panelMax = PANEL_MAX;
   readonly host = signal<MorphChartsHost | null>(null);
   readonly rig = signal<CameraRig | null>(null);
   readonly fallback = signal<string | null>(null);
@@ -164,8 +170,9 @@ export class MorphchartsPageComponent {
   private readonly dataTab = viewChild.required(DataTabComponent);
   private readonly left = viewChild.required<ElementRef<HTMLDivElement>>('left');
   private readonly right = viewChild.required<ElementRef<HTMLDivElement>>('right');
+  private readonly examplesKey = viewChild.required<ElementRef<HTMLButtonElement>>('examplesKey');
   private readonly http = inject(HttpClient);
-  private readonly route = inject(ActivatedRoute);
+  private readonly el = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly gsap = inject(GsapService);
   private readonly destroyRef = inject(DestroyRef);
   private hasSpecChanged = true;
@@ -176,8 +183,16 @@ export class MorphchartsPageComponent {
   private pickToken = 0;
 
   constructor() {
-    this.pendingSample = this.route.snapshot.queryParamMap.get('plot') ?? this.route.snapshot.queryParamMap.get('spec') ?? DEFAULT_SAMPLE;
+    const q = readQuery();
+    this.pendingSample = q.get('plot') ?? q.get('spec') ?? DEFAULT_SAMPLE;
     this.currentName.set(this.pendingSample.replace(/\.json$/, ''));
+    const tab = q.get('tab');
+    if (tab && (this.tabs as readonly string[]).includes(tab)) this.activeTab.set(tab);
+    // `?plot=bar2&tab=Render` links to an example and a panel; the defaults leave the URL bare.
+    effect(() => {
+      const plot = this.currentName(), tab = this.activeTab();
+      writeQuery({ plot: plot && plot !== DEFAULT_SAMPLE ? plot : null, tab: tab !== 'Plot' ? tab : null });
+    });
     this.http.get<SampleCategory[]>(`${SAMPLE_SPEC_FOLDER}/index.json`).subscribe({ next: (cats) => this.samples.set(cats.flatMap((c) => c.plots)), error: () => this.samples.set([]) });
     afterNextRender(() => {
       this.gsap.slideIn(this.right().nativeElement, 'right', this.gsap.MOTION.delay.medium);
@@ -194,9 +209,12 @@ export class MorphchartsPageComponent {
     };
     window.addEventListener('resize', onWindowResize);
 
+    // ← → step the example from the stage, the transport and the page body. Inside the control
+    // panel, the tab strip, the camera keys and the divider the arrows already mean something else.
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement | null;
       if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
+      if (t?.closest('[role="tablist"], .tab-body, app-morphcharts-camera, .chart-divider, [role="dialog"]')) return;
       if (e.key === 'ArrowLeft') { e.preventDefault(); this.step(-1); }
       if (e.key === 'ArrowRight') { e.preventDefault(); this.step(1); }
     };
@@ -303,8 +321,34 @@ export class MorphchartsPageComponent {
     if (host) { host.tilesX = t.tilesX; host.tilesY = t.tilesY; host.tileOffsetX = t.tileOffsetX; host.tileOffsetY = t.tileOffsetY; host.autoTile = t.autoTile; }
   }
 
-  loadSample(plot: SamplePlot): void {
+  /** Closing the examples returns focus to the key that opened them. */
+  closeSamples(): void {
     this.showSamples.set(false);
+    this.examplesKey().nativeElement.focus();
+  }
+
+  /** ← → move the active tab and focus it, Home/End jump to the ends, as a native tab strip does. */
+  onTabKey(e: KeyboardEvent): void {
+    const i = this.tabs.indexOf(this.activeTab() as (typeof this.tabs)[number]);
+    const next = e.key === 'ArrowRight' ? (i + 1) % this.tabs.length : e.key === 'ArrowLeft' ? (i + this.tabs.length - 1) % this.tabs.length : e.key === 'Home' ? 0 : e.key === 'End' ? this.tabs.length - 1 : -1;
+    if (next < 0) return;
+    e.preventDefault();
+    this.activeTab.set(this.tabs[next]);
+    document.getElementById(`mc-tab-${this.tabs[next]}`)?.focus();
+  }
+
+  onDividerKey(e: KeyboardEvent): void {
+    const dir = e.key === 'ArrowLeft' ? 1 : e.key === 'ArrowRight' ? -1 : e.key === 'Home' ? 0 : e.key === 'End' ? 0 : null;
+    if (dir === null) return;
+    e.preventDefault();
+    const step = DIVIDER_STEP * (e.shiftKey ? 4 : 1);
+    const width = e.key === 'Home' ? PANEL_MIN : e.key === 'End' ? PANEL_MAX : this.panelWidth() + dir * step;
+    this.panelWidth.set(Math.min(PANEL_MAX, Math.max(PANEL_MIN, width)));
+    if (this.sizeType === 'fit') this.applySize('fit');
+  }
+
+  loadSample(plot: SamplePlot): void {
+    this.closeSamples();
     this.stopPlay();
     void this.pickSample(plot.plot);
   }
@@ -358,8 +402,9 @@ export class MorphchartsPageComponent {
   startDivider(e: PointerEvent): void {
     const startX = e.clientX;
     const startWidth = this.right().nativeElement.clientWidth;
-    const move = (ev: PointerEvent) => this.panelWidth.set(Math.max(startWidth - (ev.clientX - startX), PANEL_MIN));
-    const up = () => { document.removeEventListener('pointermove', move); document.removeEventListener('pointerup', up); if (this.sizeType === 'fit') this.applySize('fit'); };
+    const move = (ev: PointerEvent) => this.panelWidth.set(Math.min(PANEL_MAX, Math.max(startWidth - (ev.clientX - startX), PANEL_MIN)));
+    const up = () => { document.removeEventListener('pointermove', move); document.removeEventListener('pointerup', up); document.body.style.userSelect = ''; if (this.sizeType === 'fit') this.applySize('fit'); };
+    document.body.style.userSelect = 'none'; // no text selection while the divider drags
     document.addEventListener('pointermove', move);
     document.addEventListener('pointerup', up);
   }

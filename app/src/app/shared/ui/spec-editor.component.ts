@@ -15,11 +15,14 @@ import { Component, ElementRef, afterNextRender, model, output, signal, viewChil
           <div [class.current]="n === currentLine()" [class.error]="n === errorLine()">{{ n }}</div>
         }
       </div>
+      <span id="spec-editor-hint" class="sr-only">Tab inserts two spaces. Press Escape, then Tab, to leave the editor.</span>
       <textarea
         #content
         class="content"
         spellcheck="false"
+        autocomplete="off"
         aria-label="Plot specification (JSON)"
+        aria-describedby="spec-editor-hint"
         [value]="value()"
         (input)="onInput($any($event.target).value)"
         (scroll)="syncScroll()"
@@ -38,6 +41,7 @@ import { Component, ElementRef, afterNextRender, model, output, signal, viewChil
     .lines div { padding-right: 8px; }
     .lines .current { color: var(--teal); background: color-mix(in srgb, var(--teal) 8%, transparent); }
     .lines .error { color: var(--rose); background: rgba(179,38,30,0.18); }
+    .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
     .content { flex: 1; margin: 0; padding: 8px; border: 0; outline: none; resize: none; background: transparent; color: var(--on-ink); font: inherit; white-space: pre; overflow: auto; tab-size: 2; }
     /* The rule above suppresses the default ring; a textarea must still show focus.
        Inset so the ring is not clipped by the scroll container. */
@@ -53,6 +57,8 @@ export class SpecEditorComponent {
   private readonly contentRef = viewChild.required<ElementRef<HTMLTextAreaElement>>('content');
   private readonly linesRef = viewChild.required<ElementRef<HTMLDivElement>>('lines');
   readonly tabLength = 2;
+  /** Escape arms a normal Tab, so keyboard users can leave a textarea that otherwise indents. */
+  private escapeArmed = false;
 
   constructor() {
     afterNextRender(() => this.updateLines());
@@ -97,6 +103,9 @@ export class SpecEditorComponent {
   onKeydown(e: KeyboardEvent): void {
     const nav = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End', 'PageUp', 'PageDown'];
     if (nav.includes(e.key)) this.trackCaret();
+    if (e.key === 'Escape') { this.escapeArmed = true; return; }
+    if (e.key === 'Tab' && this.escapeArmed) { this.escapeArmed = false; return; }
+    this.escapeArmed = false;
     if (e.key === 'Tab') {
       e.preventDefault();
       const ta = this.contentRef().nativeElement;
