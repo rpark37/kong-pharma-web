@@ -24,7 +24,7 @@ import { ThemeService } from '../../shared/theme/theme.service';
   imports: [DecimalPipe, PercentPipe, VegaChartComponent, MorphchartsCanvasComponent, WebGpuFallbackComponent, GlyphComponent, MorphchartsCameraComponent],
   template: `
     <section class="head">
-      <p class="eyebrow" data-reveal>Therapeutic tests · Bayes' theorem</p>
+      <h1 class="eyebrow" data-reveal>Therapeutic tests · Bayes' theorem</h1>
     </section>
 
     <section class="layout">
@@ -34,18 +34,18 @@ import { ThemeService } from '../../shared/theme/theme.service';
              the transition, not decoration. -->
         <div class="transport" role="group" aria-label="Views" (keydown.arrowleft)="onPrev()" (keydown.arrowright)="onNext()">
           <!-- Only the counter is visible; the view name stays for the accessibility tree and the segment tooltips. -->
-          <h2 class="transport-title"><span class="transport-label">{{ layoutIndex() + 1 | number: '2.0-0' }}/04</span><span class="sr-only">{{ layoutName() }}</span></h2>
+          <p class="transport-title"><span class="transport-label">{{ layoutIndex() + 1 | number: '2.0-0' }}/04</span><span class="sr-only">{{ layoutName() }}</span></p>
           <!-- The progress strip is the deck's top edge: a tape counter on the transport. -->
           <div class="deck">
             <ol class="segments" [style.--fill-ms]="fillMs() + 'ms'">
               @for (name of layoutNames; track name; let i = $index) {
                 <li [class.active]="i === layoutIndex()" [class.filling]="i === layoutIndex() && transitioning()">
-                  <button type="button" [attr.aria-label]="'View ' + (i + 1) + ': ' + name" [attr.aria-current]="i === layoutIndex() ? 'true' : null" [title]="name" (click)="jump(i)"><span class="fill"></span></button>
+                  <button type="button" [attr.aria-label]="'View ' + (i + 1) + ': ' + name" [attr.aria-current]="i === layoutIndex() ? 'step' : null" [title]="name" (click)="jump(i)"><span class="fill"></span></button>
                 </li>
               }
             </ol>
             <div class="keyrail keys">
-            <button type="button" class="key" (click)="onPrev()" [disabled]="transitioning()" aria-label="Previous view" title="Previous view (←)">
+            <button type="button" class="key" (click)="onPrev()" [attr.aria-disabled]="transitioning() || null" aria-label="Previous view" title="Previous view (←)">
               <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 3.5v9" /><path class="solid" d="M12 3.5 6 8l6 4.5z" /></svg>
             </button>
             <button type="button" class="key play" (click)="togglePlay()" [attr.aria-pressed]="playing()" [attr.aria-label]="playing() ? 'Pause' : 'Play all views'" [title]="playing() ? 'Pause' : 'Play all views'">
@@ -55,7 +55,7 @@ import { ThemeService } from '../../shared/theme/theme.service';
                 <svg viewBox="0 0 16 16" aria-hidden="true"><path class="solid" d="M5 3.5v9l8-4.5z" /></svg>
               }
             </button>
-            <button type="button" class="key" (click)="onNext()" [disabled]="transitioning()" aria-label="Next view" title="Next view (→)">
+            <button type="button" class="key" (click)="onNext()" [attr.aria-disabled]="transitioning() || null" aria-label="Next view" title="Next view (→)">
               <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M12 3.5v9" /><path class="solid" d="M4 3.5 10 8l-6 4.5z" /></svg>
             </button>
             <button type="button" class="key" (click)="onReset()" aria-label="Reset camera" title="Reset camera">
@@ -76,25 +76,29 @@ import { ThemeService } from '../../shared/theme/theme.service';
           <p class="caption">{{ activePreset()?.name ?? 'Custom inputs' }}</p>
         </div>
         <div class="field">
-          <span title="People in the synthetic population — one block each in the grid"><i><app-glyph name="count" />Count</i> <output>{{ form().count | number }}</output></span>
+          <label for="bayes-count"><i><app-glyph name="count" />Count</i> <output>{{ form().count | number }}</output></label>
+          <small id="bayes-count-help" class="sr-only">People in the synthetic population, one block each in the grid</small>
           <div class="keyrail stepper" role="group" aria-label="Count">
             <button type="button" class="key" (click)="setCount(form().count - 100)" [disabled]="form().count <= 1" aria-label="100 fewer people" title="−100">−</button>
-            <input type="number" min="1" max="20000" step="1" [value]="form().count" (change)="setCount(+$any($event.target).value)" aria-label="Count">
+            <input id="bayes-count" type="number" inputmode="numeric" autocomplete="off" min="1" max="20000" step="1" [value]="form().count" (change)="setCount(+$any($event.target).value)" aria-describedby="bayes-count-help">
             <button type="button" class="key" (click)="setCount(form().count + 100)" [disabled]="form().count >= 20000" aria-label="100 more people" title="+100">+</button>
           </div>
         </div>
         <div class="field">
-          <span title="Prevalence — the pre-test probability of the condition"><i><app-glyph name="prior" />Prior</i> <output>{{ form().prior | percent: '1.1-2' }}</output></span>
-          <input type="range" min="0" max="1" step="0.001" [value]="form().prior" (input)="set('prior', +$any($event.target).value)" aria-label="Prior">
+          <label for="bayes-prior"><i><app-glyph name="prior" />Prior</i> <output>{{ form().prior | percent: '1.1-2' }}</output></label>
+          <small id="bayes-prior-help" class="sr-only">Prevalence, the pre-test probability of the condition</small>
+          <input id="bayes-prior" type="range" min="0" max="1" step="0.001" [value]="form().prior" (input)="set('prior', +$any($event.target).value)" [attr.aria-valuetext]="form().prior | percent: '1.1-2'" aria-describedby="bayes-prior-help">
           <small>1 in {{ 1 / (form().prior || 0.0001) | number: '1.0-0' }} have it</small>
         </div>
         <div class="field">
-          <span title="Of people with the condition, the share the test catches"><i><app-glyph name="sensitivity" />Sensitivity</i> <output>{{ form().sensitivity | percent: '1.0-1' }}</output></span>
-          <input type="range" min="0" max="1" step="0.005" [value]="form().sensitivity" (input)="set('sensitivity', +$any($event.target).value)" aria-label="Sensitivity">
+          <label for="bayes-se"><i><app-glyph name="sensitivity" />Sensitivity</i> <output>{{ form().sensitivity | percent: '1.0-1' }}</output></label>
+          <small id="bayes-se-help" class="sr-only">Of people with the condition, the share the test catches</small>
+          <input id="bayes-se" type="range" min="0" max="1" step="0.005" [value]="form().sensitivity" (input)="set('sensitivity', +$any($event.target).value)" [attr.aria-valuetext]="form().sensitivity | percent: '1.0-1'" aria-describedby="bayes-se-help">
         </div>
         <div class="field">
-          <span title="Of people without it, the share the test clears"><i><app-glyph name="specificity" />Specificity</i> <output>{{ form().specificity | percent: '1.0-1' }}</output></span>
-          <input type="range" min="0" max="1" step="0.005" [value]="form().specificity" (input)="set('specificity', +$any($event.target).value)" aria-label="Specificity">
+          <label for="bayes-sp"><i><app-glyph name="specificity" />Specificity</i> <output>{{ form().specificity | percent: '1.0-1' }}</output></label>
+          <small id="bayes-sp-help" class="sr-only">Of people without it, the share the test clears</small>
+          <input id="bayes-sp" type="range" min="0" max="1" step="0.005" [value]="form().specificity" (input)="set('specificity', +$any($event.target).value)" [attr.aria-valuetext]="form().specificity | percent: '1.0-1'" aria-describedby="bayes-sp-help">
         </div>
         <!-- Camera controls are shared with every path-traced page; see shared/morphcharts/camera-rig.ts. -->
         <div class="group">
@@ -103,12 +107,14 @@ import { ThemeService } from '../../shared/theme/theme.service';
         <div class="group" role="group" aria-labelledby="bayes-motion">
           <p class="group-label" id="bayes-motion"><app-glyph name="motion" />Motion</p>
           <div class="field">
-            <span title="How long each block takes to travel between views"><i><app-glyph name="duration" />Duration</i> <output>{{ form().transitionDuration }}ms</output></span>
-            <input type="range" min="0" max="10000" step="100" [value]="form().transitionDuration" (input)="set('transitionDuration', +$any($event.target).value)" aria-label="Transition duration">
+            <label for="bayes-dur"><i><app-glyph name="duration" />Duration</i> <output>{{ form().transitionDuration }}ms</output></label>
+            <small id="bayes-dur-help" class="sr-only">How long each block takes to travel between views</small>
+            <input id="bayes-dur" type="range" min="0" max="10000" step="100" [value]="form().transitionDuration" (input)="set('transitionDuration', +$any($event.target).value)" [attr.aria-valuetext]="form().transitionDuration + ' milliseconds'" aria-describedby="bayes-dur-help">
           </div>
           <div class="field">
-            <span title="Blocks start one after another across this window; each eases with a cubic in-out"><i><app-glyph name="stagger" />Stagger</i> <output>{{ form().transitionStaggering }}ms</output></span>
-            <input type="range" min="0" max="10000" step="100" [value]="form().transitionStaggering" (input)="set('transitionStaggering', +$any($event.target).value)" aria-label="Transition staggering">
+            <label for="bayes-stag"><i><app-glyph name="stagger" />Stagger</i> <output>{{ form().transitionStaggering }}ms</output></label>
+            <small id="bayes-stag-help" class="sr-only">Blocks start one after another across this window; each eases with a cubic in-out</small>
+            <input id="bayes-stag" type="range" min="0" max="10000" step="100" [value]="form().transitionStaggering" (input)="set('transitionStaggering', +$any($event.target).value)" [attr.aria-valuetext]="form().transitionStaggering + ' milliseconds'" aria-describedby="bayes-stag-help">
           </div>
         </div>
       </form>
@@ -118,12 +124,12 @@ import { ThemeService } from '../../shared/theme/theme.service';
           <div #morphchartsContainer class="morphcharts-container">
             @if (!fallback()) {
               <app-morphcharts-canvas (hostReady)="onHost($event)" (failed)="fallback.set($event)" />
-              <span class="hint"><app-glyph name="orbit" />Drag to orbit · wheel to zoom · Reset returns the camera</span>
+              <span class="hint"><app-glyph name="orbit" />Drag to orbit · wheel to zoom · or use the camera keys</span>
             } @else {
               <div class="fallback-wrap"><app-webgpu-fallback title="The block views need WebGPU"><p class="fallback-text">{{ fallback() }} The Vega charts below show the same numbers.</p></app-webgpu-fallback></div>
             }
           </div>
-          @if (morphError()) { <p class="err">{{ morphError() }}</p> }
+          @if (morphError()) { <p class="err" role="alert">{{ morphError() }}</p> }
         </div>
 
         <!-- The answer first: PPV is what the whole page is asking. One flat strip, sized by weight. -->
@@ -132,22 +138,22 @@ import { ThemeService } from '../../shared/theme/theme.service';
         <dl class="readout">
           <div class="cell primary" data-reveal>
             <dt><app-glyph name="ppv" />Positive predictive value</dt>
-            <dd class="value">{{ shown().ppv | number: '1.1-1' }}<span class="unit">%</span></dd>
+            <dd class="value" [attr.aria-label]="out().ppv | percent: '1.1-1'">{{ shown().ppv | number: '1.1-1' }}<span class="unit">%</span></dd>
             <dd class="formula">P(disease | positive)</dd>
           </div>
           <div class="cell" data-reveal>
             <dt><app-glyph name="npv" />Negative predictive value</dt>
-            <dd class="value">{{ shown().npv | number: '1.1-1' }}<span class="unit">%</span></dd>
+            <dd class="value" [attr.aria-label]="out().npv | percent: '1.1-1'">{{ shown().npv | number: '1.1-1' }}<span class="unit">%</span></dd>
             <dd class="formula">P(no disease | negative)</dd>
           </div>
           <div class="cell small" data-reveal>
             <dt><app-glyph name="lrPlus" />LR+</dt>
-            <dd class="value">{{ shown().lrPlus | number: '1.1-1' }}</dd>
+            <dd class="value" [attr.aria-label]="lrPlus() | number: '1.1-1'">{{ shown().lrPlus | number: '1.1-1' }}</dd>
             <dd class="formula">Se / (1 − Sp)</dd>
           </div>
           <div class="cell small" data-reveal>
             <dt><app-glyph name="lrMinus" />LR−</dt>
-            <dd class="value">{{ shown().lrMinus | number: '1.2-2' }}</dd>
+            <dd class="value" [attr.aria-label]="out().lrNegative | number: '1.2-2'">{{ shown().lrMinus | number: '1.2-2' }}</dd>
             <dd class="formula">(1 − Se) / Sp</dd>
           </div>
         </dl>
@@ -209,6 +215,7 @@ import { ThemeService } from '../../shared/theme/theme.service';
     /* Transport deck at the top of the 160 px controls column: counter + name on one line, then
        the progress strip fused to the top edge of the key rail. */
     .transport { display: flex; flex-direction: column; gap: 6px; }
+    .head h1 { font-weight: 500; }
     .transport-title { margin: 0; line-height: 1; }
     .transport-label { font: 500 10px/1 var(--font-mono); letter-spacing: 0.1em; color: var(--teal); }
     .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
@@ -229,6 +236,7 @@ import { ThemeService } from '../../shared/theme/theme.service';
     .keys .key { height: 30px; }
     .key.play { background: var(--teal); color: var(--ink); }
     .key.play:hover { background: color-mix(in srgb, var(--teal) 90%, transparent); color: var(--ink); }
+    .keys .key[aria-disabled="true"] { opacity: 0.45; cursor: default; }
     .presets { display: flex; flex-direction: column; gap: 4px; }
     .caption { margin: 0; font-size: 11px; line-height: 1.3; color: var(--on-ink-dim); }
     @media (prefers-reduced-motion: reduce) { .filling .fill { animation: none; transform: scaleX(1); } }
@@ -240,11 +248,11 @@ import { ThemeService } from '../../shared/theme/theme.service';
     .err { color: var(--rose); font-size: 12px; margin: 0; padding: 8px 14px; }
     .layout { display: grid; grid-template-columns: 160px minmax(0, 1fr); gap: 16px; align-items: start; }
     .controls { position: sticky; top: calc(var(--nav-h) + 16px); padding: 12px; display: flex; flex-direction: column; gap: 12px; }
-    /* Fields: label row + input, help copy in the label's tooltip; only Prior keeps a data caption. */
+    /* Fields: label row + input; help copy is a visually hidden description tied to the input. Only Prior keeps a data caption. */
     .field { display: flex; flex-direction: column; gap: 4px; font-size: 12px; }
-    .field > span { display: flex; justify-content: space-between; gap: 6px; color: var(--on-ink); cursor: help; }
-    .field > span i { display: inline-flex; align-items: center; gap: 6px; font-style: normal; color: inherit; }
-    .field > span app-glyph, .group-label app-glyph { color: var(--on-ink-faint); }
+    .field > label { display: flex; justify-content: space-between; gap: 6px; color: var(--on-ink); cursor: pointer; }
+    .field > label i { display: inline-flex; align-items: center; gap: 6px; font-style: normal; color: inherit; }
+    .field > label app-glyph, .group-label app-glyph { color: var(--on-ink-faint); }
     app-glyph { margin-right: 6px; }
     .readout dt, .eyebrow, .hint, .group-label { display: inline-flex; align-items: center; }
     .readout dt app-glyph, .eyebrow app-glyph { color: var(--teal); }
@@ -279,7 +287,7 @@ import { ThemeService } from '../../shared/theme/theme.service';
     .tree { grid-column: 1 / -1; padding: 16px 18px; }
     .flow { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
     .bar { display: flex; gap: 2px; height: 14px; }
-    .seg { display: block; flex: 0 1 0; min-width: 6px; border-radius: 2px; transition: flex-grow var(--dur-fast) var(--ease-out); }
+    .seg { display: block; flex: 0 1 0; min-width: 6px; border-radius: 2px; }
     .sick { background: var(--rose); }
     .well { background: var(--teal); }
     .tp { background: var(--rose); }
@@ -301,6 +309,7 @@ import { ThemeService } from '../../shared/theme/theme.service';
     .wide { grid-column: 1 / -1; }
     .note { margin-top: 20px; font-size: 12px; color: var(--on-ink-faint); }
     @media (max-width: 960px) { .layout { grid-template-columns: 1fr; } .controls { position: static; } .results { grid-template-columns: 1fr; } .morphcharts-container { height: 400px; } }
+    @media (max-width: 520px) { .row4 { grid-template-columns: repeat(2, 1fr); } .readout { grid-template-columns: 1fr 1fr; } .readout .cell:nth-child(3) { border-left: 0; } .readout .cell:nth-child(n + 3) { border-top: 1px solid var(--hairline); } }
   `,
 })
 export class BayesPageComponent {
@@ -462,8 +471,9 @@ export class BayesPageComponent {
 
   onReset(): void { this.scene?.resetCamera(); }
   /** Manual steps take the transport back from the player, as scrubbing a video does. */
-  onPrev(): void { this.jump((this.layoutIndex() + 3) % 4); }
-  onNext(): void { this.jump((this.layoutIndex() + 1) % 4); }
+  // Prev/Next stay focusable while a morph runs (aria-disabled, not disabled) so focus never drops to <body> mid-play.
+  onPrev(): void { if (!this.transitioning()) this.jump((this.layoutIndex() + 3) % 4); }
+  onNext(): void { if (!this.transitioning()) this.jump((this.layoutIndex() + 1) % 4); }
 
   jump(index: number): void {
     this.stop();
