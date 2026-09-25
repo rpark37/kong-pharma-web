@@ -282,7 +282,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // ---- Active nav link highlighting ----
     gsap.utils.toArray("[data-nav-link]").forEach((link) => {
-      const section = document.querySelector(link.getAttribute("href"));
+      const href = link.getAttribute("href") || "";
+      if (!href.startsWith("#") || href.length < 2) return; // only in-page anchors (the Labs link is a path)
+      const section = document.querySelector(href);
       if (!section) return;
       ScrollTrigger.create({
         trigger: section,

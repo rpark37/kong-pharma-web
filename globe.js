@@ -22,7 +22,6 @@ function init() {
     ["Boston, MA · XtalPi demo lab", 42.3601, -71.0589],
     ["Lahey Hospital & Medical Center · Burlington, MA", 42.5048, -71.1956],
     ["UMass Chan Medical School · Worcester, MA", 42.2762, -71.7612],
-    ["Green Campsites · Exeter", 42.9814, -70.9478],
     ["Shanghai", 31.2304, 121.4737],
     ["Shenzhen · XtalPi", 22.5431, 114.0579],
     ["Hong Kong", 22.3193, 114.1694],
