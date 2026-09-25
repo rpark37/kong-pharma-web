@@ -51,9 +51,12 @@ describe('science snapshots', () => {
   });
 
   it('renders a capture date a human can read', () => {
-    // Matched by shape, not spelling: Intl renders September as "Sep" or "Sept" depending on the
-    // ICU build, and pinning one makes the suite fail on a different Node.
-    expect(capturedOn('2026-09-18T10:53:29Z')).toMatch(/^18 Sept? 2026$/);
+    // Matched by parts, not spelling or order: it follows the reader's locale ("18 Sept 2026" in
+    // en-GB, "Sep 18, 2026" in en-US), and Intl renders September as "Sep" or "Sept" by ICU build.
+    const shown = capturedOn('2026-09-18T10:53:29Z');
+    expect(shown).toMatch(/Sept?/);
+    expect(shown).toContain('18');
+    expect(shown).toContain('2026');
     // Anything unparseable is shown as-is rather than as "Invalid Date".
     expect(capturedOn('not a date')).toBe('not a date');
   });

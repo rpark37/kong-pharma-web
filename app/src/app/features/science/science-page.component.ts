@@ -72,7 +72,7 @@ const ROLES: Record<string, string> = {
 
       <nav class="rail" aria-label="Chapters">
         @for (c of chapters; track c.id) {
-          <a [href]="'#' + c.id" [class.active]="active() === c.id" [attr.aria-current]="active() === c.id ? 'true' : null" (click)="jump($event, c.id)">
+          <a [href]="'#' + c.id" [class.active]="active() === c.id" [attr.aria-current]="active() === c.id ? 'location' : null" (click)="jump($event, c.id)">
             <span class="num">{{ c.numeral }}</span><span class="name">{{ c.title }}</span>
           </a>
         }
@@ -89,11 +89,11 @@ const ROLES: Record<string, string> = {
             <p class="prose" data-reveal>
               RAS is a family of three small GTPases — <b>KRAS</b>, <b>HRAS</b> and <b>NRAS</b> — anchored to the inside of
               the cell membrane. Bound to GTP the switch is on and growth signalling flows; hydrolyse it and the
-              switch is off. A single amino-acid substitution can jam it on, and the cell never hears "stop".
+              switch is off. A single amino-acid substitution can jam it on, and the cell never hears “stop”.
             </p>
             <dl class="readout" data-reveal>
               @for (g of r.genes; track g.id) {
-                <div><dt><a [routerLink]="'/gene-' + g.symbol.toLowerCase()">{{ g.symbol }}</a></dt><dd>{{ g.diseaseCount | number }}<small>diseases</small></dd></div>
+                <div><dt><a [routerLink]="'/gene-' + g.symbol.toLowerCase()" translate="no">{{ g.symbol }}</a></dt><dd>{{ g.diseaseCount | number }}<small>diseases</small></dd></div>
               }
               <div><dt>Approved</dt><dd>{{ approvedRas().length }}<small>small molecules</small></dd></div>
             </dl>
@@ -105,7 +105,7 @@ const ROLES: Record<string, string> = {
             </p>
             <figure data-reveal>
               <div class="chart facets"><app-vega-chart [spec]="rasDiseases()" /></div>
-              <figcaption><b>Fig. 1</b> Top eight associations per gene, Open Targets overall score. Teal marks a malignancy by name; the rest are developmental or other.</figcaption>
+              <figcaption><b>Fig.&nbsp;1</b> Top eight associations per gene, Open Targets overall score. Teal marks a malignancy by name; the rest are developmental or other.</figcaption>
             </figure>
             <div class="split" data-reveal>
               <div>
@@ -122,16 +122,16 @@ const ROLES: Record<string, string> = {
                 <thead><tr><th>Gene</th><th>Candidate</th><th>Stage</th><th>Modality</th></tr></thead>
                 <tbody>
                   @for (row of rasDrugRows(); track row.gene + row.name) {
-                    <tr><td class="mono">{{ row.gene }}</td><td>{{ row.name }}</td><td class="mono" [class.on]="row.stage === 'Approval' || row.stage === 'Approved'">{{ row.stage }}</td><td class="dim">{{ row.type }}</td></tr>
+                    <tr><td class="mono" translate="no">{{ row.gene }}</td><td translate="no">{{ row.name }}</td><td class="mono" [class.on]="row.stage === 'Approval' || row.stage === 'Approved'">{{ row.stage }}</td><td class="dim">{{ row.type }}</td></tr>
                   }
                 </tbody>
               </table>
             </div>
             <figure data-reveal>
               <div class="chart"><app-vega-chart [spec]="literatureRace()" [fill]="true" /></div>
-              <figcaption><b>Fig. 2</b> Publications per year, Europe PMC. KRAS went from {{ krasFirst() | number }} in {{ firstYear() }} to {{ krasPeak() | number }} in {{ peakYear() }}; RAC1, the switch downstream, from {{ rac1First() | number }} to {{ rac1Peak() | number }}. {{ lastYear() }} is partial.</figcaption>
+              <figcaption><b>Fig.&nbsp;2</b> Publications per year, Europe PMC. KRAS went from {{ krasFirst() | number }} in {{ firstYear() }} to {{ krasPeak() | number }} in {{ peakYear() }}; RAC1, the switch downstream, from {{ rac1First() | number }} to {{ rac1Peak() | number }}. {{ lastYear() }} is partial.</figcaption>
             </figure>
-          } @else if (!error()) { <p class="loading">Loading the RAS snapshot…</p> }
+          } @else if (!error()) { <p class="loading" aria-live="polite">Loading the RAS snapshot…</p> }
         </section>
 
         <!-- II · The hungry cell -->
@@ -181,7 +181,7 @@ const ROLES: Record<string, string> = {
               <text class="label tiny" x="892" y="184">macropinosome</text>
               <text class="label tiny" x="238" y="24">direct</text>
             </svg>
-            <figcaption><b>Fig. 3</b> RAS to RAC1. The middle column is RAC1's own STRING partners, scored; TIAM1 binds RAS directly, PREX1 and VAV1 answer PI3K. Drawn, not measured — the scores are the data.</figcaption>
+            <figcaption><b>Fig.&nbsp;3</b> RAS to RAC1. The middle column is RAC1's own STRING partners, scored; TIAM1 binds RAS directly, PREX1 and VAV1 answer PI3K. Drawn, not measured — the scores are the data.</figcaption>
           </figure>
         </section>
 
@@ -193,20 +193,20 @@ const ROLES: Record<string, string> = {
           </header>
           @if (rac1(); as r) {
             <dl class="readout" data-reveal>
-              <div><dt>UniProt</dt><dd>{{ r.target.uniprot }}<small>{{ r.target.length }} aa</small></dd></div>
+              <div><dt>UniProt</dt><dd translate="no">{{ r.target.uniprot }}<small>{{ r.target.length }}&nbsp;aa</small></dd></div>
               <div><dt>Diseases</dt><dd>{{ r.diseaseCount | number }}<small>Open Targets</small></dd></div>
               <div><dt>Partners</dt><dd>{{ r.interactors.length }}<small>STRING, highest confidence</small></dd></div>
-              <div><dt>Top association</dt><dd>{{ r.diseases[0].score | number: '1.2-2' }}<small>{{ r.diseases[0].name }}</small></dd></div>
+              @if (r.diseases[0]; as top) { <div><dt>Top association</dt><dd>{{ top.score | number: '1.2-2' }}<small>{{ top.name }}</small></dd></div> }
             </dl>
             <p class="prose" data-reveal>{{ r.target.uniprotFunction }} <a class="story-link inline" routerLink="/gene-rac1">Read RAC1's story<app-glyph name="chevron" /></a></p>
             <figure data-reveal>
               <div class="chart tall"><app-vega-chart [spec]="rac1Associations()" [fill]="true" /></div>
-              <figcaption><b>Fig. 4</b> What RAC1 is associated with, top {{ r.diseases.length }} of {{ r.diseaseCount | number }}, each score stacked by the evidence behind it. A score built from genetics reads differently from one built from literature alone. Melanoma and head-and-neck carcinoma are the malignancies; the intellectual-disability entries are the germline story again.</figcaption>
+              <figcaption><b>Fig.&nbsp;4</b> What RAC1 is associated with, top {{ r.diseases.length }} of {{ r.diseaseCount | number }}, each score stacked by the evidence behind it. A score built from genetics reads differently from one built from literature alone. Melanoma and head-and-neck carcinoma are the malignancies; the intellectual-disability entries are the germline story again.</figcaption>
             </figure>
             <div class="split" data-reveal>
               <figure>
                 <div class="chart"><app-vega-chart [spec]="rac1Interactors()" [fill]="true" /></div>
-                <figcaption><b>Fig. 5</b> Interaction partners, STRING combined score; the solid bar is experimental evidence alone. The exchange factors from Fig. 3 stay bright — they are how the RAS signal arrives.</figcaption>
+                <figcaption><b>Fig.&nbsp;5</b> Interaction partners, STRING combined score; the solid bar is experimental evidence alone. The exchange factors from Fig. 3 stay bright — they are how the RAS signal arrives.</figcaption>
               </figure>
               <div>
                 <p class="kicker">Tractability</p>
@@ -219,7 +219,7 @@ const ROLES: Record<string, string> = {
                 </p>
               </div>
             </div>
-          } @else if (!error()) { <p class="loading">Loading the RAC1 dossier…</p> }
+          } @else if (!error()) { <p class="loading" aria-live="polite">Loading the RAC1 dossier…</p> }
         </section>
 
         <!-- IV · The machinery -->
@@ -252,17 +252,17 @@ const ROLES: Record<string, string> = {
                 <rect class="node gef" x="790" y="18" width="104" height="40" rx="8" /><text class="label" x="842" y="36">MTOR</text><text class="label small" x="842" y="50">amino acids</text>
                 <text class="label tiny" x="436" y="180">amiloride · EIPA block here</text>
               </svg>
-              <figcaption><b>Fig. 6</b> The route after the switch. HIF1A turns the programme up under hypoxia; MTOR reads what the lysosome releases. Drawn; the genes' own numbers follow.</figcaption>
+              <figcaption><b>Fig.&nbsp;6</b> The route after the switch. HIF1A turns the programme up under hypoxia; MTOR reads what the lysosome releases. Drawn; the genes' own numbers follow.</figcaption>
             </figure>
             <figure data-reveal>
               <div class="chart"><app-vega-chart [spec]="machineryPapers()" [fill]="true" /></div>
-              <figcaption><b>Fig. 7</b> Papers that mention both the gene and macropinocytosis, Europe PMC, all years, coloured by stage. PIK3CA counts its PI3K alias, SLC9A1 its NHE1 one.</figcaption>
+              <figcaption><b>Fig.&nbsp;7</b> Papers that mention both the gene and macropinocytosis, Europe PMC, all years, coloured by stage. PIK3CA counts its PI3K alias, SLC9A1 its NHE1 one.</figcaption>
             </figure>
             <div class="genes">
               @for (g of m.genes; track g.id) {
                 <section class="gene" [id]="g.symbol.toLowerCase()" data-reveal>
                   <header class="gene-head">
-                    <h3>{{ g.symbol }}</h3>
+                    <h3 translate="no">{{ g.symbol }}</h3>
                     <span class="stage-tag">{{ stageLabel(g.stage) }}</span>
                     <span class="gene-name">{{ g.name }}</span>
                     <a class="story-link" [routerLink]="'/gene-' + g.symbol.toLowerCase()">Read the story<app-glyph name="chevron" /></a>
@@ -278,7 +278,7 @@ const ROLES: Record<string, string> = {
                 </section>
               }
             </div>
-          } @else if (!error()) { <p class="loading">Loading the machinery snapshot…</p> }
+          } @else if (!error()) { <p class="loading" aria-live="polite">Loading the machinery snapshot…</p> }
         </section>
 
         <!-- V · The indication -->
@@ -303,12 +303,12 @@ const ROLES: Record<string, string> = {
             </dl>
             <figure data-reveal>
               <div class="chart tall"><app-vega-chart [spec]="bladderAssociations()" [fill]="true" /></div>
-              <figcaption><b>Fig. 8</b> Top {{ b.targets.length }} targets by aggregated evidence, the RAS genes and FGFR3 held bright. Somatic mutation dominating a bar means the case rests on tumour sequencing; genetic association means inherited data.</figcaption>
+              <figcaption><b>Fig.&nbsp;8</b> Top {{ b.targets.length }} targets by aggregated evidence, the RAS genes and FGFR3 held bright. Somatic mutation dominating a bar means the case rests on tumour sequencing; genetic association means inherited data.</figcaption>
             </figure>
             <div class="split" data-reveal>
               <figure>
                 <div class="chart short"><app-vega-chart [spec]="stages()" [fill]="true" /></div>
-                <figcaption><b>Fig. 9</b> The {{ b.drugCount }} clinical candidates by the furthest stage each reached, not its current status.</figcaption>
+                <figcaption><b>Fig.&nbsp;9</b> The {{ b.drugCount }} clinical candidates by the furthest stage each reached, not its current status.</figcaption>
               </figure>
               <div>
                 <p class="kicker">What an oral programme could reach</p>
@@ -317,7 +317,7 @@ const ROLES: Record<string, string> = {
                   <tbody>
                     @for (t of tractable().slice(0, 10); track t.id) {
                       <tr [class.on]="t.symbol === 'HRAS' || t.symbol === 'KRAS'">
-                        <td><a [href]="'https://platform.opentargets.org/target/' + t.id" target="_blank" rel="noopener">{{ t.symbol }}</a></td>
+                        <td><a [href]="'https://platform.opentargets.org/target/' + t.id" target="_blank" rel="noopener" translate="no">{{ t.symbol }}</a></td>
                         <td class="num mono">{{ t.score | number: '1.3-3' }}</td>
                         <td class="dim">{{ t.smallMolecule.join(' · ') }}</td>
                       </tr>
@@ -330,17 +330,17 @@ const ROLES: Record<string, string> = {
             <table class="ledger-table wide" data-reveal>
               <thead><tr><th>Drug</th><th>Modality</th><th>Stage</th></tr></thead>
               <tbody>
-                @for (d of b.drugs.slice(0, 18); track d.id) {
+                @for (d of clinicRows(); track d.id) {
                   <tr>
-                    <td><a [href]="'https://platform.opentargets.org/drug/' + d.id" target="_blank" rel="noopener">{{ d.name }}</a></td>
+                    <td><a [href]="'https://platform.opentargets.org/drug/' + d.id" target="_blank" rel="noopener" translate="no">{{ d.name }}</a></td>
                     <td class="dim">{{ d.type }}</td>
                     <td class="mono">{{ d.stage }}</td>
                   </tr>
                 }
               </tbody>
             </table>
-            <p class="prose small" data-reveal>Eighteen of {{ b.drugCount }}. Antibodies and checkpoint inhibitors, mostly — the gap an oral small molecule against the hungry state would fill.</p>
-          } @else if (!error()) { <p class="loading">Loading the indication landscape…</p> }
+            <p class="prose small" data-reveal>{{ clinicRows().length }} of {{ b.drugCount }}. Antibodies and checkpoint inhibitors, mostly — the gap an oral small molecule against the hungry state would fill.</p>
+          } @else if (!error()) { <p class="loading" aria-live="polite">Loading the indication landscape…</p> }
         </section>
 
         <!-- VI · The field -->
@@ -363,11 +363,11 @@ const ROLES: Record<string, string> = {
             </p>
             <figure data-reveal>
               <div class="chart"><app-vega-chart [spec]="phases()" [fill]="true" /></div>
-              <figcaption><b>Fig. 10</b> Phase as a share of each indication's phase-tagged studies. The denominator is neither the total above nor a clean partition of it: observational studies carry no phase, and a Phase 1/2 study counts under both.</figcaption>
+              <figcaption><b>Fig.&nbsp;10</b> Phase as a share of each indication's phase-tagged studies. The denominator is neither the total above nor a clean partition of it: observational studies carry no phase, and a Phase 1/2 study counts under both.</figcaption>
             </figure>
             <figure data-reveal>
               <div class="chart short"><app-vega-chart [spec]="statuses()" [fill]="true" /></div>
-              <figcaption><b>Fig. 11</b> Status as a share of each indication, because a 739-study field and a 9,804-study one do not compare on raw counts.</figcaption>
+              <figcaption><b>Fig.&nbsp;11</b> Status as a share of each indication, because a 739-study field and a 9,804-study one do not compare on raw counts.</figcaption>
             </figure>
             <p class="kicker" data-reveal>Recruiting · newest first</p>
             <table class="ledger-table wide" data-reveal>
@@ -380,12 +380,14 @@ const ROLES: Record<string, string> = {
                     <td class="mono nowrap">{{ r.phase }}</td>
                     <td class="num mono">{{ r.enrollment ? (r.enrollment | number) : '—' }}</td>
                     <td class="dim">{{ r.sponsor }}</td>
-                    <td class="mono dim nowrap">{{ r.start ?? '—' }}</td>
+                    <td class="mono dim nowrap">{{ startedOn(r.start) }}</td>
                   </tr>
+                } @empty {
+                  <tr><td colspan="6" class="dim">No recruiting studies in the snapshot — re-run <code>fetch-science.py</code> to refresh it.</td></tr>
                 }
               </tbody>
             </table>
-          } @else if (!error()) { <p class="loading">Loading the trial landscape…</p> }
+          } @else if (!error()) { <p class="loading" aria-live="polite">Loading the trial landscape…</p> }
         </section>
 
         <footer class="colophon">
@@ -399,7 +401,7 @@ const ROLES: Record<string, string> = {
     .dossier { display: grid; grid-template-columns: 180px minmax(0, 1fr); column-gap: clamp(24px, 4vw, 64px); }
     .prologue { grid-column: 1 / -1; max-width: 72ch; margin-bottom: clamp(32px, 6vh, 64px); }
     .eyebrow { display: inline-flex; align-items: center; margin: 0; app-glyph { margin-right: 8px; } }
-    h1 { font-size: clamp(2.4rem, 6vw, 4.4rem); line-height: 0.95; margin: 10px 0 18px; letter-spacing: -0.02em; }
+    h1 { font-size: clamp(2.4rem, 6vw, 4.4rem); line-height: 0.95; margin: 10px 0 18px; letter-spacing: -0.02em; text-wrap: balance; }
     .lead { font-size: clamp(1rem, 1.4vw, 1.15rem); line-height: 1.55; color: var(--on-ink-dim); max-width: 62ch; }
     .ledger { display: flex; flex-wrap: wrap; gap: 10px 32px; margin: 22px 0 0; padding-top: 14px; border-top: 1px solid var(--hairline); }
     .ledger div { display: flex; flex-direction: column; gap: 3px; }
@@ -408,19 +410,19 @@ const ROLES: Record<string, string> = {
 
     /* Chapter rail: sticky on wide screens, a scrolling strip on narrow ones. */
     .rail { position: sticky; top: calc(var(--nav-h) + 24px); align-self: start; display: flex; flex-direction: column; gap: 2px; }
-    .rail a { display: grid; grid-template-columns: 28px 1fr; align-items: baseline; gap: 8px; padding: 8px 10px; border-radius: 6px; color: var(--on-ink-faint); font-size: 12px; transition: color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out); }
+    .rail a { display: grid; grid-template-columns: 28px 1fr; align-items: baseline; gap: 8px; padding: 8px 10px; border-radius: 6px; color: var(--on-ink-faint); font-size: 12px; touch-action: manipulation; transition: color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out); }
     .rail .num { font-family: var(--font-display); font-weight: 600; font-size: 14px; letter-spacing: 0.04em; }
     .rail a:hover { color: var(--on-ink); background: var(--well); }
     .rail a.active { color: var(--teal); background: color-mix(in srgb, var(--teal) 10%, transparent); }
     .rail a:focus-visible { outline: 2px solid var(--teal); outline-offset: -2px; }
 
     .chapters { min-width: 0; }
-    .chapter { padding: clamp(40px, 7vh, 88px) 0; border-top: 1px solid var(--hairline); scroll-margin-top: calc(var(--nav-h) + 16px); }
+    .chapter { padding: clamp(40px, 7vh, 88px) 0; border-top: 1px solid var(--hairline); scroll-margin-top: calc(var(--nav-h) + var(--rail-h, 0px) + 16px); }
     .chapter:first-child { border-top: 0; padding-top: 0; }
     .chapter-head { display: grid; grid-template-columns: auto 1fr; align-items: end; gap: 20px; margin-bottom: 26px; }
     .numeral { font-family: var(--font-display); font-weight: 600; font-size: clamp(3.4rem, 7vw, 5.6rem); line-height: 0.8; letter-spacing: -0.02em; color: color-mix(in srgb, var(--teal) 62%, transparent); }
     .kicker { margin: 0 0 6px; }
-    h2 { font-size: clamp(1.5rem, 2.8vw, 2.1rem); line-height: 1.05; }
+    h2 { font-size: clamp(1.5rem, 2.8vw, 2.1rem); line-height: 1.05; text-wrap: balance; }
     .prose { max-width: 66ch; font-size: 15px; line-height: 1.65; color: var(--on-ink); margin: 0 0 16px; b { font-weight: 600; } }
     .prose.small { font-size: 13px; color: var(--on-ink-dim); }
     .loading { color: var(--on-ink-faint); font-size: 13px; }
@@ -439,7 +441,7 @@ const ROLES: Record<string, string> = {
     .chart.short { height: 220px; }
     .chart.tall { height: 560px; }
     /* Sized by the spec (a height per facet), not the box: fill mode would feed the box height back in. */
-    .chart.facets { height: auto; }
+    .chart.facets { height: auto; min-height: 720px; }
     .split { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 16px 40px; align-items: start; margin: 8px 0 16px; }
     .split figure { margin-top: 0; }
     .split .kicker { margin-top: 8px; }
@@ -456,7 +458,10 @@ const ROLES: Record<string, string> = {
     .ledger-table td.on, .ledger-table tr.on td:first-child a { color: var(--teal); font-weight: 500; }
     .ledger-table.wide { display: block; overflow-x: auto; }
     .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
-    a { color: var(--teal); }
+    a { color: var(--teal); touch-action: manipulation; }
+    .ledger-table a:hover, .story-link:hover { color: var(--teal-bright); }
+    .story-link:hover app-glyph { transform: translateX(2px); }
+    .story-link app-glyph { transition: transform var(--dur-fast) var(--ease-out); }
 
     /* Fig. 3, in the glyph hand: 1.5 px strokes, currentColor, the two switches as rings. */
     .pathway svg { width: 100%; height: auto; display: block; color: var(--on-ink-dim); font-family: var(--font-mono); }
@@ -476,7 +481,7 @@ const ROLES: Record<string, string> = {
 
     /* Ten genes as a ledger of panels: symbol, stage, one sentence, four readouts, a six-bar chart. */
     .genes { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 0 40px; margin-top: 16px; }
-    .gene { padding: 22px 0 18px; border-top: 1px solid var(--hairline); scroll-margin-top: calc(var(--nav-h) + 16px); }
+    .gene { padding: 22px 0 18px; border-top: 1px solid var(--hairline); scroll-margin-top: calc(var(--nav-h) + var(--rail-h, 0px) + 16px); }
     .gene-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
     .gene-head h3 { font-family: var(--font-mono); font-size: 18px; font-weight: 600; letter-spacing: 0.02em; color: var(--on-ink); }
     .stage-tag { font: 500 9px/1 var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--teal); padding: 4px 7px; border: 1px solid color-mix(in srgb, var(--teal) 40%, transparent); border-radius: 4px; }
@@ -487,14 +492,15 @@ const ROLES: Record<string, string> = {
     .readout dt a:hover { color: var(--teal); }
     .readout.compact { gap: 10px 22px; margin: 6px 0 14px; padding: 10px 0; }
     .readout.compact dd { font-size: 20px; }
-    .chart.mini { height: auto; }
+    .chart.mini { height: auto; min-height: 154px; }
     .machinery-map svg { color: var(--on-ink-dim); }
     .machinery-map .edge { marker-end: url(#sci-arrow-b); }
     .machinery-map .edge.direct { marker-end: url(#sci-arrow-b); }
     .colophon { padding-top: 40px; border-top: 1px solid var(--hairline); max-width: 76ch; p { font: 400 12px/1.6 var(--font-mono); color: var(--on-ink-faint); } code { color: var(--teal); } }
 
     @media (max-width: 900px) {
-      .dossier { grid-template-columns: 1fr; }
+      /* The rail becomes a second sticky strip; --rail-h keeps anchored chapters from landing under it. */
+      .dossier { grid-template-columns: 1fr; --rail-h: 48px; }
       .rail { position: sticky; top: var(--nav-h); z-index: 2; flex-direction: row; overflow-x: auto; gap: 4px; margin: 0 calc(-1 * var(--pad-x)); padding: 8px var(--pad-x); background: var(--nav-bg); backdrop-filter: blur(14px); border-bottom: 1px solid var(--hairline); }
       .rail a { grid-template-columns: auto; white-space: nowrap; }
       .rail .name { display: none; }
@@ -575,11 +581,19 @@ export class SciencePageComponent {
     for (const d of this.bladder()?.drugs ?? []) counts.set(d.stage, (counts.get(d.stage) ?? 0) + 1);
     return stageSpec([...counts].map(([stage, count]) => ({ stage, count })), STAGES);
   });
+  /** The clinic table shows at most this many; the copy beneath counts what it actually shows. */
+  readonly clinicRows = computed(() => (this.bladder()?.drugs ?? []).slice(0, 18));
   rank(symbol: string): number { return (this.bladder()?.targets.findIndex((t) => t.symbol === symbol) ?? -1) + 1; }
   score(symbol: string): string { const s = this.bladder()?.targets.find((t) => t.symbol === symbol)?.score; return s === undefined ? '—' : s.toFixed(3); }
 
   // ── VI ──
   readonly recruiting = computed(() => (this.trials()?.conditions ?? []).reduce((sum, c) => sum + (c.statuses.find((s) => s.status === 'Recruiting')?.count ?? 0), 0));
+  /** ClinicalTrials.gov gives YYYY-MM or YYYY-MM-DD; show it the reader's way. */
+  startedOn(iso: string | null): string {
+    if (!iso) return '—';
+    const d = new Date(iso.length === 7 ? `${iso}-01` : iso);
+    return Number.isNaN(d.valueOf()) ? iso : d.toLocaleDateString(undefined, { month: 'short', year: 'numeric', ...(iso.length > 7 ? { day: 'numeric' } : {}), timeZone: 'UTC' });
+  }
   readonly solidPhase1 = computed(() => this.trials()?.conditions.find((c) => c.key === 'solid')?.phases.find((p) => p.phase === 'Phase 1')?.count ?? 0);
   readonly phases = computed(() => phaseSpec((this.trials()?.conditions ?? []).flatMap((c) => c.phases.map((p) => ({ indication: c.label, phase: p.phase, count: p.count })))));
   readonly statuses = computed(() => statusSpec((this.trials()?.conditions ?? []).flatMap((c) => c.statuses.filter((s) => s.count > 0).map((s) => ({ indication: c.label, status: s.status, count: s.count })))));
@@ -610,7 +624,9 @@ export class SciencePageComponent {
   jump(e: Event, id: string): void {
     e.preventDefault();
     this.scrollTo(id, true);
-    history.replaceState(null, '', `#${id}`);
+    // Absolute path on purpose: with <base href="./"> a bare '#id' resolves against the site root and
+    // would rewrite /science#ras to /#ras, so a refresh would land on the home page.
+    history.replaceState(null, '', `${location.pathname}#${id}`);
   }
 
   private scrollTo(id: string, smooth: boolean): void {
@@ -643,7 +659,9 @@ export class SciencePageComponent {
   private draw(svg: SVGSVGElement): void {
     if (this.gsap.reducedMotion) return;
     const edges = Array.from(svg.querySelectorAll<SVGPathElement>('.edge'));
-    for (const p of edges) { const len = p.getTotalLength(); p.style.strokeDasharray = p.classList.contains('direct') ? '4 5' : `${len}`; p.style.strokeDashoffset = `${len}`; }
+    // All layout reads first, then all style writes: interleaving them forces a reflow per edge.
+    const lengths = edges.map((p) => p.getTotalLength());
+    edges.forEach((p, i) => { p.style.strokeDasharray = p.classList.contains('direct') ? '4 5' : `${lengths[i]}`; p.style.strokeDashoffset = `${lengths[i]}`; });
     gsap.to(edges, { strokeDashoffset: 0, duration: MOTION.duration.slow, ease: EASE.inOut, stagger: 0.06, delay: 0.15, overwrite: 'auto' });
     gsap.from(svg.querySelectorAll('.node, .label'), { opacity: 0, duration: MOTION.duration.base, ease: EASE.out, stagger: 0.02, overwrite: 'auto' });
   }

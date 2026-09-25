@@ -174,10 +174,10 @@ export function evidenceRows<T extends { evidence: EvidenceScores }>(
   return rows;
 }
 
-/** `2026-09-18T10:53:29Z` → `18 Sep 2026`. */
+/** `2026-09-18T10:53:29Z` → `18 Sep 2026` in the reader's locale (en-GB shown). */
 export function capturedOn(iso: string): string {
   const d = new Date(iso);
   return Number.isNaN(d.valueOf())
     ? iso
-    : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+    : d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
 }
