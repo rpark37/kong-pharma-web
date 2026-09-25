@@ -250,7 +250,9 @@ in the browser cache; the first-ever visit adds the download.
 | 10M | 234 ms | 3,359 ms | 521 ms | 6 ms | 60 | 0 |
 
 BRUSH at 5–6 ms on 10M rows means Mosaic's pre-aggregation is active: drags are answered from
-materialised views, not by re-scanning the table.
+materialised views, not by re-scanning the table. Re-measured after switching 10M → 1M → 10M, with
+the views dropped and rebuilt on each regenerate: 5 ms, and the brushed count matches a fresh
+`count(*)` under the same predicate.
 
 One cost worth knowing: a window query far down a *sorted* 10M-row table (`ORDER BY zscore …
 OFFSET 7,243,157`) takes 700–830 ms, because DuckDB's top-N heap has to hold the offset; the

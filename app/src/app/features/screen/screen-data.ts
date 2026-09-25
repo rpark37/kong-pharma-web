@@ -63,6 +63,16 @@ SELECT
 FROM shaped`;
 }
 
+/**
+ * Where to go when a size fails to build: back to the previous size, or to the default when the
+ * failed size was the first one asked for (a `?rows=10000000` deep link on a small machine).
+ * Null when there is nothing smaller to try.
+ */
+export function fallbackRows(rows: number, previous: number): number | null {
+  const next = rows !== previous ? previous : DEFAULT_ROWS;
+  return next === rows ? null : next;
+}
+
 /** `?rows=` from the URL: one of the offered counts, else the default. */
 export function parseRows(raw: string | null): number {
   const n = Number(raw);

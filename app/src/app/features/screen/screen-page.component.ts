@@ -9,7 +9,7 @@ import type { Sort } from '../../shared/duck/window-sql';
 import { GlyphComponent } from '../../shared/ui/glyph.component';
 import { readQuery, writeQuery } from '../../shared/url-state';
 import { WebGpuFallbackComponent } from '../../shared/webgpu/webgpu-fallback.component';
-import { DEFAULT_ROWS, ROW_COUNTS, SCREEN_COLUMNS, SCREEN_TABLE, SEED, parseRows, screenGeneratorSql } from './screen-data';
+import { DEFAULT_ROWS, ROW_COUNTS, SCREEN_COLUMNS, SCREEN_TABLE, SEED, fallbackRows, parseRows, screenGeneratorSql } from './screen-data';
 import { SCREEN_CHARTS } from './screen-specs';
 
 /**
@@ -39,6 +39,7 @@ import { SCREEN_CHARTS } from './screen-specs';
         <button type="button" class="key lone" (click)="resetBrush()" [attr.aria-disabled]="!brush() || null" aria-label="Clear the brush" title="Clear the brush"><app-glyph name="reset" /></button>
         @if (generating()) { <span class="gen" role="progressbar" aria-label="Generating wells" aria-valuetext="Generating"></span> }
         <p class="status mono" aria-live="polite">{{ statusText() }}</p>
+        @if (genError(); as e) { <p class="status err mono" role="alert">{{ e }}</p> }
       </div>
       <dl class="bench mono" data-reveal aria-label="Benchmark">
         <div><dt>BOOT</dt><dd>{{ ms(bench.boot()) }}</dd></div>
@@ -67,6 +68,7 @@ import { SCREEN_CHARTS } from './screen-specs';
     :host { display: block; padding: clamp(1.5rem, 4vh, 3rem) var(--pad-x) 4rem; max-width: 1500px; margin: 0 auto; width: 100%; }
     .head { margin-bottom: 16px; }
     .status { margin: 0; font-size: 12px; color: var(--on-ink-dim); }
+    .status.err { color: var(--rose); flex-basis: 100%; }
     .fallback-wrap { padding: 24px; }
     .small { font-size: 12px; color: var(--on-ink-faint); }
     .toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 10px; }
@@ -96,6 +98,7 @@ export class ScreenPageComponent {
   readonly rows = signal(parseRows(readQuery().get('rows')));
   readonly genMs = signal<number | null>(null);
   readonly generating = signal(false);
+  readonly genError = signal<string | null>(null);
   readonly columns = SCREEN_COLUMNS;
   readonly table = SCREEN_TABLE;
   /** One crossfilter for the page; charts write clauses, the grid and charts read predicates. Recreated on regenerate. */
@@ -161,12 +164,19 @@ export class ScreenPageComponent {
       this.genMs.set(Math.round(this.genEndAt - t0));
       this.bench.setGen(this.genMs()!);
       this.statusText.set(`${rows.toLocaleString()} wells in ${this.genMs()} ms`);
-      // The table changed under the coordinator's cache: drop it, then a fresh brush mounts fresh clients.
-      (await this.duck.ready()).clear({ cache: true, clients: false });
+      // The table changed under the coordinator: drop its result cache and the pre-aggregated views
+      // (they are keyed by query text, not by table contents, so they would answer for the old rows),
+      // then a fresh brush mounts fresh clients.
+      const coordinator = await this.duck.ready();
+      coordinator.clear({ cache: true, clients: false });
+      await coordinator.preaggregator.dropSchema();
+      this.genError.set(null);
       await this.newBrush();
     } catch (err) {
-      this.statusText.set(`Could not build ${rows.toLocaleString()} wells (${err instanceof Error ? err.message : String(err)}). Back to ${previous.toLocaleString()}.`);
-      if (rows !== previous) { this.rows.set(previous); await this.generate(previous); }
+      const next = fallbackRows(rows, previous);
+      const message = err instanceof Error ? err.message : String(err);
+      this.genError.set(`Could not build ${rows.toLocaleString()} wells (${message}).${next ? ` Back to ${next.toLocaleString()}.` : ''}`);
+      if (next) { this.rows.set(next); await this.generate(next); }
     } finally {
       this.generating.set(false);
     }

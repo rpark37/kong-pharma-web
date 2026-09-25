@@ -28,15 +28,17 @@ class CountClient extends MosaicClient {
   selector: 'app-duck-grid',
   imports: [DecimalPipe],
   template: `
-    <div class="grid" role="grid" [attr.aria-rowcount]="total()" [attr.aria-colcount]="columns().length" [style.--row-h.px]="rowHeight">
-      <div class="header" role="row" [style.gridTemplateColumns]="template()">
-        @for (c of columns(); track c.key) {
-          <button type="button" role="columnheader" class="th" [class.right]="c.align === 'right'" [attr.aria-sort]="ariaSort(c.key)" [disabled]="c.sortable === false" (click)="cycleSort(c.key)">
-            <span>{{ c.label }}</span>@if (sort()?.key === c.key) { <i aria-hidden="true">{{ sort()?.dir === 'asc' ? '▲' : '▼' }}</i> }
-          </button>
-        }
-      </div>
+    <div class="grid" role="grid" [attr.aria-rowcount]="total()" [attr.aria-colcount]="columns().length" [style.--row-h.px]="rowHeight" [style.--head-h.px]="headerHeight">
+      <!-- The header lives inside the scroller so it scrolls sideways with the rows; both it and the
+           row window are sticky, so vertical scrolling only moves the spacer underneath. -->
       <div class="scroller" #scroller tabindex="0" aria-label="Rows; arrow keys and Page Up/Down move, Home and End jump" (scroll)="onScroll()" (wheel)="onWheel($event)" (keydown)="onKey($event)">
+        <div class="header" role="row" [style.gridTemplateColumns]="template()">
+          @for (c of columns(); track c.key) {
+            <button type="button" role="columnheader" class="th" [class.right]="c.align === 'right'" [attr.aria-sort]="ariaSort(c.key)" [disabled]="c.sortable === false" (click)="cycleSort(c.key)">
+              <span>{{ c.label }}</span>@if (sort()?.key === c.key) { <i aria-hidden="true">{{ sort()?.dir === 'asc' ? '▲' : '▼' }}</i> }
+            </button>
+          }
+        </div>
         <div class="window">
           @for (row of windowRows(); track $index) {
             <div class="tr" role="row" [attr.aria-rowindex]="start() + $index + 1" [style.gridTemplateColumns]="template()">
@@ -58,8 +60,8 @@ class CountClient extends MosaicClient {
   styles: `
     :host { display: block; height: 100%; min-height: 0; }
     .grid { display: flex; flex-direction: column; height: 100%; min-height: 0; border: 1px solid var(--hairline); border-radius: var(--radius); background: var(--panel); overflow: hidden; font-size: 12px; }
-    .header, .tr { display: grid; column-gap: 0; min-width: max-content; }
-    .header { border-bottom: 1px solid var(--hairline); background: var(--well); }
+    .header, .tr { display: grid; column-gap: 0; min-width: max-content; box-sizing: border-box; }
+    .header { position: sticky; top: 0; z-index: 2; height: var(--head-h); border-bottom: 1px solid var(--hairline); background: var(--well); }
     .th { display: flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px; border: 0; border-right: 1px solid var(--hairline); background: none; color: var(--on-ink-dim); font: 500 10px/1 var(--font-mono); letter-spacing: 0.12em; text-align: left; cursor: pointer; touch-action: manipulation; }
     .th:hover { color: var(--on-ink); background: color-mix(in srgb, var(--teal) 8%, transparent); }
     .th:focus-visible { outline: 2px solid var(--teal); outline-offset: -2px; }
@@ -68,7 +70,7 @@ class CountClient extends MosaicClient {
     .th i { color: var(--teal); font-style: normal; }
     .scroller { position: relative; flex: 1; min-height: 0; overflow: auto; outline: none; }
     .scroller:focus-visible { box-shadow: inset 0 0 0 2px var(--teal); }
-    .window { position: sticky; top: 0; z-index: 1; min-width: max-content; }
+    .window { position: sticky; top: var(--head-h); z-index: 1; min-width: max-content; }
     .spacer { width: 1px; }
     .tr { height: var(--row-h); border-bottom: 1px solid color-mix(in srgb, var(--hairline) 60%, transparent); }
     .tr:hover { background: color-mix(in srgb, var(--teal) 6%, transparent); }
@@ -86,6 +88,7 @@ export class DuckGridComponent {
   /** Sort to start with; the page keeps it across regenerations and reads it from the URL. */
   readonly initialSort = input<Sort | null>(null);
   readonly rowHeight = 28;
+  readonly headerHeight = 30;
 
   readonly total = signal(0);
   /** Starts as `initialSort` (a linked signal, so it is right from the first read) and follows header clicks after. */
@@ -108,8 +111,13 @@ export class DuckGridComponent {
   private scrollTimer: ReturnType<typeof setTimeout> | null = null;
   private expectedScrollTop = 0;
   private resize: ResizeObserver | null = null;
+  private inFlight = false;
+  private refetchWanted = false;
 
+  /** Rows to render: enough to cover the viewport, the last one possibly cut. */
   readonly visible = computed(() => Math.max(1, Math.ceil(this.viewportHeight() / this.rowHeight)));
+  /** Rows that fit whole: what the scroll range is clamped to, so the last row can always be seen in full. */
+  readonly fullyVisible = computed(() => Math.max(1, Math.floor(this.viewportHeight() / this.rowHeight)));
   readonly spacer = computed(() => spacerHeight(this.total(), this.rowHeight));
   readonly template = computed(() => this.columns().map((c) => `${c.width}px`).join(' '));
   readonly windowRows = computed(() => {
@@ -121,8 +129,9 @@ export class DuckGridComponent {
   constructor() {
     afterNextRender(() => {
       const el = this.scroller().nativeElement;
-      this.viewportHeight.set(el.clientHeight || 560);
-      this.resize = new ResizeObserver(() => { this.viewportHeight.set(el.clientHeight || 560); this.scheduleFetch(); });
+      const fit = () => this.viewportHeight.set(Math.max(this.rowHeight, (el.clientHeight || 560) - this.headerHeight));
+      fit();
+      this.resize = new ResizeObserver(() => { fit(); this.scheduleFetch(); });
       this.resize.observe(el);
       void this.connect();
     });
@@ -155,7 +164,7 @@ export class DuckGridComponent {
     this.error.set(null);
     this.total.set(n);
     this.cache.clear();
-    this.moveTo(Math.min(this.start(), Math.max(0, n - this.visible())));
+    this.moveTo(Math.min(this.start(), Math.max(0, n - this.fullyVisible())));
     this.version.update((v) => v + 1);
     this.scheduleFetch();
   }
@@ -184,10 +193,10 @@ export class DuckGridComponent {
 
   /** Set the first visible row and write the matching scroll position, remembering it so onScroll ignores the echo. */
   private moveTo(start: number): void {
-    const s = Math.max(0, Math.min(start, Math.max(0, this.total() - this.visible())));
+    const s = Math.max(0, Math.min(start, Math.max(0, this.total() - this.fullyVisible())));
     this.start.set(s);
     const el = this.scroller().nativeElement;
-    this.expectedScrollTop = startToScroll(s, this.total(), this.visible(), this.rowHeight, this.viewportHeight());
+    this.expectedScrollTop = startToScroll(s, this.total(), this.fullyVisible(), this.rowHeight, this.viewportHeight());
     if (Math.abs(el.scrollTop - this.expectedScrollTop) >= 1) el.scrollTop = this.expectedScrollTop;
     this.markScrolling();
     this.scheduleFetch();
@@ -197,12 +206,13 @@ export class DuckGridComponent {
     const el = this.scroller().nativeElement;
     if (Math.abs(el.scrollTop - this.expectedScrollTop) < 1) return; // our own write
     this.expectedScrollTop = el.scrollTop;
-    this.start.set(scrollToStart(el.scrollTop, this.total(), this.visible(), this.rowHeight, this.viewportHeight()));
+    this.start.set(scrollToStart(el.scrollTop, this.total(), this.fullyVisible(), this.rowHeight, this.viewportHeight()));
     this.markScrolling();
     this.scheduleFetch();
   }
 
   onWheel(e: WheelEvent): void {
+    if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return; // sideways: let the scroller pan the columns
     e.preventDefault();
     const rows = Math.sign(e.deltaY) * Math.max(1, Math.round(Math.abs(e.deltaY) / this.rowHeight));
     this.moveTo(this.start() + rows);
@@ -229,7 +239,20 @@ export class DuckGridComponent {
     this.fetchTimer = setTimeout(() => void this.fetch(), DEBOUNCE_MS);
   }
 
+  /**
+   * One window query at a time: the worker runs queries serially, so a burst of scroll positions
+   * must not queue a query each. If anything moved while one was out, one more runs at the end.
+   */
   private async fetch(): Promise<void> {
+    if (this.inFlight) { this.refetchWanted = true; return; }
+    this.inFlight = true;
+    try { await this.fetchWindow(); } finally {
+      this.inFlight = false;
+      if (this.refetchWanted) { this.refetchWanted = false; void this.fetch(); }
+    }
+  }
+
+  private async fetchWindow(): Promise<void> {
     const total = this.total();
     if (!this.coordinator || !this.client || total === 0) return;
     const range: Range = windowRange(this.start(), this.visible(), total, this.visible());

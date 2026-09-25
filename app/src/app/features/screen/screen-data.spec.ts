@@ -1,4 +1,4 @@
-import { DEFAULT_ROWS, ROW_COUNTS, SCREEN_COLUMNS, SCREEN_TABLE, parseRows, screenGeneratorSql } from './screen-data';
+import { DEFAULT_ROWS, ROW_COUNTS, SCREEN_COLUMNS, SCREEN_TABLE, fallbackRows, parseRows, screenGeneratorSql } from './screen-data';
 
 describe('screenGeneratorSql', () => {
   it('creates the screen table from a range of the requested size', () => {
@@ -45,5 +45,13 @@ describe('SCREEN_COLUMNS', () => {
     expect(SCREEN_COLUMNS.find((c) => c.key === 'inhibition')!.format!(12.345)).toBe('12.3');
     expect(SCREEN_COLUMNS.find((c) => c.key === 'hit')!.format!(true)).toBe('HIT');
     expect(SCREEN_COLUMNS.find((c) => c.key === 'hit')!.format!(false)).toBe('');
+  });
+});
+
+describe('fallbackRows', () => {
+  it('returns to the previous size, or the default when the failed size was the first one asked for', () => {
+    expect(fallbackRows(10_000_000, 1_000_000)).toBe(1_000_000);
+    expect(fallbackRows(10_000_000, 10_000_000)).toBe(DEFAULT_ROWS); // a ?rows=10000000 deep link that ran out of memory
+    expect(fallbackRows(DEFAULT_ROWS, DEFAULT_ROWS)).toBeNull(); // nothing smaller to try
   });
 });
