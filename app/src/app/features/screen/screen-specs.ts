@@ -25,7 +25,7 @@ function histogram(field: string, step: number, title: string, color: string): C
     id: field, title, field, kind: 'interval', height: 150,
     query: (filter) => Query.from(T).select({ x0: mul(literal(step), floor(div(column(field), literal(step)))), n: count() }).where(filter).groupby('x0'),
     spec: {
-      width: 'container', height: 110, padding: 4,
+      width: 'container', height: 110, padding: 4, description: `${title}: histogram, drag to filter`,
       data: { name: 'rows' },
       params: brushParam('interval', field),
       transform: [{ calculate: `datum.x0 + ${step}`, as: 'x1' }],
@@ -48,7 +48,7 @@ export const SCREEN_CHARTS: ChartDef[] = [
     id: 'target', title: 'Hits by target', field: 'target', kind: 'point', height: 190,
     query: (filter) => Query.from(T).select({ target: 'target', hits: sum(cast(column('hit'), 'INTEGER')), n: count() }).where(filter).groupby('target'),
     spec: {
-      width: 'container', height: 150, padding: 4,
+      width: 'container', height: 150, padding: 4, description: 'Hits by target: click a bar to filter, Shift-click to add',
       data: { name: 'rows' },
       params: brushParam('point', 'target'),
       mark: { type: 'bar', color: VEGA_COLORS.ember },
@@ -64,7 +64,7 @@ export const SCREEN_CHARTS: ChartDef[] = [
     id: 'read_at', title: 'Hits per week', field: 'read_at', kind: 'interval', height: 150,
     query: (filter) => Query.from(T).select({ week: sql`date_trunc('week', "read_at")`, hits: sum(cast(column('hit'), 'INTEGER')) }).where(filter).groupby('week'),
     spec: {
-      width: 'container', height: 110, padding: 4,
+      width: 'container', height: 110, padding: 4, description: 'Hits per week: drag to filter by date',
       data: { name: 'rows' },
       params: brushParam('interval', 'read_at'),
       transform: [{ calculate: 'time(datum.week) + 7 * 86400000', as: 'week_end' }],

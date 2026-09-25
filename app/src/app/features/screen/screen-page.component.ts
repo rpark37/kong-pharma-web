@@ -29,10 +29,10 @@ import { SCREEN_CHARTS } from './screen-specs';
         <app-webgpu-fallback title="The screen needs WebAssembly"><p class="small">{{ duck.error() }}</p></app-webgpu-fallback>
       </div>
     } @else {
-      <div class="toolbar" data-reveal>
+      <div class="toolbar" data-reveal [attr.aria-busy]="generating() || null">
         <div class="keyrail" role="group" aria-label="Row count">
           @for (n of rowCounts; track n) {
-            <button type="button" class="key code" [class.on]="rows() === n" [attr.aria-pressed]="rows() === n" [attr.aria-disabled]="generating() || null" (click)="!generating() && generate(n)" [attr.aria-describedby]="n === 10000000 ? 'screen-10m-note' : null" [title]="n === 10000000 ? 'About 500 MB of browser memory. Desktop only.' : (n / 1000000) + ' million wells'">{{ n / 1000000 }}M</button>
+            <button type="button" class="key code" [class.on]="rows() === n" [attr.aria-pressed]="rows() === n" [attr.aria-disabled]="busy() || null" (click)="pick(n)" [attr.aria-label]="(n / 1000000) + ' million wells'" [attr.aria-describedby]="n === 10000000 ? 'screen-10m-note' : null" [title]="n === 10000000 ? 'About 500 MB of browser memory. Desktop only.' : (n / 1000000) + ' million wells'">{{ n / 1000000 }}M</button>
           }
         </div>
         <small id="screen-10m-note" class="sr-only">About 500 MB of browser memory. Desktop only.</small>
@@ -41,7 +41,7 @@ import { SCREEN_CHARTS } from './screen-specs';
         <p class="status mono" aria-live="polite">{{ statusText() }}</p>
         @if (genError(); as e) { <p class="status err mono" role="alert">{{ e }}</p> }
       </div>
-      <dl class="bench mono" data-reveal aria-label="Benchmark">
+      <dl class="bench mono" data-reveal role="group" aria-label="Benchmark">
         <div><dt>BOOT</dt><dd>{{ ms(bench.boot()) }}</dd></div>
         <div><dt>GEN</dt><dd>{{ ms(bench.gen()) }}</dd></div>
         <div><dt>FIRST ROW</dt><dd>{{ ms(bench.firstRow()) }}</dd></div>
@@ -53,7 +53,8 @@ import { SCREEN_CHARTS } from './screen-specs';
     @if (brush(); as b) {
       <section class="stage" data-reveal>
         <app-duck-grid [table]="table" [columns]="columns" [brush]="b" [initialSort]="sortState()" />
-        <aside class="charts">
+        <aside class="charts" aria-describedby="screen-brush-note">
+          <p id="screen-brush-note" class="sr-only">Drag across a chart to filter everything else by that range; click a target bar to filter by target, Shift-click to add another. The grid's sort keys and the Clear key are the keyboard route.</p>
           @for (c of charts; track c.id) {
             <figure class="fig">
               <figcaption class="eyebrow">{{ c.title }}</figcaption>
@@ -67,6 +68,7 @@ import { SCREEN_CHARTS } from './screen-specs';
   styles: `
     :host { display: block; padding: clamp(1.5rem, 4vh, 3rem) var(--pad-x) 4rem; max-width: 1500px; margin: 0 auto; width: 100%; }
     .head { margin-bottom: 16px; }
+    .head h1 { text-wrap: balance; }
     .status { margin: 0; font-size: 12px; color: var(--on-ink-dim); }
     .status.err { color: var(--rose); flex-basis: 100%; }
     .fallback-wrap { padding: 24px; }
@@ -82,7 +84,7 @@ import { SCREEN_CHARTS } from './screen-specs';
     .bench { display: flex; flex-wrap: wrap; gap: 4px 22px; margin: 0 0 12px; font-size: 10px; letter-spacing: 0.1em; }
     .bench div { display: flex; gap: 8px; }
     .bench dt { color: var(--on-ink-faint); }
-    .bench dd { margin: 0; color: var(--teal); font-variant-numeric: tabular-nums; }
+    .bench dd { margin: 0; color: var(--teal); font-variant-numeric: tabular-nums; white-space: nowrap; }
     .stage { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 16px; height: clamp(420px, calc(100dvh - var(--nav-h) - 300px), 760px); }
     .charts { display: flex; flex-direction: column; gap: 8px; min-height: 0; overflow: auto; overscroll-behavior: contain; }
     .fig { margin: 0; min-width: 0; padding-top: 8px; border-top: 1px solid var(--hairline); }
@@ -130,6 +132,10 @@ export class ScreenPageComponent {
   }
 
   ms(v: number | null): string { return v === null ? '—' : `${v.toLocaleString()} ms`; }
+
+  /** The size keys wait for the engine and for a build in progress; the active size is a no-op. */
+  readonly busy = computed(() => this.generating() || this.duck.status() !== 'ready');
+  pick(n: number): void { if (!this.busy() && n !== this.rows()) void this.generate(n); }
 
   private async start(): Promise<void> {
     try {

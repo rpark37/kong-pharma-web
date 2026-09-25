@@ -28,22 +28,25 @@ class CountClient extends MosaicClient {
   selector: 'app-duck-grid',
   imports: [DecimalPipe],
   template: `
-    <div class="grid" role="grid" [attr.aria-rowcount]="total()" [attr.aria-colcount]="columns().length" [style.--row-h.px]="rowHeight" [style.--head-h.px]="headerHeight">
+    <div class="grid" role="grid" [attr.aria-rowcount]="total() + 1" [attr.aria-colcount]="columns().length" [style.--row-h.px]="rowHeight" [style.--head-h.px]="headerHeight">
       <!-- The header lives inside the scroller so it scrolls sideways with the rows; both it and the
            row window are sticky, so vertical scrolling only moves the spacer underneath. -->
-      <div class="scroller" #scroller tabindex="0" aria-label="Rows; arrow keys and Page Up/Down move, Home and End jump" (scroll)="onScroll()" (wheel)="onWheel($event)" (keydown)="onKey($event)">
-        <div class="header" role="row" [style.gridTemplateColumns]="template()">
+      <span id="duck-grid-keys" class="sr-only">Arrow keys and Page Up and Page Down move through the rows; Home and End jump to the ends.</span>
+      <div class="scroller" #scroller tabindex="0" aria-label="Rows" aria-describedby="duck-grid-keys" (scroll)="onScroll()" (wheel)="onWheel($event)" (keydown)="onKey($event)">
+        <div class="header" role="row" aria-rowindex="1" [style.gridTemplateColumns]="template()">
           @for (c of columns(); track c.key) {
-            <button type="button" role="columnheader" class="th" [class.right]="c.align === 'right'" [attr.aria-sort]="ariaSort(c.key)" [disabled]="c.sortable === false" (click)="cycleSort(c.key)">
-              <span>{{ c.label }}</span>@if (sort()?.key === c.key) { <i aria-hidden="true">{{ sort()?.dir === 'asc' ? '▲' : '▼' }}</i> }
-            </button>
+            <div class="thc" role="columnheader" [attr.aria-sort]="ariaSort(c.key)">
+              <button type="button" class="th" [class.right]="c.align === 'right'" [disabled]="c.sortable === false" (click)="cycleSort(c.key)" [attr.aria-label]="'Sort by ' + c.label">
+                <span>{{ c.label }}</span>@if (sort()?.key === c.key) { <i aria-hidden="true">{{ sort()?.dir === 'asc' ? '▲' : '▼' }}</i> }
+              </button>
+            </div>
           }
         </div>
         <div class="window">
           @for (row of windowRows(); track $index) {
-            <div class="tr" role="row" [attr.aria-rowindex]="start() + $index + 1" [style.gridTemplateColumns]="template()">
+            <div class="tr" role="row" [attr.aria-rowindex]="start() + $index + 2" [attr.aria-busy]="row ? null : true" [style.gridTemplateColumns]="template()">
               @for (c of columns(); track c.key; let ci = $index) {
-                <span class="td" role="gridcell" [class.right]="c.align === 'right'">{{ row ? cell(c, row[ci]) : '—' }}</span>
+                <span class="td" role="gridcell" [class.right]="c.align === 'right'" [attr.translate]="c.code ? 'no' : null">{{ row ? cell(c, row[ci]) : '—' }}</span>
               }
             </div>
           }
@@ -52,7 +55,7 @@ class CountClient extends MosaicClient {
       </div>
       <div class="foot mono">
         <span>{{ total() | number }} rows</span>
-        <span>{{ start() + 1 | number }}–{{ (start() + windowRows().length) | number }}</span>
+        @if (total()) { <span>{{ start() + 1 | number }}–{{ (start() + windowRows().length) | number }}</span> }
         @if (error()) { <span class="err" role="alert">{{ error() }}</span> }
       </div>
     </div>
@@ -62,7 +65,9 @@ class CountClient extends MosaicClient {
     .grid { display: flex; flex-direction: column; height: 100%; min-height: 0; border: 1px solid var(--hairline); border-radius: var(--radius); background: var(--panel); overflow: hidden; font-size: 12px; }
     .header, .tr { display: grid; column-gap: 0; min-width: max-content; box-sizing: border-box; }
     .header { position: sticky; top: 0; z-index: 2; height: var(--head-h); border-bottom: 1px solid var(--hairline); background: var(--well); }
-    .th { display: flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px; border: 0; border-right: 1px solid var(--hairline); background: none; color: var(--on-ink-dim); font: 500 10px/1 var(--font-mono); letter-spacing: 0.12em; text-align: left; cursor: pointer; touch-action: manipulation; }
+    .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+    .thc { display: flex; min-width: 0; border-right: 1px solid var(--hairline); }
+    .th { flex: 1; display: flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px; border: 0; background: none; color: var(--on-ink-dim); font: 500 10px/1 var(--font-mono); letter-spacing: 0.12em; text-align: left; cursor: pointer; touch-action: manipulation; }
     .th:hover { color: var(--on-ink); background: color-mix(in srgb, var(--teal) 8%, transparent); }
     .th:focus-visible { outline: 2px solid var(--teal); outline-offset: -2px; }
     .th:disabled { cursor: default; color: var(--on-ink-faint); }
@@ -113,6 +118,8 @@ export class DuckGridComponent {
   private resize: ResizeObserver | null = null;
   private inFlight = false;
   private refetchWanted = false;
+  /** Sub-row wheel deltas accumulate, so a trackpad's 2 px ticks add up to one row instead of each moving one. */
+  private wheelRemainder = 0;
 
   /** Rows to render: enough to cover the viewport, the last one possibly cut. */
   readonly visible = computed(() => Math.max(1, Math.ceil(this.viewportHeight() / this.rowHeight)));
@@ -214,8 +221,10 @@ export class DuckGridComponent {
   onWheel(e: WheelEvent): void {
     if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return; // sideways: let the scroller pan the columns
     e.preventDefault();
-    const rows = Math.sign(e.deltaY) * Math.max(1, Math.round(Math.abs(e.deltaY) / this.rowHeight));
-    this.moveTo(this.start() + rows);
+    const total = this.wheelRemainder + e.deltaY;
+    const rows = Math.trunc(total / this.rowHeight);
+    this.wheelRemainder = total - rows * this.rowHeight;
+    if (rows !== 0) this.moveTo(this.start() + rows);
   }
 
   onKey(e: KeyboardEvent): void {

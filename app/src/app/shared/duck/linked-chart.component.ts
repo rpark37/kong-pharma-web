@@ -26,8 +26,11 @@ class ChartClient extends MosaicClient {
 @Component({
   selector: 'app-linked-chart',
   imports: [VegaChartComponent],
-  template: `<app-vega-chart [spec]="spec()" [data]="data()" [height]="height()" (viewReady)="onView($event)" />`,
-  styles: `:host { display: block; }`,
+  template: `
+    <app-vega-chart [spec]="spec()" [data]="data()" [height]="height()" (viewReady)="onView($event)" />
+    @if (error(); as e) { <p class="err" role="alert">{{ e }}</p> }
+  `,
+  styles: `:host { display: block; } .err { margin: 2px 0 0; font-size: 11px; color: var(--rose); }`,
 })
 export class LinkedChartComponent {
   readonly spec = input.required<VegaSpecInput>();

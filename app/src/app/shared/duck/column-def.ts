@@ -6,4 +6,6 @@ export interface ColumnDef {
   align?: 'left' | 'right';
   format?: (v: unknown) => string;
   sortable?: boolean;
+  /** Identifiers (codes, symbols): rendered with translate="no" so auto-translation leaves them alone. */
+  code?: boolean;
 }
