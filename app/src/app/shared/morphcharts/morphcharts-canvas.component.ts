@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnDestroy, afterNextRender, inject, output, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, OnDestroy, afterNextRender, inject, input, output, signal, viewChild } from '@angular/core';
 import type { MorphChartsHost } from './morphcharts-host';
 import { isWebGpuAvailable } from '../webgpu/webgpu-support';
 
@@ -9,7 +9,7 @@ import { isWebGpuAvailable } from '../webgpu/webgpu-support';
 @Component({
   selector: 'app-morphcharts-canvas',
   template: `
-    <div #container class="container" tabindex="0">
+    <div #container class="container" tabindex="0" [attr.role]="label() ? 'img' : null" [attr.aria-label]="label() || null">
       <canvas #canvas [class.hidden]="!supported()"></canvas>
     </div>
   `,
@@ -25,6 +25,8 @@ import { isWebGpuAvailable } from '../webgpu/webgpu-support';
 export class MorphchartsCanvasComponent implements OnDestroy {
   readonly canvasRef = viewChild.required<ElementRef<HTMLCanvasElement>>('canvas');
   readonly containerRef = viewChild.required<ElementRef<HTMLDivElement>>('container');
+  /** What the picture shows, for assistive tech; the container is the page's focusable canvas host. */
+  readonly label = input('');
   readonly hostReady = output<MorphChartsHost>();
   readonly failed = output<string>();
   readonly supported = signal(isWebGpuAvailable());

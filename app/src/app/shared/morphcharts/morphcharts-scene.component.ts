@@ -14,9 +14,9 @@ import { WebGpuFallbackComponent } from '../webgpu/webgpu-fallback.component';
   template: `
     <div class="scene" #wrap>
       @if (!failed()) {
-        <app-morphcharts-canvas (hostReady)="onHost($event)" (failed)="failed.set($event)" />
-        @if (status()) { <span class="status mono">{{ status() }}</span> }
-        <div class="hint">Drag to orbit · right-drag to pan · wheel to zoom</div>
+        <app-morphcharts-canvas [label]="label()" (hostReady)="onHost($event)" (failed)="failed.set($event)" />
+        @if (status()) { <span class="status mono" aria-hidden="true">{{ status() }}</span> }
+        <div class="hint" aria-hidden="true">{{ hint() }}</div>
       } @else {
         <app-webgpu-fallback [title]="fallbackTitle()" [image]="fallbackImage()"><ng-content /></app-webgpu-fallback>
       }
@@ -35,6 +35,10 @@ export class MorphchartsSceneComponent implements OnDestroy {
   readonly datasets = input<Record<string, string>>({});
   readonly renderMode = input<RenderMode>('raytrace');
   readonly maxFrames = input(400);
+  /** Accessible name for the canvas. Empty means the page names it some other way. */
+  readonly label = input('');
+  /** Pointer hint shown in the corner; pages with a camera panel say so, since that is the keyboard route. */
+  readonly hint = input('Drag to orbit · right-drag to pan · wheel to zoom');
   readonly fallbackTitle = input('This scene needs WebGPU');
   readonly fallbackImage = input<string | null>(null);
   readonly hostReady = output<MorphChartsHost>();

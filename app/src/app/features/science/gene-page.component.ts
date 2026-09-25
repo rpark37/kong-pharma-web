@@ -85,7 +85,7 @@ interface GeneData {
             </dl>
             <figure class="structure-figure">
               <div class="scene-box" role="img" [attr.aria-label]="s.symbol + ' as an AlphaFold alpha-carbon trace, ' + st.length + ' residues coloured by confidence; mean pLDDT ' + (st.meanPlddt | number: '1.0-0') + '. Use the camera controls below to turn it.'">
-                <app-morphcharts-scene [spec]="structureSpec()" [maxFrames]="maxFrames" [fallbackTitle]="s.symbol + ' in 3D needs WebGPU'" (hostReady)="onStructureHost($event)" (loaded)="rig()?.apply(); rig()?.applyRenderMode()">
+                <app-morphcharts-scene [spec]="structureSpec()" [maxFrames]="maxFrames" hint="Drag to orbit · right-drag to pan · wheel to zoom · or use the camera keys" [fallbackTitle]="s.symbol + ' in 3D needs WebGPU'" (hostReady)="onStructureHost($event)" (loaded)="rig()?.apply(); rig()?.applyRenderMode()">
                   <p class="context-note">The confidence strip below carries the same model.</p>
                 </app-morphcharts-scene>
               </div>

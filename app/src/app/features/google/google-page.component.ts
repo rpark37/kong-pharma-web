@@ -12,6 +12,7 @@ import { KpiTileComponent } from '../../shared/ui/kpi-tile.component';
 import { PURCHASES_FILE, salesSpec } from './google-specs';
 
 const CSV_PATH = `data/${PURCHASES_FILE}`;
+const fmtDay = new Intl.DateTimeFormat(undefined, { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
 
 interface Purchase {
   category: string;
@@ -41,10 +42,12 @@ function parseCsv(text: string): Purchase[] {
   selector: 'app-google-page',
   imports: [DecimalPipe, KpiTileComponent, MorphchartsSceneComponent, MorphchartsCameraComponent],
   template: `
-    <div class="scene-bg">
+    <div class="scene-bg" [attr.aria-busy]="loading() || null">
       <app-morphcharts-scene
         [spec]="spec()"
         [datasets]="datasets()"
+        [label]="sceneLabel()"
+        hint="Drag to orbit · right-drag to pan · wheel to zoom · or use the camera keys"
         fallbackTitle="The sales landscape needs WebGPU"
         fallbackImage="samples/images/bar10_raytrace_640x360.jpg"
         (hostReady)="onHost($event)"
@@ -57,25 +60,25 @@ function parseCsv(text: string): Purchase[] {
 
     <div class="overlay">
       <section class="head">
-        <p class="eyebrow" data-reveal>MorphCharts · path traced · {{ range() }}</p>
+        <p class="eyebrow" data-reveal aria-live="polite">MorphCharts · path traced · {{ loading() ? 'Loading…' : range() }}</p>
         <h1 data-reveal>Every Google Merchandise Store Purchase</h1>
       </section>
 
       <section class="kpis">
         <app-kpi-tile label="Purchases" [value]="rows().length" hint="one block each" />
-        <app-kpi-tile label="Revenue" [value]="revenue()" prefix="$" hint="sum of item price" />
+        <app-kpi-tile label="Revenue" [value]="revenue()" format="currency" hint="sum of item price" />
         <app-kpi-tile label="Categories" [value]="categories()" hint="depth axis" />
         <app-kpi-tile label="Days" [value]="days()" hint="width axis" />
       </section>
 
-      @if (error()) { <p class="error">{{ error() }}</p> }
+      @if (error()) { <p class="error" role="alert">{{ error() }} Reload the page, or check that the CSV is deployed under <code>data/</code>.</p> }
     </div>
   `,
   styles: `
     /* Sits on the landscape opposite the scene's drag hint, on the same glass as the tiles. */
     .scene-camera { position: absolute; right: var(--pad-x); bottom: 12px; z-index: 1; padding: 8px 12px; border: 1px solid var(--hairline); border-radius: 8px; }
     /* The landscape is the page: it fills the viewport under the nav and everything else sits on it. */
-    :host { display: block; position: relative; width: 100%; height: calc(100vh - var(--nav-h)); overflow: hidden; }
+    :host { display: block; position: relative; width: 100%; height: calc(100dvh - var(--nav-h)); overflow: hidden; }
     .scene-bg { position: absolute; inset: 0; z-index: 0; }
     /* Full bleed, so the scene's own card chrome is suppressed. ::ng-deep because those styles
        belong to <app-morphcharts-scene>; same reach-in pattern the atlas page already uses. */
@@ -83,12 +86,12 @@ function parseCsv(text: string): Purchase[] {
 
     /* Transparent to the pointer so the scene can still be orbited between the tiles — only the
        text and the tiles themselves take input. */
-    .overlay { position: relative; z-index: 1; pointer-events: none; padding: clamp(1rem, 3vh, 2rem) var(--pad-x) 0; max-width: 1400px; margin: 0 auto;
+    .overlay { position: relative; z-index: 1; pointer-events: none; padding: clamp(1rem, 3vh, 2rem) var(--pad-x) env(safe-area-inset-bottom); max-width: 1400px; margin: 0 auto;
                display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
     .overlay > * { pointer-events: auto; }
 
     .head { flex: 1 1 300px; min-width: 0; }
-    h1 { font-size: clamp(1.25rem, 2.2vw, 1.75rem); margin: 4px 0 0; }
+    h1 { font-size: clamp(1.25rem, 2.2vw, 1.75rem); margin: 4px 0 0; text-wrap: balance; }
     .kpis { display: flex; gap: 8px; flex: 0 1 auto; }
 
     /* Compact enough to share the row with the title. The tile is shared by 18 call sites across
@@ -99,7 +102,14 @@ function parseCsv(text: string): Purchase[] {
     :host ::ng-deep app-kpi-tile .hint { font-size: 10px; white-space: nowrap; }
     .small { font-size: 12px; color: var(--on-ink-faint); }
     /* Third flex item in .overlay — given its own line rather than squeezed beside the tiles. */
-    .error { flex: 1 0 100%; margin-top: 12px; color: var(--rose); font-size: 13px; }
+    .error { flex: 1 0 100%; margin-top: 12px; color: var(--rose); font-size: 13px; code { font-size: 12px; } }
+    /* Phones: the camera panel joins the flow under the tiles instead of covering them, and tile hints may wrap. */
+    @media (max-width: 700px) {
+      .scene-camera { position: static; margin: 8px var(--pad-x) calc(8px + env(safe-area-inset-bottom)); }
+      :host { height: auto; min-height: calc(100dvh - var(--nav-h)); }
+      .scene-bg { position: relative; height: 60vh; }
+      :host ::ng-deep app-kpi-tile .hint { white-space: normal; }
+    }
   `,
 })
 export class GooglePageComponent {
@@ -112,8 +122,10 @@ export class GooglePageComponent {
   readonly days = computed(() => new Set(this.rows().map((r) => r.day)).size);
   readonly range = computed(() => {
     const days = [...new Set(this.rows().map((r) => r.day))].sort();
-    return days.length ? `${days[0]} → ${days[days.length - 1]}` : '';
+    return days.length ? `${fmtDay.format(new Date(days[0]))} – ${fmtDay.format(new Date(days[days.length - 1]))}` : '';
   });
+  readonly loading = computed(() => !this.csv() && !this.error());
+  readonly sceneLabel = computed(() => `${this.rows().length.toLocaleString()} Google Merchandise Store purchases as one block each, stacked by day and category, ${this.range()}`);
 
   // The scene only loads once the text is here, and the spec reads it from `datasets` rather
   // than fetching the CSV a second time.
@@ -145,7 +157,9 @@ export class GooglePageComponent {
 
   private async load(): Promise<void> {
     try {
-      this.csv.set(await firstValueFrom(this.http.get(CSV_PATH, { responseType: 'text' })));
+      const text = await firstValueFrom(this.http.get(CSV_PATH, { responseType: 'text' }));
+      if (!parseCsv(text).length) throw new Error('the file has no purchase rows');
+      this.csv.set(text);
     } catch (err) {
       this.error.set(`Could not load ${CSV_PATH}: ${err instanceof Error ? err.message : String(err)}`);
     }

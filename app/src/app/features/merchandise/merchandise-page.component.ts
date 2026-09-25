@@ -62,7 +62,7 @@ import { countrySpec, dailySpec, deviceSpec, funnelSpec, itemsSpec, revenueCubeS
       <div class="card glass wide cube" data-reveal>
         <div class="card-head"><span class="eyebrow">MorphCharts · path traced</span><h2>Revenue by country and month</h2></div>
         <div class="cube-scene" role="img" aria-label="Revenue by country and month as path-traced 3D bars; the camera keys below move the view">
-          <app-morphcharts-scene [spec]="cubeSpec()" fallbackTitle="Revenue cube needs WebGPU" fallbackImage="samples/images/bar7_raytrace_640x360.jpg" (hostReady)="onCubeHost($event)" (loaded)="cubeRig()?.apply(); cubeRig()?.applyRenderMode()" />
+          <app-morphcharts-scene [spec]="cubeSpec()" hint="Drag to orbit · right-drag to pan · wheel to zoom · or use the camera keys" fallbackTitle="Revenue cube needs WebGPU" fallbackImage="samples/images/bar7_raytrace_640x360.jpg" (hostReady)="onCubeHost($event)" (loaded)="cubeRig()?.apply(); cubeRig()?.applyRenderMode()" />
         </div>
         <app-morphcharts-camera class="cube-camera" [rig]="cubeRig()" layout="row" />
       </div>
