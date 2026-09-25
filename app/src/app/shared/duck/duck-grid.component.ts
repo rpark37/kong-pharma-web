@@ -1,5 +1,5 @@
 import { DecimalPipe } from '@angular/common';
-import { Component, DestroyRef, ElementRef, afterNextRender, computed, effect, inject, input, signal, untracked, viewChild } from '@angular/core';
+import { Component, DestroyRef, ElementRef, afterNextRender, computed, effect, inject, input, linkedSignal, signal, untracked, viewChild } from '@angular/core';
 import { MosaicClient, type Coordinator, type Selection } from '@uwdata/mosaic-core';
 import { Query, and, count, type FilterExpr } from '@uwdata/mosaic-sql';
 import type { Table } from '@uwdata/flechette';
@@ -83,10 +83,13 @@ export class DuckGridComponent {
   readonly columns = input.required<ColumnDef[]>();
   readonly brush = input.required<Selection>();
   readonly stableKey = input('well_id');
+  /** Sort to start with; the page keeps it across regenerations and reads it from the URL. */
+  readonly initialSort = input<Sort | null>(null);
   readonly rowHeight = 28;
 
   readonly total = signal(0);
-  readonly sort = signal<Sort | null>(null);
+  /** Starts as `initialSort` (a linked signal, so it is right from the first read) and follows header clicks after. */
+  readonly sort = linkedSignal<Sort | null>(() => this.initialSort());
   readonly start = signal(0);
   readonly error = signal<string | null>(null);
   /** performance.now() when the first window painted; the bench reads it. Reset on regenerate via reset(). */

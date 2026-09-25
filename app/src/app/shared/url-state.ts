@@ -14,8 +14,8 @@ export function writeQuery(params: Record<string, string | number | null | undef
     if (v === null || v === undefined || v === '') q.delete(k);
     else q.set(k, String(v));
   }
-  // Keep list separators readable: `select=FJ2925,FJ2933`, not `%2C`.
-  const s = q.toString().replace(/%2C/g, ',');
+  // Keep separators readable: `select=FJ2925,FJ2933` and `sort=zscore:desc`, not `%2C` and `%3A`.
+  const s = q.toString().replace(/%2C/g, ',').replace(/%3A/g, ':');
   // Absolute path on purpose: with <base href="./"> a relative URL would resolve against the site root.
   history.replaceState(history.state, '', `${location.pathname}${s ? `?${s}` : ''}${location.hash}`);
 }

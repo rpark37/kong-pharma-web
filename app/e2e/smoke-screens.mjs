@@ -7,7 +7,7 @@ const browser = await chromium.launch({ executablePath: exe, args: ['--enable-un
 const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
 page.on('pageerror', (e) => console.log('pageerror:', e.message));
 page.on('console', (m) => { if (m.type() === 'error' && !m.text().includes('CERT')) console.log('console.error:', m.text()); });
-const routes = ['/app/', '/app/morphcharts?plot=bar2', '/app/ares', '/app/merchandise', '/app/atlas', '/app/bayes', '/app/vega-charts', '/app/google', '/app/hud', '/app/site-map', '/app/controls', '/app/gev', '/app/osiris', '/app/science', '/app/gene-rac1'];
+const routes = ['/app/', '/app/morphcharts?plot=bar2', '/app/ares', '/app/merchandise', '/app/atlas', '/app/bayes', '/app/vega-charts', '/app/google', '/app/hud', '/app/site-map', '/app/controls', '/app/gev', '/app/osiris', '/app/science', '/app/gene-rac1', '/app/screen'];
 for (const path of routes) {
   await page.goto(base + path, { waitUntil: 'networkidle' });
   await page.waitForTimeout(1500);
@@ -28,6 +28,10 @@ for (const path of routes) {
     } else {
       console.log('  start disabled or missing; fallback shown:', await page.locator('app-webgpu-fallback').count());
     }
+  }
+  if (path === '/app/screen') {
+    await page.locator('.bench dd').nth(2).filter({ hasText: 'ms' }).waitFor({ timeout: 30000 }).catch(() => console.log('  FIRST ROW never appeared'));
+    console.log('  bench:', (await page.locator('.bench').innerText()).replace(/\n/g, ' '));
   }
   await page.screenshot({ path: `${out}/shot${path.replace(/[^a-z]/g, '_')}.png` });
 }
