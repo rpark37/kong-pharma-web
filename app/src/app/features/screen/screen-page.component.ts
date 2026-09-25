@@ -82,7 +82,7 @@ import { SCREEN_CHARTS } from './screen-specs';
     .bench dt { color: var(--on-ink-faint); }
     .bench dd { margin: 0; color: var(--teal); font-variant-numeric: tabular-nums; }
     .stage { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 16px; height: clamp(420px, calc(100dvh - var(--nav-h) - 300px), 760px); }
-    .charts { display: flex; flex-direction: column; gap: 8px; min-height: 0; overflow: auto; }
+    .charts { display: flex; flex-direction: column; gap: 8px; min-height: 0; overflow: auto; overscroll-behavior: contain; }
     .fig { margin: 0; min-width: 0; padding-top: 8px; border-top: 1px solid var(--hairline); }
     .fig figcaption { margin-bottom: 2px; }
     @media (max-width: 960px) { .stage { grid-template-columns: 1fr; height: auto; } app-duck-grid { height: 480px; } }

@@ -83,7 +83,7 @@ export const SCREEN_COLUMNS: ColumnDef[] = [
   { key: 'library', label: 'LIBRARY', width: 72, sortable: true },
   { key: 'site', label: 'SITE', width: 92, sortable: true },
   { key: 'conc_um', label: 'µM', width: 64, align: 'right', format: (v) => two.format(Number(v)), sortable: true },
-  { key: 'inhibition', label: 'INHIBITION %', width: 104, align: 'right', format: (v) => one.format(Number(v)), sortable: true },
+  { key: 'inhibition', label: 'INHIBITION %', width: 118, align: 'right', format: (v) => one.format(Number(v)), sortable: true },
   { key: 'zscore', label: 'Z', width: 72, align: 'right', format: (v) => two.format(Number(v)), sortable: true },
   { key: 'hit', label: 'HIT', width: 52, format: (v) => (v ? 'HIT' : ''), sortable: true },
   { key: 'read_at', label: 'READ AT', width: 150, format: (v) => when.format(asDate(v)), sortable: true },

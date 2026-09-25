@@ -88,6 +88,10 @@ Commands are in `README.md`. The traps:
   `[data-reveal]` children on `NavigationEnd`. Content added outside that
   mechanism will not animate in.
 - **Unit tests are Vitest** via `@angular/build:unit-test` (`npm test`).
+- **`/app/screen` ships a 36 MB wasm** from `node_modules/@duckdb/duckdb-wasm/dist` via an
+  `angular.json` asset entry (`duckdb/`). Mosaic pins the exact duckdb-wasm build; do not add a
+  second copy. Asset entries need a dev-server restart. Everything DuckDB lives in
+  `src/app/shared/duck/` and `features/screen/`; nothing else may import it.
 
 ## `api/` — data service
 
