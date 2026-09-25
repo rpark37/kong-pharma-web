@@ -1,7 +1,7 @@
 import { DecimalPipe } from '@angular/common';
 import { Component, DestroyRef, ElementRef, afterNextRender, computed, effect, inject, input, signal, untracked, viewChild } from '@angular/core';
 import { MosaicClient, type Coordinator, type Selection } from '@uwdata/mosaic-core';
-import { Query, count, type FilterExpr } from '@uwdata/mosaic-sql';
+import { Query, and, count, type FilterExpr } from '@uwdata/mosaic-sql';
 import type { Table } from '@uwdata/flechette';
 import type { ColumnDef } from './column-def';
 import { DuckDbService } from './duckdb.service';
@@ -37,9 +37,9 @@ class CountClient extends MosaicClient {
         }
       </div>
       <div class="scroller" #scroller tabindex="0" aria-label="Rows; arrow keys and Page Up/Down move, Home and End jump" (scroll)="onScroll()" (wheel)="onWheel($event)" (keydown)="onKey($event)">
-        <div class="window" [style.gridTemplateColumns]="template()">
+        <div class="window">
           @for (row of windowRows(); track $index) {
-            <div class="tr" role="row" [attr.aria-rowindex]="start() + $index + 1">
+            <div class="tr" role="row" [attr.aria-rowindex]="start() + $index + 1" [style.gridTemplateColumns]="template()">
               @for (c of columns(); track c.key; let ci = $index) {
                 <span class="td" role="gridcell" [class.right]="c.align === 'right'">{{ row ? cell(c, row[ci]) : '—' }}</span>
               }
@@ -60,7 +60,7 @@ class CountClient extends MosaicClient {
     .grid { display: flex; flex-direction: column; height: 100%; min-height: 0; border: 1px solid var(--hairline); border-radius: var(--radius); background: var(--panel); overflow: hidden; font-size: 12px; }
     .header, .tr { display: grid; column-gap: 0; min-width: max-content; }
     .header { border-bottom: 1px solid var(--hairline); background: var(--well); }
-    .th { display: flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px; border: 0; border-right: 1px solid var(--hairline); background: none; color: var(--on-ink-dim); font: 500 10px/1 var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; text-align: left; cursor: pointer; touch-action: manipulation; }
+    .th { display: flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px; border: 0; border-right: 1px solid var(--hairline); background: none; color: var(--on-ink-dim); font: 500 10px/1 var(--font-mono); letter-spacing: 0.12em; text-align: left; cursor: pointer; touch-action: manipulation; }
     .th:hover { color: var(--on-ink); background: color-mix(in srgb, var(--teal) 8%, transparent); }
     .th:focus-visible { outline: 2px solid var(--teal); outline-offset: -2px; }
     .th:disabled { cursor: default; color: var(--on-ink-faint); }
@@ -68,7 +68,7 @@ class CountClient extends MosaicClient {
     .th i { color: var(--teal); font-style: normal; }
     .scroller { position: relative; flex: 1; min-height: 0; overflow: auto; outline: none; }
     .scroller:focus-visible { box-shadow: inset 0 0 0 2px var(--teal); }
-    .window { position: sticky; top: 0; z-index: 1; }
+    .window { position: sticky; top: 0; z-index: 1; min-width: max-content; }
     .spacer { width: 1px; }
     .tr { height: var(--row-h); border-bottom: 1px solid color-mix(in srgb, var(--hairline) 60%, transparent); }
     .tr:hover { background: color-mix(in srgb, var(--teal) 6%, transparent); }
@@ -234,8 +234,10 @@ export class DuckGridComponent {
     let missing = false;
     for (let i = range.start; i < range.end && !missing; i++) if (!this.cache.get(i)) missing = true;
     if (!missing) return;
-    const predicate = this.brush().predicate(this.client);
-    const sql = windowSql(this.table(), this.columns().map((c) => c.key), predicate ? String(predicate) : null, this.sort(), this.stableKey(), range);
+    // predicate() hands back one node or a list of them (one per clause); the list is an AND.
+    const p = this.brush().predicate(this.client);
+    const node = Array.isArray(p) ? (p.length ? and(p) : null) : p;
+    const sql = windowSql(this.table(), this.columns().map((c) => c.key), node ? String(node) : null, this.sort(), this.stableKey(), range);
     const token = this.cache.begin();
     try {
       const t = (await this.coordinator.query(sql, { type: 'arrow', cache: false })) as Table;

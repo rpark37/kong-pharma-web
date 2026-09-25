@@ -1,10 +1,13 @@
-import { Component, ElementRef, afterNextRender, inject, signal } from '@angular/core';
+import { Component, ElementRef, afterNextRender, inject, signal, viewChildren } from '@angular/core';
 import type { Selection } from '@uwdata/mosaic-core';
 import { GsapService } from '../../shared/animation/gsap.service';
 import { DuckDbService } from '../../shared/duck/duckdb.service';
 import { DuckGridComponent } from '../../shared/duck/duck-grid.component';
+import { LinkedChartComponent } from '../../shared/duck/linked-chart.component';
+import { GlyphComponent } from '../../shared/ui/glyph.component';
 import { WebGpuFallbackComponent } from '../../shared/webgpu/webgpu-fallback.component';
 import { DEFAULT_ROWS, SCREEN_COLUMNS, SCREEN_TABLE, SEED, screenGeneratorSql } from './screen-data';
+import { SCREEN_CHARTS } from './screen-specs';
 
 /**
  * High-throughput screen results, millions of wells, entirely in the browser: DuckDB in a
@@ -12,7 +15,7 @@ import { DEFAULT_ROWS, SCREEN_COLUMNS, SCREEN_TABLE, SEED, screenGeneratorSql } 
  */
 @Component({
   selector: 'app-screen-page',
-  imports: [WebGpuFallbackComponent, DuckGridComponent],
+  imports: [WebGpuFallbackComponent, DuckGridComponent, LinkedChartComponent, GlyphComponent],
   template: `
     <header class="head">
       <p class="eyebrow" data-reveal>Assay wells · DuckDB in the browser</p>
@@ -22,12 +25,24 @@ import { DEFAULT_ROWS, SCREEN_COLUMNS, SCREEN_TABLE, SEED, screenGeneratorSql } 
       <div class="fallback-wrap glass" data-reveal>
         <app-webgpu-fallback title="The screen needs WebAssembly"><p class="small">{{ duck.error() }}</p></app-webgpu-fallback>
       </div>
-    } @else {
+    } @else if (!brush()) {
       <p class="status mono" data-reveal aria-live="polite">{{ statusText() }}</p>
     }
     @if (brush(); as b) {
+      <div class="toolbar" data-reveal>
+        <button type="button" class="key lone" (click)="resetBrush()" aria-label="Clear the brush" title="Clear the brush"><app-glyph name="reset" /></button>
+        <p class="status mono" aria-live="polite">{{ statusText() }}</p>
+      </div>
       <section class="stage" data-reveal>
         <app-duck-grid [table]="table" [columns]="columns" [brush]="b" />
+        <aside class="charts">
+          @for (c of charts; track c.id) {
+            <figure class="fig">
+              <figcaption class="eyebrow">{{ c.title }}</figcaption>
+              <app-linked-chart [spec]="c.spec" [query]="c.query" [brush]="b" [field]="c.field" [kind]="c.kind" [height]="c.height" />
+            </figure>
+          }
+        </aside>
       </section>
     }
   `,
@@ -37,7 +52,12 @@ import { DEFAULT_ROWS, SCREEN_COLUMNS, SCREEN_TABLE, SEED, screenGeneratorSql } 
     .status { font-size: 12px; color: var(--on-ink-dim); }
     .fallback-wrap { padding: 24px; }
     .small { font-size: 12px; color: var(--on-ink-faint); }
-    .stage { height: clamp(420px, calc(100dvh - var(--nav-h) - 300px), 760px); }
+    .toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+    .stage { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 16px; height: clamp(420px, calc(100dvh - var(--nav-h) - 300px), 760px); }
+    .charts { display: flex; flex-direction: column; gap: 8px; min-height: 0; overflow: auto; }
+    .fig { margin: 0; min-width: 0; padding-top: 8px; border-top: 1px solid var(--hairline); }
+    .fig figcaption { margin-bottom: 2px; }
+    @media (max-width: 960px) { .stage { grid-template-columns: 1fr; height: auto; } app-duck-grid { height: 480px; } }
   `,
 })
 export class ScreenPageComponent {
@@ -50,6 +70,8 @@ export class ScreenPageComponent {
   readonly table = SCREEN_TABLE;
   /** One crossfilter for the page; charts write clauses, the grid and charts read predicates. Recreated on regenerate. */
   readonly brush = signal<Selection | null>(null);
+  readonly charts = SCREEN_CHARTS;
+  private readonly chartRefs = viewChildren(LinkedChartComponent);
   private readonly gsap = inject(GsapService);
   private readonly el = inject<ElementRef<HTMLElement>>(ElementRef);
 
@@ -65,6 +87,11 @@ export class ScreenPageComponent {
       await this.duck.ready();
       await this.generate(this.rows());
     } catch { /* the service's status and error signals already carry it */ }
+  }
+
+  async resetBrush(): Promise<void> {
+    await Promise.all(this.chartRefs().map((c) => c.clearBrush()));
+    this.brush()?.reset();
   }
 
   private async newBrush(): Promise<void> {

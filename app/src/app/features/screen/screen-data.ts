@@ -76,15 +76,15 @@ const when = new Intl.DateTimeFormat(undefined, { year: 'numeric', month: 'short
 const asDate = (v: unknown) => (v instanceof Date ? v : new Date(Number(v)));
 
 export const SCREEN_COLUMNS: ColumnDef[] = [
-  { key: 'well_id', label: 'Well ID', width: 96, align: 'right', format: (v) => int.format(Number(v)), sortable: true },
-  { key: 'plate', label: 'Plate', width: 72, align: 'right', format: (v) => int.format(Number(v)), sortable: true },
-  { key: 'well', label: 'Well', width: 60, sortable: true },
-  { key: 'target', label: 'Target', width: 84, sortable: true },
-  { key: 'library', label: 'Library', width: 72, sortable: true },
-  { key: 'site', label: 'Site', width: 92, sortable: true },
+  { key: 'well_id', label: 'WELL ID', width: 96, align: 'right', format: (v) => int.format(Number(v)), sortable: true },
+  { key: 'plate', label: 'PLATE', width: 72, align: 'right', format: (v) => int.format(Number(v)), sortable: true },
+  { key: 'well', label: 'WELL', width: 60, sortable: true },
+  { key: 'target', label: 'TARGET', width: 84, sortable: true },
+  { key: 'library', label: 'LIBRARY', width: 72, sortable: true },
+  { key: 'site', label: 'SITE', width: 92, sortable: true },
   { key: 'conc_um', label: 'µM', width: 64, align: 'right', format: (v) => two.format(Number(v)), sortable: true },
-  { key: 'inhibition', label: 'Inhibition %', width: 104, align: 'right', format: (v) => one.format(Number(v)), sortable: true },
+  { key: 'inhibition', label: 'INHIBITION %', width: 104, align: 'right', format: (v) => one.format(Number(v)), sortable: true },
   { key: 'zscore', label: 'Z', width: 72, align: 'right', format: (v) => two.format(Number(v)), sortable: true },
-  { key: 'hit', label: 'Hit', width: 52, format: (v) => (v ? 'HIT' : ''), sortable: true },
-  { key: 'read_at', label: 'Read at', width: 150, format: (v) => when.format(asDate(v)), sortable: true },
+  { key: 'hit', label: 'HIT', width: 52, format: (v) => (v ? 'HIT' : ''), sortable: true },
+  { key: 'read_at', label: 'READ AT', width: 150, format: (v) => when.format(asDate(v)), sortable: true },
 ];
