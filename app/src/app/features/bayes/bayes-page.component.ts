@@ -3,6 +3,7 @@ import { Component, DestroyRef, ElementRef, afterNextRender, computed, effect, i
 import { GsapService } from '../../shared/animation/gsap.service';
 import { VegaChartComponent } from '../../shared/vega/vega-chart.component';
 import { PRESETS, bayes, predictiveCurve } from './bayes';
+import { readQuery, writeQuery } from '../../shared/url-state';
 import { LAYOUT_NAMES, type FormConfig } from './bayes-data.model';
 import { generateBayesData } from './bayes-data-generator';
 import type { BayesScene } from './bayes-scene';
@@ -19,6 +20,8 @@ import { ThemeService } from '../../shared/theme/theme.service';
  * Therapeutic Tests (Bayes' Theorem): the user's original MorphCharts morphing visualization,
  * ported into the labs app, followed by Vega-Lite companions that share the same inputs.
  */
+const DEFAULT_PRESET = 'mammography';
+
 @Component({
   selector: 'app-bayes-page',
   imports: [DecimalPipe, PercentPipe, VegaChartComponent, MorphchartsCanvasComponent, WebGpuFallbackComponent, GlyphComponent, MorphchartsCameraComponent],
@@ -317,7 +320,7 @@ export class BayesPageComponent {
   readonly layoutNames = LAYOUT_NAMES;
   /** The 3D view's camera controls, once the scene exists. */
   readonly rig = signal<CameraRig | null>(null);
-  readonly preset = signal<string>('mammography');
+  readonly preset = signal<string>(DEFAULT_PRESET);
   /** The preset the sliders currently match, or null once any slider has been moved by hand. */
   readonly activePreset = computed(() => PRESETS.find((p) => p.id === this.preset()) ?? null);
   readonly form = signal<FormConfig>({ count: 1000, sensitivity: 0.9, specificity: 0.91, prior: 0.01, transitionDuration: 1000, transitionStaggering: 300 });
@@ -373,6 +376,17 @@ export class BayesPageComponent {
   private dwell: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
+    this.restoreFromUrl();
+    // The URL carries the scenario and the view: `?preset=rapid-antigen&view=3`, or the four
+    // inputs when the sliders have left every preset. Motion timings stay local.
+    effect(() => {
+      const f = this.form(), preset = this.preset(), view = this.layoutIndex();
+      writeQuery({
+        preset: preset && preset !== DEFAULT_PRESET ? preset : null,
+        count: preset ? null : f.count, prior: preset ? null : f.prior, se: preset ? null : f.sensitivity, sp: preset ? null : f.specificity,
+        view: view ? view + 1 : null,
+      });
+    });
     // The plates and backdrop are spec colours, so a theme change re-lays the current view.
     effect(() => {
       this.theme.theme();
@@ -451,6 +465,20 @@ export class BayesPageComponent {
         onUpdate: () => this.shown.set({ ...this.readoutState }),
       }),
     );
+  }
+
+  private restoreFromUrl(): void {
+    const q = readQuery();
+    const num = (k: string, lo: number, hi: number) => { const v = Number(q.get(k)); return q.has(k) && Number.isFinite(v) && v >= lo && v <= hi ? v : null; };
+    const preset = q.get('preset');
+    if (preset && PRESETS.some((p) => p.id === preset)) this.apply(preset);
+    else if (['count', 'prior', 'se', 'sp'].some((k) => q.has(k))) {
+      const f = this.form();
+      this.preset.set('');
+      this.form.set({ ...f, count: Math.round(num('count', 1, 20000) ?? f.count), prior: num('prior', 0, 1) ?? f.prior, sensitivity: num('se', 0, 1) ?? f.sensitivity, specificity: num('sp', 0, 1) ?? f.specificity });
+    }
+    const view = num('view', 1, 4);
+    if (view) this.layoutIndex.set(Math.round(view) - 1);
   }
 
   set<K extends keyof FormConfig>(key: K, value: FormConfig[K]): void {

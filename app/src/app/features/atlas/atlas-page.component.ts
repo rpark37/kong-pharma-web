@@ -16,6 +16,7 @@ import { DEFAULT_VISIBLE, EXPLANATIONS, SYSTEMS, explanation, type AtlasCatalogu
 import type { AnatomyViewer } from './anatomy-viewer';
 import type { AtlasScene } from './atlas-scene';
 import { atlasTreemapSpec } from './atlas-fallback-spec';
+import { readQuery, writeQuery } from '../../shared/url-state';
 
 const ORGANS: SystemId[] = ['cardiac', 'respiratory', 'digestive', 'urinary', 'endocrine', 'reproductive'];
 const DEFAULT_SEARCH = ['heart', 'brain', 'liver', 'stomach', 'spleen', 'pancreas', 'urinary bladder', 'trachea'];
@@ -127,6 +128,14 @@ export class AtlasPageComponent {
   };
 
   constructor() {
+    this.restoreFromUrl();
+    // `?mode=data&select=FMA7088` links to a mode and a selection: a concept id when the selection
+    // is a whole concept, otherwise the part ids. Defaults leave the URL bare.
+    effect(() => {
+      const mode = this.mode(), sel = this.selected();
+      const concept = this.concepts().find((c) => c.elements.length === sel.length && c.elements.every((e) => sel.includes(e)));
+      writeQuery({ mode: mode === 'data' ? mode : null, select: !sel.length ? null : concept ? concept.id : sel.join(',') });
+    });
     afterNextRender(() => {
       this.gsap.reveal(this.el.nativeElement.querySelectorAll('[data-reveal]'), { delay: this.gsap.MOTION.delay.medium });
       window.addEventListener('keydown', this.onKey);
@@ -172,6 +181,13 @@ export class AtlasPageComponent {
     });
   }
 
+  private restoreFromUrl(): void {
+    const q = readQuery();
+    if (q.get('mode') === 'data') this.mode.set('data');
+    const ids = (q.get('select') ?? '').split(',').filter((id) => /^[A-Z]+\d+$/.test(id));
+    if (ids.length) { this.selected.set(ids); this.details.set(true); }
+  }
+
   private async loadCatalogue(): Promise<void> {
     try {
       this.progress.set(10);
@@ -184,6 +200,17 @@ export class AtlasPageComponent {
       this.parts.set(cat.parts.map(([id, name, conceptId, system, cx, cy, cz, sx, sy, sz, geom]) => ({ id, name, conceptId, system, cx, cy, cz, sx, sy, sz, geom })));
       this.concepts.set(concepts.map(([id, name, elements]) => ({ id, name, elements })));
       this.chunks.set(cat.chunks ?? []);
+      // A selection restored from the URL resolves once the catalogue is here: a concept id expands
+      // to its parts, part ids get their concept name, unknown ids are dropped.
+      const sel = this.selected();
+      if (sel.length && !this.chosen()) {
+        const concept = this.concepts().find((c) => (sel.length === 1 && c.id === sel[0]) || (c.elements.length === sel.length && c.elements.every((e) => sel.includes(e))));
+        const known = sel.filter((id) => this.partsById().has(id));
+        const p = this.partsById().get(known[0]);
+        if (concept) { this.chosen.set(concept); this.selected.set(concept.elements); }
+        else if (p) { this.chosen.set({ id: p.conceptId, name: p.name, elements: [p.id] }); this.selected.set(known); }
+        else { this.selected.set([]); this.details.set(false); }
+      }
       if (this.mode() === 'data') { this.progress.set(this.host ? 100 : 80); if (this.host) await this.buildScene(); }
       else this.progress.set(15);
     } catch (e) {
