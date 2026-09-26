@@ -93,6 +93,13 @@
       <div class="rowline">
         <button type="button" class="key lone" [attr.aria-disabled]="explode() >= 0.4 || null" [attr.aria-label]="rotate() ? 'Pause rotation' : 'Orbit slowly'" [title]="rotate() ? 'Pause' : 'Orbit slowly'" [class.on]="rotate()" [attr.aria-pressed]="rotate()" (click)="explode() < 0.4 && toggleRotate()"><app-glyph [name]="rotate() ? 'pause' : 'orbit'" /></button>
       </div>
+      <!-- Renderer: WebGL every frame, or three-gpu-pathtracer converging over frames on the same meshes. -->
+      <label class="render-pick">Render
+        <select name="render" [value]="renderPreset()" (change)="setRenderPreset($any($event.target).value)">
+          @for (p of renderPresets; track p.id) { <option [value]="p.id" [title]="p.note">{{ p.label }}</option> }
+        </select>
+      </label>
+      @if (renderStatus(); as st) { <p class="render-status mono" aria-live="polite">{{ st }}</p> }
     }
     <button type="button" class="key lone wide reset" aria-label="Reset view and layers" title="Reset view and layers" (click)="reset()"><app-glyph name="reset" />RESET</button>
   </nav>
