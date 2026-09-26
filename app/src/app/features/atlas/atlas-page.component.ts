@@ -13,7 +13,7 @@ import { VegaChartComponent } from '../../shared/vega/vega-chart.component';
 import { WebGpuFallbackComponent } from '../../shared/webgpu/webgpu-fallback.component';
 import { environment } from '../../../environments/environment';
 import { DEFAULT_VISIBLE, EXPLANATIONS, SYSTEMS, explanation, type AtlasCatalogue, type ChunkInfo, type Concept, type Part, type SystemId, type View } from './anatomy';
-import type { AnatomyViewer } from './anatomy-viewer';
+import { RENDER_PRESETS, type AnatomyViewer, type RenderPreset, type RenderStatus } from './anatomy-viewer';
 import type { AtlasScene } from './atlas-scene';
 import { atlasTreemapSpec } from './atlas-fallback-spec';
 import { readQuery, writeQuery } from '../../shared/url-state';
@@ -122,6 +122,10 @@ export class AtlasPageComponent {
   readonly skeletonOnly = computed(() => this.visible().length === 1 && this.visible()[0] === 'skeletal');
   readonly organsOnly = computed(() => this.visible().length === ORGANS.length && ORGANS.every((id) => this.visible().includes(id)));
   readonly fallbackSpec = computed(() => (this.parts().length ? atlasTreemapSpec(this.parts()) : null));
+  readonly renderPresets = RENDER_PRESETS;
+  /** Anatomy mode's renderer; path-traced presets are for comparing conditions, raster is the default. */
+  readonly renderPreset = signal<RenderPreset>('raster');
+  readonly renderStatus = signal<string>('');
   readonly views: Array<{ id: View; code: string; name: string }> = [{ id: 'three-quarter', code: '¾', name: 'Three-quarter' }, { id: 'front', code: 'FRONT', name: 'Front' }, { id: 'side', code: 'SIDE', name: 'Side' }, { id: 'back', code: 'BACK', name: 'Back' }];
 
   private host: MorphChartsHost | null = null;
@@ -142,7 +146,8 @@ export class AtlasPageComponent {
     effect(() => {
       const mode = this.mode(), sel = this.selected(), view = this.view(), explode = Math.round(this.explode() * 100);
       const concept = this.concepts().find((c) => c.elements.length === sel.length && c.elements.every((e) => sel.includes(e)));
-      writeQuery({ mode: mode === 'data' ? mode : null, select: !sel.length ? null : concept ? concept.id : sel.join(','), view: view === 'three-quarter' ? null : view, explode: explode > 0 ? explode : null });
+      const render = this.renderPreset();
+      writeQuery({ mode: mode === 'data' ? mode : null, select: !sel.length ? null : concept ? concept.id : sel.join(','), view: view === 'three-quarter' ? null : view, explode: explode > 0 ? explode : null, render: render === 'raster' ? null : render });
     });
     afterNextRender(() => {
       this.gsap.reveal(this.el.nativeElement.querySelectorAll('[data-reveal]'), { delay: this.gsap.MOTION.delay.medium });
@@ -198,6 +203,8 @@ export class AtlasPageComponent {
     if (view && this.views.some((v) => v.id === view)) this.view.set(view as View);
     const explode = Number(q.get('explode'));
     if (Number.isFinite(explode) && explode > 0 && explode <= 100) { this.explode.set(explode / 100); this.explodeAnim.t = explode / 100; }
+    const render = q.get('render');
+    if (render && RENDER_PRESETS.some((p) => p.id === render)) this.renderPreset.set(render as RenderPreset);
   }
 
   private async loadCatalogue(): Promise<void> {
@@ -257,7 +264,9 @@ export class AtlasPageComponent {
       this.viewer = viewer;
       viewer.setState({ visible: this.visible(), selected: this.selected(), isolate: this.isolate(), view: this.view(), rotate: this.rotate(), reset: this.resetCounter(), inspectorOpen: false });
       viewer.setExplode(this.explode());
+      viewer.onRenderStatus = (st) => { this.renderStatus.set(renderStatusText(st)); if (st.phase === 'raster' && st.error) this.renderPreset.set('raster'); };
       viewer.start();
+      if (this.renderPreset() !== 'raster') viewer.setRenderPreset(this.renderPreset());
     } catch (e) {
       this.viewerError.set(e instanceof Error ? e.message : String(e));
     }
@@ -368,6 +377,13 @@ export class AtlasPageComponent {
   }
   toggleRotate(): void { this.rotate.set(!this.rotate()); }
 
+  setRenderPreset(id: string): void {
+    const preset = RENDER_PRESETS.find((p) => p.id === id)?.id ?? 'raster';
+    this.renderPreset.set(preset);
+    if (preset === 'raster') this.renderStatus.set('');
+    this.viewer?.setRenderPreset(preset);
+  }
+
   onExplodeInput(value: number, commit: boolean): void {
     const t = value / 100;
     this.rotate.set(false);
@@ -427,4 +443,11 @@ export class AtlasPageComponent {
   openAbout(): void { this.details.set(false); this.panel.set(null); this.about.set(true); }
   count(id: SystemId): number { return this.counts()[id] ?? 0; }
   reload(): void { location.reload(); }
+}
+
+/** "Building 42%" while the traced copy is made, then samples and elapsed time as it converges. */
+function renderStatusText(st: RenderStatus): string {
+  if (st.phase === 'raster') return st.error ? `Path tracer unavailable: ${st.error}` : '';
+  if (st.phase === 'building') return `Building traced scene ${Math.round(st.progress * 100)}%`;
+  return `${st.samples} spp · ${st.seconds.toFixed(1)} s · ${(st.triangles / 1e6).toFixed(2)}M tris`;
 }

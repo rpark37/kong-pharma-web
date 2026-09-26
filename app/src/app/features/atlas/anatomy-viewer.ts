@@ -21,6 +21,23 @@ import { SYSTEMS, type ChunkInfo, type Part, type SystemId, type View } from './
 import { createExplosionLayout } from './explosion-layout';
 
 export interface ViewerState { visible: SystemId[]; selected: string[]; isolate: boolean; view: View; rotate: boolean; reset: number; inspectorOpen: boolean; }
+
+/**
+ * How the body is drawn. `raster` is the WebGL renderer every frame; the `pt-*` presets hand the
+ * same meshes to three-gpu-pathtracer, which converges a path-traced image over successive frames
+ * and starts over whenever the camera or the scene changes.
+ */
+export type RenderPreset = 'raster' | 'pt-fast' | 'pt-balanced' | 'pt-quality';
+export interface RenderPresetDef { id: RenderPreset; label: string; note: string; bounces: number; renderScale: number; tiles: number; mis: boolean; glossy: number; }
+export const RENDER_PRESETS: RenderPresetDef[] = [
+  { id: 'raster', label: 'Rasterised', note: 'WebGL, one frame per draw', bounces: 0, renderScale: 1, tiles: 1, mis: false, glossy: 0 },
+  { id: 'pt-fast', label: 'Path traced · fast', note: '2 bounces at half resolution', bounces: 2, renderScale: 0.5, tiles: 2, mis: false, glossy: 0.5 },
+  { id: 'pt-balanced', label: 'Path traced · balanced', note: '4 bounces, full resolution, importance sampled', bounces: 4, renderScale: 1, tiles: 3, mis: true, glossy: 0.5 },
+  { id: 'pt-quality', label: 'Path traced · quality', note: '8 bounces, full resolution, importance sampled', bounces: 8, renderScale: 1, tiles: 4, mis: true, glossy: 0.25 },
+];
+/** What the page shows beside the dropdown while a path-traced preset is active. */
+export interface RenderStatus { phase: 'raster' | 'building' | 'tracing'; progress: number; samples: number; seconds: number; triangles: number; error?: string; }
+type PathTracerModule = typeof import('three-gpu-pathtracer');
 export interface ViewerCallbacks { onSelect: (id: string) => void; onProgress: (pct: number) => void; onError: (message: string) => void; }
 
 /** Static hosts may serve .gz as a compressed response or as a gzip file; inspect the payload. */
@@ -106,6 +123,22 @@ export class AnatomyViewer {
   private ground!: T.Mesh; private platform!: T.Mesh; private ring!: T.Mesh; private innerRing!: T.Mesh;
   private env: T.WebGLRenderTarget | null = null;
   reducedMotion = false;
+  /** Reports path-tracer progress; the page renders it beside the dropdown. */
+  onRenderStatus: ((status: RenderStatus) => void) | null = null;
+  private preset: RenderPresetDef = RENDER_PRESETS[0];
+  private ptModule: PathTracerModule | null = null;
+  private pt: InstanceType<PathTracerModule['WebGLPathTracer']> | null = null;
+  private ptScene: T.Scene | null = null;
+  private ptReady = false;
+  private ptBuilding = false;
+  private ptDirty = false;
+  private ptBuildTimer: ReturnType<typeof setTimeout> | null = null;
+  private ptBuildToken = 0;
+  private ptStart = 0;
+  private ptTriangles = 0;
+  private ptLastReport = -1;
+  private readonly ptCamera = new T.Matrix4();
+  private readonly ptMaterials = new Map<string, T.MeshStandardMaterial>();
 
   constructor(private readonly el: HTMLElement, private readonly parts: Part[], private readonly chunks: ChunkInfo[], private readonly bases: string[], private readonly cb: ViewerCallbacks) {
     this.centers = parts.map((p) => new T.Vector3(p.cx, p.cy, p.cz));
@@ -182,6 +215,105 @@ export class AnatomyViewer {
 
   setState(state: ViewerState): void { this.state = state; }
 
+  /** Switch renderer. Path-traced presets build a plain-material copy of the visible body on first use and after every scene change. */
+  setRenderPreset(id: RenderPreset): void {
+    const preset = RENDER_PRESETS.find((p) => p.id === id) ?? RENDER_PRESETS[0];
+    const wasPt = this.preset.id !== 'raster';
+    this.preset = preset;
+    if (preset.id === 'raster') {
+      this.ptReady = false;
+      if (this.ptBuildTimer) { clearTimeout(this.ptBuildTimer); this.ptBuildTimer = null; }
+      this.dirty = true;
+      this.report('raster', 0);
+      return;
+    }
+    if (this.pt) this.applyPreset();
+    if (!wasPt || !this.ptReady) void this.buildPathTracer(); else { this.pt?.reset(); this.ptStart = performance.now(); }
+  }
+
+  private applyPreset(): void {
+    const pt = this.pt, p = this.preset;
+    if (!pt) return;
+    pt.bounces = p.bounces; pt.renderScale = p.renderScale; pt.tiles.set(p.tiles, p.tiles);
+    pt.multipleImportanceSampling = p.mis; pt.filterGlossyFactor = p.glossy;
+    pt.dynamicLowRes = true; pt.lowResScale = 0.25; pt.minSamples = 1;
+  }
+
+  private report(phase: RenderStatus['phase'], progress: number, error?: string): void {
+    const seconds = phase === 'tracing' ? (performance.now() - this.ptStart) / 1000 : 0;
+    this.onRenderStatus?.({ phase, progress, samples: this.pt?.samples ?? 0, seconds, triangles: this.ptTriangles, error });
+  }
+
+  /** The path tracer cannot run the per-part vertex shader, so it gets real meshes at their current positions. */
+  private schedulePtRebuild(): void {
+    if (this.preset.id === 'raster') return;
+    this.ptReady = false; this.ptDirty = true;
+    if (this.ptBuildTimer) clearTimeout(this.ptBuildTimer);
+    this.ptBuildTimer = setTimeout(() => { this.ptBuildTimer = null; void this.buildPathTracer(); }, 600);
+  }
+
+  private ptMaterialFor(system: SystemId, selected: boolean): T.MeshStandardMaterial {
+    const key = `${system}:${selected}`;
+    let m = this.ptMaterials.get(key);
+    if (!m) {
+      const base = new T.Color(darken(SYSTEMS.find((s) => s.id === system)?.color ?? '#aebbb8', 0.62));
+      if (selected) base.lerp(new T.Color(0, 0.439, 0.365), 0.75);
+      m = new T.MeshStandardMaterial({ color: base, metalness: 0.08, roughness: 0.53, side: T.DoubleSide });
+      this.ptMaterials.set(key, m);
+    }
+    return m;
+  }
+
+  private async buildPathTracer(): Promise<void> {
+    if (!this.ready || this.disposed || this.preset.id === 'raster') return;
+    const token = ++this.ptBuildToken;
+    this.ptBuilding = true; this.ptDirty = false;
+    this.report('building', 0);
+    try {
+      this.ptModule ??= await import('three-gpu-pathtracer');
+      if (token !== this.ptBuildToken || this.disposed) return;
+      const M = this.ptModule;
+      if (!this.pt) { this.pt = new M.WebGLPathTracer(this.renderer); this.applyPreset(); }
+      const scene = new T.Scene();
+      const sky = new M.GradientEquirectTexture(); sky.topColor.set('#f7f7f5'); sky.bottomColor.set('#cfd3d1'); sky.exponent = 1.5; sky.update();
+      scene.environment = sky; scene.background = sky;
+      const key = new T.DirectionalLight(0xfff6ea, 1.4); key.position.set(-2, 4, 3); scene.add(key);
+      const rim = new T.DirectionalLight(0x9fe8dc, 0.8); rim.position.set(2, 2, -3); scene.add(rim);
+      const s = this.state, data = this.data, selection = new Set(s.selected);
+      if (this.ground.visible) { scene.add(this.ground.clone()); scene.add(this.platform.clone()); }
+      const hasSolid = this.parts.some((p, i) => p.system !== 'integumentary' && data[i * 4 + 3] > 0.5);
+      let triangles = 0;
+      this.parts.forEach((p, i) => {
+        const picker = this.pickers[i];
+        if (!picker || data[i * 4 + 3] < 0.5 || (hasSolid && p.system === 'integumentary')) return;
+        const mesh = new T.Mesh(picker.geometry, this.ptMaterialFor(p.system, selection.has(p.id)));
+        mesh.position.set(data[i * 4], data[i * 4 + 1], data[i * 4 + 2]);
+        scene.add(mesh);
+        triangles += (picker.geometry.index?.count ?? 0) / 3;
+      });
+      this.ptTriangles = Math.round(triangles);
+      // The BVH over the whole body builds on the main thread (the worker path needs a bundled
+      // worker this build does not ship); one frame first so the "building" status can paint.
+      await new Promise((r) => requestAnimationFrame(r));
+      if (token !== this.ptBuildToken || this.disposed) return;
+      this.pt.setScene(scene, this.camera, { onProgress: (v) => { if (token === this.ptBuildToken) this.report('building', v); } });
+      this.ptScene = scene;
+      this.ptCamera.copy(this.camera.matrixWorld);
+      this.pt.reset();
+      this.ptStart = performance.now(); this.ptLastReport = -1;
+      this.ptReady = !this.ptDirty;
+      if (this.ptDirty) void this.buildPathTracer();
+    } catch (e) {
+      // Not fatal for the viewer: fall back to raster and say why beside the dropdown.
+      this.preset = RENDER_PRESETS[0];
+      this.ptReady = false;
+      this.dirty = true;
+      this.report('raster', 0, e instanceof Error ? e.message : 'The path tracer could not start.');
+    } finally {
+      if (token === this.ptBuildToken) this.ptBuilding = false;
+    }
+  }
+
   /** Explode amount 0..1, driven each frame by the page's GSAP tween. */
   setExplode(t: number): void { if (Math.abs(t - this.amount) > 1e-5) { this.amount = t; this.dirty = true; } }
 
@@ -207,6 +339,8 @@ export class AnatomyViewer {
     this.materials.forEach((m) => m.dispose());
     this.scene.traverse((o) => { if (o instanceof T.Mesh && !this.geometries.includes(o.geometry)) { o.geometry.dispose(); const ms = Array.isArray(o.material) ? o.material : [o.material]; ms.forEach((m) => m.dispose()); } });
     this.env?.dispose();
+    if (this.ptBuildTimer) clearTimeout(this.ptBuildTimer);
+    this.pt?.dispose(); this.ptMaterials.forEach((m) => m.dispose());
     this.partTexture.dispose(); this.selectionTexture.dispose(); this.markerGeometry.dispose();
     this.hover.remove();
     if (this.renderer) { this.renderer.domElement.remove(); this.renderer.dispose(); }
@@ -385,6 +519,7 @@ export class AnatomyViewer {
       });
       this.partTexture.needsUpdate = true; this.selectionTexture.needsUpdate = true; this.markerGeometry.attributes['position'].needsUpdate = true;
       this.lastState = s; this.lastExtent = amount; this.dirty = true;
+      if (this.lastState && this.preset.id !== 'raster') this.schedulePtRebuild();
     }
     if (s.view !== this.lastView || s.reset !== this.lastReset) { this.fit(s.view, amount, this.lastView !== ''); this.lastView = s.view; this.lastReset = s.reset; }
     if (moving && !s.isolate) this.fit(amount > 0.5 ? 'front' : s.view, Math.max(0, (amount - 0.3) / 0.7), false);
@@ -415,8 +550,17 @@ export class AnatomyViewer {
     controls.autoRotate = s.rotate && !s.isolate && amount < 0.4; controls.autoRotateSpeed = 0.65;
     controls.update();
     if (controls.autoRotate) this.dirty = true;
+    // Path tracing: one sample per frame on top of the last, restarted when the camera moves. While
+    // the traced copy is being rebuilt the raster view stands in, so edits stay live.
+    const tracing = this.preset.id !== 'raster' && this.ptReady && this.pt && !this.ptBuilding;
+    if (tracing && this.pt) {
+      if (!this.ptCamera.equals(camera.matrixWorld)) { this.ptCamera.copy(camera.matrixWorld); this.pt.updateCamera(); this.ptStart = performance.now(); }
+      this.pt.renderSample();
+      const n = this.pt.samples;
+      if (n !== this.ptLastReport && (n < 16 || n % 8 === 0)) { this.ptLastReport = n; this.report('tracing', 1); }
+    }
     if (this.dirty) {
-      this.renderer.render(this.scene, camera);
+      if (!tracing) this.renderer.render(this.scene, camera);
       this.targets = [];
       if (amount > 0.45) {
         const hasSolid = this.parts.some((p, i) => p.system !== 'integumentary' && data[i * 4 + 3] > 0.5);
