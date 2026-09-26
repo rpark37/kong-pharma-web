@@ -1,0 +1,63 @@
+{
+  "name": "app",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "vendor:sync": "bash scripts/vendor-morphcharts.sh",
+    "vendor:build": "tsc -p vendor/tsconfig.core.json && tsc -p vendor/tsconfig.spec.json && tsc -p vendor/tsconfig.webgpuraytrace.json",
+    "postinstall": "npm run vendor:build",
+    "prestart": "npm run vendor:build",
+    "start": "ng serve --proxy-config proxy.conf.json",
+    "prebuild": "npm run vendor:build",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "pretest": "npm run vendor:build",
+    "test": "ng test",
+    "e2e": "node e2e/static-server.mjs dist/app/browser 4173 & sleep 1; node e2e/smoke-screens.mjs http://localhost:4173 test-results"
+  },
+  "private": true,
+  "packageManager": "npm@11.19.0",
+  "dependencies": {
+    "@angular/cdk": "^22.1.7",
+    "@angular/common": "^22.1.0",
+    "@angular/compiler": "^22.1.0",
+    "@angular/core": "^22.1.0",
+    "@angular/forms": "^22.1.0",
+    "@angular/platform-browser": "^22.1.0",
+    "@angular/router": "^22.1.0",
+    "@microsoft/morphcharts-core": "^1.0.0",
+    "@microsoft/morphcharts-spec": "^1.0.0",
+    "@microsoft/morphcharts-webgpuraytrace": "^1.0.0",
+    "@uwdata/mosaic-core": "^0.31.0",
+    "@uwdata/mosaic-sql": "^0.31.0",
+    "d3": "7.9",
+    "gsap": "3.15",
+    "rxjs": "~7.8.0",
+    "three": "^0.186.1",
+    "tslib": "^2.3.0",
+    "vega": "6.4",
+    "vega-embed": "7.2",
+    "vega-lite": "6.4"
+  },
+  "devDependencies": {
+    "@angular/build": "^22.1.8",
+    "@angular/cli": "^22.1.8",
+    "@angular/compiler-cli": "^22.1.0",
+    "@playwright/test": "^1.63.0",
+    "@types/d3": "^7.4.3",
+    "@types/three": "^0.186.0",
+    "@types/web": "^0.0.356",
+    "jsdom": "^28.0.0",
+    "prettier": "^3.8.1",
+    "typescript": "~6.0.2",
+    "vitest": "^4.0.8"
+  },
+  "workspaces": [
+    "vendor/morphcharts/core",
+    "vendor/morphcharts/spec",
+    "vendor/morphcharts/renderers/webgpuraytrace"
+  ],
+  "engines": {
+    "node": ">=22.22.3 || >=24.15.0"
+  }
+}

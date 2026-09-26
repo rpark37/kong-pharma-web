@@ -1,14 +1,60 @@
-# Kong's Pharmaceutical Co. — website
+# Kong's Pharmaceutical — site and Labs app
 
-Static marketing site, served by GitHub Pages from the `master` branch (no build step).
+Two things live in this repository:
 
-- `index.html`, `privacy.html`, `404.html` — the pages
-- `styles.css` — all styling (later blocks override earlier ones)
-- `main.js` — navigation, reveals, reading cursor, video and globe loading
-- `i18n.js` — seven-language dictionary and the language switcher (`?lang=de` etc.)
-- `hero3d.js`, `globe.js`, `field.js` — Three.js hero, contact globe, membrane field
-- `pipeline-viz.js` — the three schematic figures in the drug pipeline
-- `analytics.js` — Google Analytics 4 with consent, inert until a Measurement ID is set
-- `assets/` — images, team photos, video, social cover
+| Path | What | Stack |
+| --- | --- | --- |
+| `/` (root) | The marketing site, served as static files by GitHub Pages | HTML, CSS, GSAP, three.js from CDN |
+| `app/` | **Kong's Labs**, published at `/app/` | Angular 22 (standalone, signals, zoneless), GreenSock, Vega / Vega-Lite, MorphCharts (WebGPU) |
+| `api/` | The data service behind the Labs pages | FastAPI + DuckDB over Parquet |
 
-Preview locally with any static server, for example `python3 -m http.server 8761`.
+## Labs pages
+
+- `/app/morphcharts` — a recreation of the [MorphCharts client](https://microsoft.github.io/morphcharts/client.html): write a Vega-style spec, path-trace it on WebGPU, capture it at up to 8K.
+- `/app/ares` — [OHDSI Ares](https://github.com/OHDSI/Ares)-style data characterization reports (person, observation period, density, concepts, data quality) as Vega-Lite specs over a synthetic OMOP-like dataset.
+- `/app/merchandise` — Google Merchandise Store analytics from the public GA4 sample (or a schema-faithful synthetic sample when no BigQuery credentials are available), including a MorphCharts 3D revenue cube.
+- `/app/screen` — millions of generated assay wells in DuckDB-wasm, a windowed grid and four linked Vega charts that each query it, coordinated by Mosaic. No API. The bench numbers (boot, generate, first row, brush, scroll fps, long tasks) are on the page.
+- `/app/atlas` — a hybrid of [human-atlas](https://github.com/ashemag/human-atlas): **Anatomy** mode streams the real BodyParts3D meshes (2,234 structures, 2.3 M triangles, ~33 MB gzipped from jsDelivr with a GitHub fallback) into three.js; **Data** mode renders the same catalogue as a spec-driven MorphCharts scene. Both share the system toggles, search, isolate, camera presets and the GSAP-tweened explode slider.
+- `/app/bayes` — the therapeutic-tests Bayes' theorem visualization (source in `docs/bayes-source/`) rebuilt on the current MorphCharts: a synthetic population of blocks that morphs between four views (everyone, disease vs healthy, the 2×2 outcome grid, positive tests only) with GSAP-staggered transitions, plus Vega-Lite companions sharing the same inputs.
+- `/app/gev` — a God's Eye View spatial-intelligence console: a three.js vector globe under a painted 1600×900 overlay, replaying a committed snapshot of aircraft, satellites and earthquakes. The console fills the viewport edge to edge at any aspect (the overlay is re-painted at the stage's own width), with a Fullscreen button; the sensor modes are SVG colour-table filters. The holographic readout (`/app/hud`), the site network map (`/app/site-map`) and the network console (`/app/controls`) share the same console frame (`shared/fui/console-stage.component.ts`), as the largest 16:9 box that fits since their overlays are fixed 1600×900 paintings.
+- `/app/osiris` — a global situation board after [OSIRIS](https://github.com/simplifaisoul/osiris): a flat d3-geo world map on Canvas 2D with seven toggleable layers — aircraft and satellites replayed from the `/app/gev` snapshot, earthquakes, NASA FIRMS fires and EONET events from `public/data/osiris/hazards.json` (`scripts/capture-osiris-snapshot.mjs`), plus static news-bureau and conflict-zone tables. Layer toggles, a listbox of named marks and the detail panel are DOM; the map is decorative. Shares the console frame with the other consoles.
+
+Every visualization is a Vega-style specification: Vega-Lite / Vega for 2D (rendered by Vega's D3-based SVG renderer), MorphCharts' Vega-derived grammar for 3D. The one exception is the atlas's Anatomy mode, which is a mesh viewer (three.js) rather than a chart; its Data mode is the spec-driven equivalent. All motion uses GreenSock `expo.out` / `power3` eases — 0.3 s or less except camera moves, 0.1 s staggers — with shared delays from `app/src/app/shared/animation/motion.ts`.
+
+## Run the app
+
+Requires Node 24 (see `.nvmrc`).
+
+```sh
+cd app
+npm ci            # also compiles the vendored MorphCharts packages
+npm start         # http://localhost:4200/app/ with /api proxied to :8000
+npm test          # Vitest unit tests
+npm run build     # production build in app/dist/app/browser
+npm run e2e       # headless smoke screenshots into app/test-results
+```
+
+MorphCharts is vendored from a pinned upstream commit into `app/vendor/morphcharts` (MIT). To update, change the commit in `app/scripts/vendor-morphcharts.sh`, run it, review the diff, and rebuild.
+
+## Run the API
+
+Requires Python 3.11 and [uv](https://docs.astral.sh/uv/).
+
+```sh
+cd api
+make install      # uv sync --extra dev
+make data         # GA4 (BigQuery if GOOGLE_APPLICATION_CREDENTIALS is set, else synthetic), OMOP synthetic, atlas catalogue
+make serve        # http://localhost:8000/api/health
+make test         # pytest
+make snapshot     # writes app/public/data/snapshot/*.json so the static site works without the API
+```
+
+The API is not hosted by GitHub Pages. Build `api/Dockerfile` and run it anywhere (Fly, Render, Cloud Run, a VM), set `API_CORS_ORIGINS` to the Pages origin, and put the URL in `app/src/environments/environment.production.ts`. Until then the deployed app reads the committed JSON snapshots and shows an "API offline" badge.
+
+## Deploy
+
+`.github/workflows/pages.yml` builds `app/`, copies the root static files plus `app/dist` into `_site/app/`, and deploys with `actions/deploy-pages`. In the repository settings, set **Pages → Source** to **GitHub Actions**. Deep links such as `/app/atlas` are handled by the redirect in `404.html`.
+
+## Credits
+
+MorphCharts © Microsoft (MIT). Anatomy data: BodyParts3D © The Database Center for Life Science, CC BY 4.0, packaged by ashemag/human-atlas (MIT). GA4 sample: Google Merchandise Store public dataset. Report design inspired by OHDSI Ares (Apache-2.0).
