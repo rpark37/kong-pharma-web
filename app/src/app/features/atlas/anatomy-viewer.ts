@@ -9,6 +9,13 @@ import * as T from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { acceleratedRaycast, computeBoundsTree, disposeBoundsTree } from 'three-mesh-bvh';
+
+// Picking walks a BVH per structure instead of every triangle (2.3M across the body). The tree is
+// built the first time a structure is a pick candidate, so load time is unchanged.
+T.BufferGeometry.prototype.computeBoundsTree = computeBoundsTree;
+T.BufferGeometry.prototype.disposeBoundsTree = disposeBoundsTree;
+T.Mesh.prototype.raycast = acceleratedRaycast;
 import { EASE, MOTION } from '../../shared/animation/motion';
 import { SYSTEMS, type ChunkInfo, type Part, type SystemId, type View } from './anatomy';
 import { createExplosionLayout } from './explosion-layout';
@@ -87,7 +94,8 @@ export class AnatomyViewer {
   private readonly hover: HTMLDivElement;
   private targets: Target[] = [];
   private readonly projected = new T.Vector3();
-  private readonly raycaster = new T.Raycaster();
+  /** Nearest hit is all a pick needs; with `firstHitOnly` the BVH stops at the first triangle it proves closest. */
+  private readonly raycaster = Object.assign(new T.Raycaster(), { firstHitOnly: true });
   private readonly pointer = new T.Vector2();
   private readonly tap = new PointerTap();
   private readonly worldBox = new T.Box3();
@@ -195,7 +203,7 @@ export class AnatomyViewer {
     this.cameraTween?.kill();
     this.observer?.disconnect();
     this.controls?.dispose();
-    this.geometries.forEach((g) => g.dispose());
+    this.geometries.forEach((g) => { g.disposeBoundsTree(); g.dispose(); });
     this.materials.forEach((m) => m.dispose());
     this.scene.traverse((o) => { if (o instanceof T.Mesh && !this.geometries.includes(o.geometry)) { o.geometry.dispose(); const ms = Array.isArray(o.material) ? o.material : [o.material]; ms.forEach((m) => m.dispose()); } });
     this.env?.dispose();
@@ -335,6 +343,7 @@ export class AnatomyViewer {
       if (!mesh || data[i * 4 + 3] < 0.5 || (hasSolid && this.parts[i].system === 'integumentary')) return;
       this.worldBox.copy(this.bounds[i]).translate(mesh.position);
       if (!this.raycaster.ray.intersectBox(this.worldBox, this.hitPoint)) return;
+      if (!mesh.geometry.boundsTree) mesh.geometry.computeBoundsTree();
       const hits = this.raycaster.intersectObject(mesh, false);
       if (hits[0] && hits[0].distance < nearest) { nearest = hits[0].distance; found = i; }
     });
