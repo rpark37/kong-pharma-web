@@ -2,25 +2,6 @@
 node_modules/
 .superpowers/
 
-# Angular app
-app/node_modules/
-app/dist/
-app/.angular/
-app/vendor/morphcharts/**/dist/
-app/test-results/
-app/playwright-report/
-.playwright-mcp/
-*.tsbuildinfo
-
-# API
-api/.venv/
-api/data/**/*.parquet
-__pycache__/
-.pytest_cache/
-.ruff_cache/
-api/data/atlas/atlas.json
-api/data/ga4/SOURCE
-
 # Agent skills installed by `npx skills add` — local tooling, not part of the site.
 # Re-create with the same command rather than vendoring 4MB of third-party skills.
 .agents/

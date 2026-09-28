@@ -1,1 +1,0 @@
-{"persons":5000,"records":340384,"records_by_domain":{"condition":59478,"drug":88451,"visit":74351,"measurement":118104},"checks":103,"checks_failed":8,"quality_pct":92.23300970873787,"period_start":"2015-01-01","period_end":"2024-12-31","source":"synthetic OMOP-like sample (seed 42)"}

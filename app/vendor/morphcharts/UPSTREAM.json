@@ -1,7 +1,0 @@
-{
-  "repository": "https://github.com/microsoft/morphcharts.git",
-  "commit": "508deab66bb7e2dffe7f7cfc45ee6a06c4b6d8e9",
-  "vendoredAt": "2026-09-17T23:35:42Z",
-  "license": "MIT",
-  "paths": ["core", "spec", "renderers/webgpuraytrace", "client/wwwroot/public/samples", "client/wwwroot/public/data"]
-}
